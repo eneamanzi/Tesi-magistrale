@@ -1,0 +1,22 @@
+{
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "Compila (LuaLaTeX)",
+            "tools": ["latexmk-lua"]
+        }
+    ],
+
+    "latex-workshop.latex.tools": [
+        {
+            "name": "latexmk-lua",
+            "command": "latexmk",
+            "args": [
+                "-synctex=1", 
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-pdflua", 
+                "%DOC%"
+            ]
+        }
+    ]
+}

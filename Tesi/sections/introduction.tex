@@ -1,0 +1,86 @@
+\chapter{Introduzione}
+%%%%CONTENUTI%%%%
+% - def problema 
+% - motivazione/gaps: i problemi riscontrato in letteratura, i "buchi"
+% - tesi/domanda/obbiettivo: elenco numerato Objectives, %O1, O2 \\
+% - organizzazione tesi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{Def. problema}
+%Il problema generale è quello di adottare assurance basata su contratti formali utilizzando una forma trasparente di monitoring.
+%QUESTO \'E IL TOPIC GENERALE DI LAVORO
+
+L'evoluzione delle tecnologie negli ultimi decenni, a causa dei limiti delle singole macchine, ha spinto il passaggio da architetture monolitiche e centralizzate ad architetture distribuite, caratterizzate dalla presenza di nodi interconnessi, fondate su microservizi che garantiscano funzionalità e prestazioni richieste.
+Data la complessità di questi nuovi standard architetturali, sorge spontanea la necessità di un adeguatamente complesso sistema di monitoring atto a collezionare \textit{evidence} dai vari nodi, con lo scopo di stabilirne lo stato di salute e valutarne il comportamento rispetto determinate proprietà. Si passa quindi da sistemi di monitoring completamente centralizzati a sistemi distribuiti, che permettono l'esecuzione di metriche per la raccolta di prove sui vari nodi della rete. \\
+Per soddisfare le esigenze di controlli sempre più completi sui sistemi e sul loro stato sono state introdotte le \glspl{PNF}, si tratta di proprietà che definiscono come il sistema svolge le sue funzionalità operative.
+\'E qui che entrano in gioco le tecniche di \textit{Assurance}, il cui scopo è garantire il soddisfacimento di determinate \gls{PNF}.
+Si tratta di tecniche che partono dalla raccolta di evidence tramite metriche e le sottopongono ad una valutazione tramite contratti formali, i quali consentono di verificare se le \gls{PNF} vengono soddisfatte.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Gaps nella ricerca} %oppure "Limiti nella Letteratura" oppure "Gap nella ricerca"
+%GAPS sono "critiche" alle soluzioni attualmente disponibili, per qualcosa che manca (es la generalizzabilità, il concentrarsi solo sulle performance e non su altre NFP)
+
+Le soluzioni attualmente disponibili per effettuare verifiche di assurance tramite contratti, sebbene avanzate, presentano ancora alcune lacune che, se colmate, renderebbero il sistema più completo, versatile ed efficace. Tra queste mancanze si possono evidenziare alcuni \textit{gaps}: 
+
+\paragraph{G\textsubscript{1} Generalizzabilità}\label{g1: generalizzabilità}
+I sistemi di assurance attualmente in uso tendono a essere specifici per certi contesti o domini applicativi, limitando la loro applicabilità a scenari più ampi. 
+La mancanza di un framework generalizzabile ostacola l'adozione di queste soluzioni in ambienti diversi, come quelli dinamici o su larga scala. 
+Un sistema di assurance dovrebbe essere in grado di adattarsi flessibilmente a vari contesti mantenendo però elevati livelli di precisione ed efficienza. 
+Questo gap evidenzia la necessità di creare un framework che si integri con strumenti di monitoring senza compromettere le prestazioni o l'affidabilità complessiva del sistema.
+
+\paragraph{G\textsubscript{2} Valutazioni performance}\label{g2: performance e PNF}
+%Concentrarsi solo sulle performance e non su altre NFP
+Molte delle soluzioni esistenti concentrano i loro sforzi esclusivamente sulle proprietà legate alle performance, come ad esempio latenza, \textit{throughput} e utilizzo delle risorse, trascurando altre \gls{PNF} altrettanto importanti, come la scalabilità, l'affidabilità o la disponibilità. 
+Questo focus ristretto limita la capacità del sistema di fornire un quadro completo sul target. 
+Occorre quindi sviluppare contratti che tengano conto di un insieme più ampio di proprietà, permettendo di verificare non solo le performance, ma anche altre \gls{PNF} chiave del sistema.
+
+\paragraph{G\textsubscript{3} Regole Avanzate per Contratti}\label{g3: contratti avanzati}
+% Filippo: Sono la possibilità di specificare \emph{contratti basati su regole avanzate
+I sistemi attuali sono pressoché incapaci di supportare contratti complessi basati su regole avanzate per svolgere verifiche di assurance.
+I contratti utilizzati tendono a essere troppo semplici o rigidi per adattarsi efficacemente a situazioni variabili o scenari complessi, come quelli presenti in ambienti distribuiti o dinamici. La mancanza di una tale possibilità impedisce una valutazione accurata e adattiva delle \gls{PNF} del sistema.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Obbiettivi}
+%Gli obiettivi sono le azioni concrete intraprese nella tesi per risolvere il problema.
+%OBBIETTIVO DA FILIPPO: realizzazione di un sistema generico e altamente scalabile in grado di raccogliere dati da più fonti e di effettuare valutazioni
+La tesi si articola attorno a una serie di obiettivi di ricerca atti a migliorare il sistema di assurance attualmente in sviluppo, che possono essere riassunti come segue:
+
+\paragraph{O\textsubscript{1} Estensione \textit{Assurance Engine}}\label{o1: estensione ae}
+Estensione di un framework di monitoring generico e altamente scalabile per sistemi distribuiti basato su verifiche di assurance tramite contratti.
+Si vuole integrare il sistema attualmente disponibile con un nuovo applicativo di monitoring, lo stack di Elasticsearch, permettendo il salvataggio di dati di monitoring e la ricerca tramite query.
+Il sistema integrato sarà in grado di raccogliere dati da fonti diverse tramite metriche e utilizzarli per valutare la conformità a contratti definiti formalmente,  per la valutazione di \gls{PNF}.
+Per effettuare queste valutazioni, vengono estratti dati da Elasticsearch o da altre sorgenti sotto forma di \textit{measurements}, utilizzandoli come \textit{evidence} o prove nella valutazione dei contratti definiti.
+%%%Per effettuare queste valutazioni, vengono estratte le metriche da Elasticsearch o da altre sorgenti di dati, utilizzandole come evidence o prove nella valutazione dei contratti definiti.
+
+
+\paragraph{O\textsubscript{2} Implementazione Contratti}\label{o2: contratti}
+I contratti definiscono le modalità per verificare la correttezza delle proprietà \gls{PNF} in questione e sono strutturati come regole applicabili a serie temporali di misurazioni.
+La validazione di un contratto avviene quando le \textit{measurements},  raccolte tramite metriche e utilizzate come prove, confermano che le regole stabilite sono rispettate, garantendo così  determinate proprietà del sistema.
+Si vogliono implementare contratti complessi per eseguire valutazioni approfondite sui dati raccolti.
+
+\paragraph{O\textsubscript{3} Valutazione Sperimentale Performance}\label{o3: valutazione sperimentale}
+La valutazione sperimentale del nostro sistema per verifiche di assurance per sistemi distribuiti è stata condotta in un ambiente di test circoscritto, utilizzando il cluster Kubernetes del laboratorio. L'obiettivo è stato quello di analizzare e valutare le performance operative del sistema.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Organizzazione della tesi}
+La tesi è suddivisa nei seguenti capitoli:
+
+Nel \textbf{Capitolo \ref{background}}, viene introdotto il contesto teorico dei sistemi distribuiti, con un focus particolare sull'evoluzione dalle architetture monolitiche a quelle basate su microservizi, l'uso di tecnologie di virtualizzazione e containerizzazione, e infine l'Edge Cloud Continuum come possibile scenario da monitorare. 
+Viene introdotto anche il concetto di \gls{PNF} come un aspetto da verificare all'interno di un sistema distribuito.
+Si approfondiscono infine i concetti di monitoraggio nei sistemi distribuiti tramite tecniche di \textit{Assurance} e \textit{Certification}, con particolare attenzione alla metodologia adottata.
+
+Nel \textbf{Capitolo \ref{implementazione}}, viene descritto nel dettaglio il processo di implementazione della soluzione di monitoraggio proposta.
+Si propone una descrizione iniziale sul cluster kubernetes utilizzato per il deployment così da favorirne la replicabilità.
+Successivamente viene illustrato il deployment e il funzionamento dello stack di Elasticsearch e delle sue componenti all'interno del cluster.
+Infine, viene introdotto l'\textit{Assurance Engine}, il componente sviluppato il cui obbiettivo è quello di valutare proprietà non funzionali utilizzando metriche e contratti; è possibile interagire con il sistema tramite le \gls{API} esposte. Viene descritto il motivo della sua realizzazione e i vantaggi che offre, il funzionamento del sistema e degli esempi di esecuzione.
+
+Nel \textbf{Capitolo \ref{esperimenti}}, vengono illustrati gli esperimenti condotti per testare la soluzione implementata.
+Vengono eseguiti 2 benchmark, il primo basato su query nel linguaggio di Elasticsearch e il secondo basato su query SQL;\@ per ciascuno vengono valutate le performance di esecuzione di metriche e contratti.
+I risultati dei benchmark vengono poi commentati e riportati tramite diagrammi e tabelle.
+
+Nel \textbf{Capitolo \ref{discussione}}, vengono analizzati e discussi i risultati ottenuti durante la fase sperimentale cercando di spiegare alcuni picchi di latenza ottenuti nelle misurazioni e le differenze temporali tra \texttt{measure()} ed \texttt{evaluate()}. Il dettaglio si pone sulla spiegazione delle statistiche e delle oscillazioni ottenute.
+
+Nel \textbf{Capitolo \ref{conclusione}}, si traggono le conclusioni finali della tesi, sintetizzando i risultati raggiunti e valutando come questi rispondano alle sfide identificate inizialmente. 
+Si propongono inoltre possibili direzioni di sviluppo futuro, con focus su scalabilità, nuove integrazioni e applicazioni in ambienti reali.

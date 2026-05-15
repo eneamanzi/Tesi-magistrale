@@ -1,0 +1,68 @@
+name: Build All LaTeX Documents
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'Presentazione/**' 
+      - 'Riassunto/**'     
+      - 'Tesi/**'          
+      - '.github/**'       
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 'Checkout repository' 
+      uses: actions/checkout@v4
+
+    # --- 1. COMPILAZIONE PRESENTAZIONE ---
+    - name: 'Compile 1 - Presentazione (Slides)' 
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: Presentazione
+        root_file: main.tex
+        args: -pdflua -interaction=nonstopmode -jobname=Presentazione
+
+    # --- 2. COMPILAZIONE RIASSUNTO ---
+    - name: 'Compile 2 - Riassunto' 
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: Riassunto
+        root_file: main.tex
+        args: -pdflua -interaction=nonstopmode -jobname=Riassunto
+
+    # --- 3. COMPILAZIONE TESI ---
+    - name: 'Compile 3 - Tesi' 
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: Tesi
+        root_file: main.tex
+        args: -pdflua -interaction=nonstopmode -jobname=Tesi
+
+    # --- 4. COMMIT E PUSH DEI RISULTATI ---
+    - name: 'Commit and push compiled PDFs' 
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        git add Presentazione/Presentazione.pdf Riassunto/Riassunto.pdf Tesi/Tesi.pdf
+        
+        git diff --staged --quiet || git commit -m "Auto-update all compiled PDFs [skip ci]"
+        git push
+    
+    # --- 5. UPLOAD ARTIFACTS (Backup) ---
+    - name: 'Upload all PDFs as artifacts' 
+      uses: actions/upload-artifact@v4
+      with:
+        name: All-Documents-PDF
+        path: |
+          Presentazione/*.pdf
+          Riassunto/*.pdf
+          Tesi/*.pdf

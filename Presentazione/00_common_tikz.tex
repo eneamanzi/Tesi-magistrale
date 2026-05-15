@@ -1,0 +1,148 @@
+\newcommand{\highlightprofilecolor}{LightGoldenRod!100}
+
+\tikzset{
+	entity/.style={
+			draw,
+			ellipse,
+			very thin
+		},
+	artifact/.style={
+			rectangle,
+			draw,
+			rounded corners,
+			fill=VeryLightGrey!50
+		},
+	service/.style={
+			chamfered rectangle,
+			chamfered rectangle angle=30,
+			draw,
+			%fill=VeryLightGrey!120
+		},
+	every node/.style={
+			font={\scriptsize},
+			text centered,
+		},
+	on link/.style={
+			fill=white,
+		},
+	connector/.style={
+			>=stealth,
+		},
+	connector assurance/.style={
+			>=Stealth,
+			dashed
+		},
+	on slide/.code args={<#1>#2}{%
+			\only<#1>{\pgfkeysalso{#2}}%
+		},
+	highlight base/.style={
+			very thick
+		},
+	highlight/.style={
+			highlight base,
+			fill=LightGoldenRod,
+		},
+	highlight profile/.style={
+			\highlightprofilecolor
+		},
+	highlight double/.style={
+			double=LightGoldenRod
+		},
+	highlight text/.style={
+			text=Goldenrod,
+		},
+	highlight link/.style={
+			%thick,
+			color=Goldenrod
+		},
+	highlight light/.style={
+			fill=LightGoldenRod!50
+		},
+	highlight very light/.style={
+			fill=LightGoldenRod!20
+		},
+	element/.style={
+			inner sep=1.5pt,
+			font=\footnotesize
+		},
+	connector/.style={
+			>=Stealth,
+		},
+	lattice layer label/.style={
+			text width=2.9cm,
+			font={\footnotesize},
+		},
+	not chosen color/.style={
+			black!50
+		},
+	lattice layer separator/.style={
+			dashed,
+		},
+	service label/.style={
+			fill=white,
+			circle,
+			draw,
+			very thick,
+			inner sep=2.5pt,
+		},
+	lattice element bound/.style={
+			fill=black!15,
+			double
+		},
+	lattice element selected/.style={
+			fill=Goldenrod!15,
+			double
+		},
+	lattice element not chosen/.style={
+			not chosen color,
+			densely dotted
+		},
+	lattice element not chosen link/.style={
+			not chosen color,
+			densely dotted
+		},
+	service element not chosen/.style={
+			text=black!50,
+			draw=black!50,
+			dashed,
+		},
+	header/.style={
+		},
+	main box/.style={
+			font={\small}
+		},
+	link/.style={
+			>=Latex,
+		},
+	activity/.style={
+			fill=white
+		},
+	% for cert history
+	arrow/.style={
+			draw,
+			minimum height=1cm,
+			inner sep=2pt,
+			shape=signal,
+			signal from=west,
+			signal to=east,
+			signal pointer angle=110,
+			top color=DarkBlue,
+			bottom color=DarkBlue,
+			text=White,
+			text width=.24\textwidth,
+			font = {\small}
+		},
+	desc/.style={
+			%text width=3.9cm,
+			text width=.22\textwidth,
+			fill=VeryLightGrey,
+			%minimum height=1cm,
+			%anchor=south
+			% text depth=1cm,
+			rectangle,
+			font = {\footnotesize}
+		},
+	link comment/.style={
+			dashed
+		}
+}

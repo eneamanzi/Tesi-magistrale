@@ -1,0 +1,89 @@
+% !TEX root = riassunto.tex
+\documentclass{scrartcl}
+\usepackage{fontspec} % Enable full UTF-8 support
+\usepackage{indentfirst}
+
+\KOMAoptions{
+	% DIV=20,
+	paper=a4,
+	fontsize=11pt,
+	%TODO: rimettere a true
+	twoside=false,
+	%decide se lasciare spazio in vertiale o in orizzontale nei paragrafi, in questo modo indenta la prima riga
+	parskip=false,
+	bibliography=totoc,
+	listof=totoc,
+	listof=entryprefix,
+	titlepage=false,
+	captions=tableabove,
+	headings=standardclasses,
+	% draft=true
+}
+\addtokomafont{title}{\normalfont\rmfamily}
+\addtokomafont{subject}{\normalfont\rmfamily}
+
+\PassOptionsToPackage{hyphens}{url}
+\usepackage[a-3b,pdf17]{pdfx}
+\hypersetup{hidelinks}
+
+\begin{document}
+
+%% TITOLO 
+\title{\LARGE\textbf{\uppercase{Design e sviluppo di una soluzione per la valutazione di sistemi distribuiti}}}
+\author{
+	\begin{tabular}{@{}c@{}}
+		Enea Manzi (matricola: 987326)
+	\end{tabular}
+	\\\\\vspace{1em}
+	\begin{tabular}{@{}l@{}c@{}r@{}}
+		Relatore & \hspace{10em} & Correlatore \\
+		Prof.~Marco Anisetti & \hspace{10em} & Dr.~Filippo Berto \\
+	\end{tabular}
+}
+% TODO: ci va la data?
+\date{}
+%\date{Fine Stage: 20/08/2024}
+\maketitle
+
+%%%%CONTENUTI%%%%
+%\begin{itemize}
+%  \item contesto
+%  \item challenge/motivazioni
+%  \item aspetti ricercati/lavoro svolto
+%  \item risultati ottenuti
+%\end{itemize}
+
+%parte di contesto
+La necessità di disporre di sistemi sempre più performanti, per soddisfare le moderne ed elevate esigenze computazionali, ha visto nei sistemi centralizzati una grossa limitazione, in quanto impossibilitati fisicamente alla verticalizzazione data la mancanza di processori così prestanti. 
+Viene introdotto il concetto di distribuzione della potenza di calcolo, con il conseguente avvento dell'era del \textit{cloud computing} caratterizzata da sistemi decentralizzati, distribuiti e basati su microservizi.
+Data la complessità introdotta da tali sistemi vengono richiesti strumenti di monitoraggio avanzati, in grado di raccogliere informazioni da diverse sorgenti e di consentire la verifica di proprietà non funzionali (come affidabilità, scalabilità e prestazioni), con lo scopo di valutare il comportamento complessivo del sistema. 
+
+%parte di challenge e motivi
+Le soluzioni esistenti, di fatto, si concentrano prevalentemente su aspetti di performance, peccando di un approccio olistico che valuti continuativamente il comportamento complessivo del sistema distribuito. 
+Ulteriori limitazioni ricadono nella specifica di contratti troppo rigidi e semplici per le complesse infrastruttura da analizzare e nella mancanza di un \textit{framework} centrale (generalizzabile) che permetta di interfacciarsi con i diversi sistemi di monitoring presenti in vari contesti, mantenendo precisione, affidabilità ed efficienza.
+
+
+%aspetti ricercati/lavoro svolto
+La tesi si propone quindi di colmare queste lacune attraverso lo sviluppo di un \textit{sistema di assurance} che consenta una valutazione continuativa, più ampia e approfondita di Proprietà Non Funzionali in un contesto distribuito tramite contratti formali. 
+La tesi si concentra sull'integrare Elasticsearch e le relative funzionalità nell'\textit{Assurance Engine}, un sistema di monitoraggio distribuito e scalabile, permettendo la raccolta di dati dai nodi distribuiti. Si concentra inoltre sull'implementazione di contratti complessi che formalizzano le regole per verificare la correttezza delle Proprietà Non Funzionali del sistema, garantendo una valutazione accurata e flessibile.
+
+% Articolazione Lavoro
+% parte di aspetti ricercati/lavoro svolto
+Il lavoro si può articolare come segue:
+\begin{enumerate}
+	%Background
+	\item \textbf{Sistemi distribuiti e metodologie di \textit{Assurance} e \textit{Certification}.} Per comprendere i principi e le componenti della metodologia, è stata svolta un'analisi preliminare dell'ambiente di interesse, i sistemi distribuiti, e della metodologia innovativa di \textit{Assurance} e \textit{Certification} adottata in questa tesi. In particolare ci si è soffermati sulle proprietà non funzionali e sulla loro verifica.
+	%Implementazione
+	\item \textbf{Realizzazione di contratti su Elasticsearch.} Il punto di partenza è \textit{Assurance-engine}, un framework di assurance sviluppato in Rust in fase di realizzazione, esteso per integrare Elasticsearch come servizio aggiuntivo di monitoring interfacciabile. \'E possibile quindi eseguire metriche contro i dati custoditi in Elasticsearch e valutare le \textit{evidence}, o prove, ottenute tramite contratti formali generati appositamente. Le funzionalità vengono rese disponibili tramite API rest esposte dall'engine.
+	%Esperimenti+Discussione.
+	\item \textbf{Valutazione di un caso di studio sulla metodologia adottata.} Vengono testate le performance esecutive del framework utilizzando Elasticsearch come backend in uno scenario sperimentale e controllato. I risultati dimostrano l'efficienza e il minimo overhead introdotto dal sistema per svolgere verifiche di \textit{assurance}.
+\end{enumerate}
+
+% risultati
+I risultati ottenuti dimostrano che il sistema sviluppato, integrato con Elasticsearch, è in grado di valutare efficacemente le proprietà (non funzionali) di infrastrutture distribuite, garantendo prestazioni elevate e mantenendo un basso impatto sulle risorse computazionali. 
+La tesi contribuisce quindi allo sviluppo di una soluzione modulare e generalizzabile per il monitoraggio e la valutazione continua di proprietà non funzionali in sistemi distribuiti complessi.
+
+Il lavoro svolto lascia spazio ad alcuni possibili sviluppi futuri. In primo luogo, è possibile integrare l'Assurance Engine con nuovi strumenti di monitoring. Successivamente, lo sviluppo di contratti e probe avanzate per verifiche complesse sui sistemi. Infine, la verifica dell'engine in un contesto reale per valutarne performance e scalabilità tramite repliche.
+
+
+\end{document}

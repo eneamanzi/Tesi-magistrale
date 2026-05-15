@@ -1,0 +1,229 @@
+% !TEX root = main.tex
+\documentclass{scrbook}
+\usepackage{fontspec} % Enable full UTF-8 support
+% \KOMAoption{DIV}{20}
+\usepackage[italian]{babel}
+
+% KOMA
+%\usepackage{scrhack}
+\KOMAoptions{
+	% DIV=20,
+	paper=a4,
+	fontsize=11pt,
+	%TODO: rimettere a true
+	twoside=false,
+	headings=openright,
+	parskip=full,
+	chapterprefix=true,
+	bibliography=totoc,
+	listof=totoc,
+	listof=entryprefix,
+	titlepage=firstiscover,
+	captions=tableabove,
+	headings=standardclasses,
+	% draft=true
+}
+\addtokomafont{title}{\normalfont\rmfamily}
+\addtokomafont{subject}{\normalfont\rmfamily}
+% \setkomafont{author}{\normalsize}
+% \addtokomafont{disposition}{\rmfamily}
+% \addtokomafont{disposition}{\normalfont}
+\RedeclareSectionCommands[beforeskip=1em]{paragraph,subparagraph,subsection}
+\renewcommand*{\coverpageleftmargin}{5em} % cover page margins
+\renewcommand*{\coverpagerightmargin}{5em} % cover page margins
+
+\PassOptionsToPackage{hyphens}{url}
+\usepackage[a-3b,pdf17]{pdfx}
+\hypersetup{hidelinks}
+
+\usepackage{mathtools,amsthm,amsfonts,mathabx,pifont}
+\usepackage{cite,usebib}
+
+% % BIB REFERENCE
+% \newbibfield{title}
+% \newbibfield{author}
+% \newbibfield{journal}
+% \newbibfield{booktitle}
+% \newbibfield{pages}
+% \newbibfield{abstract}
+% \bibinput{biblio}
+
+% % BLIND TEXT
+% \usepackage{blindtext}
+
+% GLOSSARIES
+\usepackage[acronym,automake,toc]{glossaries}
+\usepackage{glossary-mcols}
+\loadglsentries{glossary}
+%\makenoidxglossaries{}
+\makeglossaries{}
+
+% PSEUDOCODE
+\usepackage{algorithm} % Used for algorithm blocks
+\usepackage[noend]{algpseudocode} % For pseudocode
+\algnewcommand{\AlgLineComment}[1]{\State{} \(\triangleright\) #1}
+\algnewcommand{\AlgForIn}[2]{\For{#1\textbf{ in }#2}}
+\algnewcommand{\AlgFalse}[1]{\textbf{false}}
+\algnewcommand{\AlgTrue}[1]{\textbf{true}}
+
+% LISTINGS
+\usepackage{listings}
+\renewcommand{\lstlistlistingname}{Elenco dei codici}
+\renewcommand{\lstlistingname}{Codice}
+
+%\usepackage{minted}
+
+% STYLE YAML in folder style
+\usepackage{style/yaml}
+
+% STYLE RUST in folder style
+\usepackage{style/rust}
+
+% STYLE JSON in folder style
+\usepackage{style/json}
+
+
+% CUSTOM COMMANDS
+\usepackage{soul}
+\DeclareRobustCommand{\hlmarco}[1]{{\sethlcolor{cyan}\hl{Marco: #1}}}
+\DeclareRobustCommand{\hlclaudio}[1]{{\sethlcolor{orange}\hl{Ruslan: #1}}}
+\DeclareRobustCommand{\hlfilippo}[1]{{\sethlcolor{green}\hl{Filippo: #1}}}
+
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\newcommand{\angled}[1]{\ensuremath{\langle #1\rangle}}
+\newcommand{\bigangled}[1]{\ensuremath{\big\langle #1 \big\rangle}}
+\newcommand{\bigsquared}[1]{\ensuremath{\big[ #1 \big]}}
+\newcommand{\tuple}[1]{\ensuremath{(#1)}}
+\newcommand{\interval}[2]{\ensuremath{[#1,#2]}}
+
+% CONSTANTS
+% \usepackage{constants}
+% \newconstantfamily{gaps}{symbol=G}
+% \newconstantfamily{functionality}{symbol=f}
+% \newconstantfamily{requirement}{symbol=r}
+% \newconstantfamily{capability}{symbol=c}
+% \newconstantfamily{property}{symbol=p}
+% \newconstantfamily{property_category}{symbol={t}}
+
+% TABLES
+\usepackage{array}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\usepackage{tabularx,xltabular,makecell,adjustbox,booktabs,multirow}
+
+% FIGURES
+% \usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{subcaption}
+
+% DIRECTORY TREE
+\usepackage{dirtree}
+
+% Inline enumeration
+\usepackage[inline]{enumitem}
+\newlist{inlineenum}{enumerate*}{1}
+\setlist[inlineenum]{label=\roman*)} % chktex 9 chktex 10
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{exmp}{Esempio}[section]
+
+%\includeonly{
+%sections/introduction.tex,
+%sections/background.tex,
+%sections/implementation.tex,
+%%%sections/experiments.tex,
+%%sections/discussion.tex,
+%sections/conclusions.tex,
+%}
+
+\begin{document}
+%listings json
+\definecolor{delim}{RGB}{20,105,176}
+\definecolor{numb}{RGB}{106, 109, 32}
+\definecolor{string}{rgb}{0.64,0.08,0.08}
+
+\subject{
+	\uppercase{\huge Università degli Studi di Milano} \\
+	\uppercase{\large Facoltà di scienze e tecnologie}
+	\vspace{1em}\\
+	\uppercase{\large Dipartimento di Informatica }\\
+	\uppercase{\large ``Giovanni Degli Antoni''}
+	\vspace{1em}\\
+	\includegraphics[width=7em]{images/unimi.pdf}
+	\vspace{1em}\\
+	\uppercase{\large Laurea Triennale in} \\
+	\uppercase{\large Sicurezza dei sistemi e delle reti informatiche} \\
+}
+
+\title{\LARGE\uppercase{Design e sviluppo di una soluzione \\per la valutazione di sistemi distribuiti}}
+\author{
+	\begin{tabular}{@{}r@{}rr@{}}
+		\hspace{10em} & Autore:    & Enea Manzi \\
+		\hspace{10em} & Matricola: & 987326
+	\end{tabular}
+	\\\\\vspace{1em}
+	\begin{tabular}{@{}ll@{}r@{}}
+		Relatore:    & Prof.~Marco Anisetti & \hspace{10em} \\
+		Correlatore: & Dr.~Filippo Berto    &               \\
+	\end{tabular}
+}
+
+
+% \publishers{Università degli Studi di Milano}
+% \uppertitleback{\vspace{3cm}I want to thank Scrooge MacDuck for his financial Support}
+\date{A.A. 2023-2024}
+
+\frontmatter
+\maketitle
+
+\thispagestyle{empty}
+\mbox{}
+\clearpage
+\setcounter{page}{1}
+
+\include{sections/abstract.tex}
+\addcontentsline{toc}{chapter}{Abstract}
+\include{sections/acknowledgement.tex}
+\addcontentsline{toc}{chapter}{Ringraziamenti}
+
+% print index with chapter, section and subsection
+\tableofcontents
+
+% print Figure index
+\listoffigures
+% print tables index
+\listoftables
+% print code index
+\lstlistoflistings
+
+\mainmatter{}
+\include{sections/introduction.tex}
+\include{sections/background.tex}
+\include{sections/implementation.tex}
+\include{sections/experiments.tex}
+\include{sections/discussion.tex}
+\include{sections/conclusions.tex}
+
+
+% \appendix
+% \include{sections/appendix.tex}
+
+\backmatter{}
+%\printnoidxglossary
+\printglossary[
+	type=acronym,
+	style=mcolindex,
+	nonumberlist
+]
+%\addcontentsline{toc}{chapter}{Acronimi}
+
+% BIBLIOGRAPHY
+\bibliographystyle{IEEEtran}
+\bibliography{biblio}
+
+\end{document}

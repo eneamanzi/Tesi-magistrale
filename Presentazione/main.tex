@@ -1,0 +1,109 @@
+% manuale beamer http://www.ctan.org/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf
+% **************************************************************
+% Hi! Edit this file for your presentation!
+% **************************************************************
+
+% ==================///==================///==================///
+% ==================/// LATEX'S STUFF
+% ==================///==================///==================///
+% !TEX root = main.tex
+\documentclass[aspectratio={169}]{beamer}
+\usepackage{amsfonts,amsmath,oldgerm}
+\usetheme{_statale}
+\usefonttheme[onlymath]{serif}
+
+\newcommand{\testcolor}[1]{\colorbox{#1}{\textcolor{#1}{test}}~\texttt{#1}}
+\newcommand{\hrefcol}[2]{\textcolor{cyan}{\href{#1}{#2}}}
+\titlebackground*{assets/background}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, backgrounds, calc, chains, fit, graphs, graphdrawing, graphdrawing.layered, intersections, positioning, shadings, shapes, shapes.geometric, shapes.misc}
+
+\tikzset{%
+	base/.style = {
+			% minimum width=1cm,
+			% minimum height=1cm,
+			text centered,
+			% font=\sffamily,
+			inner sep=0.5em,
+		},
+	boxes/.style = {
+			base,
+			draw=black,
+			rectangle,
+		},
+	rboxes/.style = {
+			boxes,
+			rounded corners
+		},
+	arrow_label/.style = {
+			base,
+			midway,
+			% sloped,
+			fill=white, anchor=center,
+			inner sep=0.25em
+		}
+}
+
+% for appendix
+\usepackage{appendixnumberbeamer}
+
+% ==================///==================///==================///
+% ==================/// SPLASH PAGE
+% ==================///==================///==================///
+
+\title{Design e Sviluppo di una Soluzione per la Valutazione di Sistemi Distribuiti}
+\course{Laure Triennale in Sicurezza dei Sistemi e delle Reti Informatiche}
+\author{\href{mailto:enea.manzi@studenti.unimi.it}{Enea Manzi}}
+\IDnumber{987326}
+\date{
+	Relatore: Prof. Marco Anisetti\\
+	Correlatore: Dottor. Filippo Berto\\
+	22 Ottobre 2024}
+
+% ==================///==================///==================///
+% ==================/// START PRESENTATION
+% ==================///==================///==================///
+
+\begin{document}
+\input{00_common_tikz.tex}
+
+\maketitle
+
+\footlinecolor{maincolor}
+
+% ==================///==================///==================///
+% ==================/// BODY'S PRESENTATION
+% ==================///==================///==================///
+
+
+
+%\begin{frame}{Table of Contents}
+%	\tableofcontents
+%\end{frame}
+\input{sections/01_contesto}
+\input{sections/02_motivazioni}
+\input{sections/03_obbiettivi}
+\input{sections/04_PNF_metodologia}
+\input{sections/05_implementazione}
+\input{sections/06_conclusion}
+
+
+
+% ==================///==================///==================///
+% ==================/// END PRESENTATION
+% ==================///==================///==================///
+
+\backmatter
+
+\thispagestyle{empty}
+\mbox{}
+\clearpage
+\setcounter{page}{1}
+
+\appendix
+\input{sections/99_figures}
+
+\end{document}
+
+
