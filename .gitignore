@@ -5,7 +5,9 @@
 textidote.html
 result*
 
-main.pdf
+Tesi/*.pdf
+Riassunto/*.pdf
+Presentazione/*.pdf
 
 *.bib.*
 
@@ -93,6 +95,8 @@ main.pdf
 ## Build tool directories for auxiliary files
 # latexrun
 latex.out/
+# latexmk aux_dir (configurato nei .latexmkrc di questo progetto)
+.temp/
 
 ## Auxiliary and intermediate files from other packages:
 # algorithms

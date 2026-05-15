@@ -1,3 +1,42 @@
+% !TEX root = main.tex
+% STILI TIKZ AVANZATI — disponibili in tutti i frame dopo \input{00_common_tikz.tex}
+%
+% ENTITÀ E STRUTTURE:
+%   entity          — ellisse sottile (nodi concettuali)
+%   artifact        — rettangolo arrotondato con sfondo grigio
+%   service         — rettangolo smussato a 30° (chamfered rectangle)
+%
+% EVIDENZIAZIONE (colore oro/LightGoldenRod):
+%   highlight       — bordo spesso oro con riempimento
+%   highlight profile — riempimento LightGoldenRod!100
+%   highlight double — doppio bordo oro
+%   highlight text  — testo Goldenrod
+%   highlight link  — link Goldenrod
+%   highlight light — riempimento 50%
+%   highlight very light — riempimento 20%
+%
+% CONNETTORI:
+%   connector       — frecce Stealth piene
+%   connector assurance — frecce Stealth tratteggiate
+%   link            — frecce Latex
+%   link comment    — linee tratteggiate
+%   on link         — nodo bianco su un path
+%
+% RETICOLO (per diagrammi lattice/Hasse):
+%   lattice layer label, lattice layer separator
+%   lattice element bound, lattice element selected
+%   lattice element not chosen, lattice element not chosen link
+%
+% FRECCE PERSONALIZZATE:
+%   arrow           — shape=signal DarkBlue/White (stile "pipeline")
+%   desc            — rettangolo VeryLightGrey con font piccolo
+%
+% OVERLAY CONDIZIONALE:
+%   on slide/.code args={<#1>#2} — mostra un nodo solo su una slide specifica
+%     es: \node[boxes, on slide=<2>{opacity=0}] {testo};
+%
+% MACRO:
+%   \highlightprofilecolor — colore corrente highlight (ridefinibile)
 \newcommand{\highlightprofilecolor}{LightGoldenRod!100}
 
 \tikzset{

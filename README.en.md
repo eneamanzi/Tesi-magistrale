@@ -1,83 +1,219 @@
 [![CC BY-NC-ND 4.0][cc-by-nc-nd-shield]][cc-by-nc-nd]
 
-[cc-by-nc-nd]: https://creativecommons.org/licenses/by-nc-nd/4.0/deed.it
+[cc-by-nc-nd]: https://creativecommons.org/licenses/by-nc-nd/4.0/
 [cc-by-nc-nd-shield]: https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg
 
 **English version** | [Versione italiana](README.md)
-# Bachelor's Degree Thesis: Design and Development of a Solution for the Evaluation of Distributed Systems
+# Master's Degree Thesis Template — Università degli Studi di Milano
 
-## Thesis Information
+LaTeX template for a master's degree thesis (and Beamer presentation) at the Department of Computer Science "Giovanni Degli Antoni", UniMI.
 
-This repository contains the LaTeX source files for the Bachelor's Degree thesis in **Computer Systems and Network Security** (Sicurezza dei sistemi e delle reti informatiche).
+Derived from the bachelor's thesis of Enea Manzi (A.Y. 2023-2024), supervisor Prof. Marco Anisetti.
 
-  * **Title:** Design and development of a solution for the evaluation of distributed systems
-  * **Author:** Enea Manzi (Matricola: 987326)
-  * **Degree Program:** Computer Systems and Network Security
-  * **University:** Università degli Studi di Milano
-  * **Supervisor:** Prof. Marco Anisetti
-  * **Co-Supervisor:** Dr. Filippo Berto
-  * **Academic Year:** A.Y. 2023-2024
+---
 
+## Structure
 
+```
+├── Tesi/               # Main document (scrbook, LuaLaTeX)
+│   ├── main.tex
+│   ├── glossary.tex    # Acronyms (\gls{}, \glspl{})
+│   ├── biblio.bib      # Bibliography (IEEE style)
+│   ├── sections/       # One file per chapter
+│   └── style/          # Syntax highlighting: yaml.sty, rust.sty, json.sty
+├── Presentazione/      # Beamer slides 16:9
+│   ├── main.tex
+│   ├── sections/       # One file per section
+│   ├── 00_common_tikz.tex   # Advanced TikZ styles
+│   └── chapters/special_slides.tex  # chapter and sidepic environments
+├── Riassunto/          # Short summary (scrartcl, ~1 page)
+│   └── main.tex
+└── .github/workflows/  # CI: compiles the 3 PDFs and publishes them to pdf-release
+```
 
-## Abstract
-
-Modern distributed architectures, characterized by **decentralization** and **microservice-based subdivision**, pose significant challenges in **evaluating system behavior**.
-Given the complexity introduced by these architectures, advanced monitoring systems are required that can check Non-Functional Properties (NFPs) to assess infrastructure behavior. Current solutions, while effective in performance evaluation, are limited when it comes to providing a **holistic and continuous evaluation** of such systems, based on checking *non-functional properties* through *formal and specific contracts*. There has therefore arisen a need for increasingly sophisticated monitoring systems that can collect information on multiple aspects of the system to ensure the satisfaction of specific properties.
-
-This thesis, by leveraging an innovative *assurance methodology*, aims to fill some gaps in the monitoring and evaluation of the now-common distributed infrastructures. The methodology is based on:
-i) a continuous and transparent collection of *evidence*, or proofs, that measure relevant system states, through **metrics** that query monitoring systems of the distributed nodes,
-ii) the formal verification of specific non-functional properties, based on the *evidence* collected with the metrics, through **contracts** that define the checks to be carried out.
-
-Based on this methodology, an **Elasticsearch** integration is proposed between the functionalities of the *Assurance Engine*, the monitoring and evaluation system currently under development, allowing the collection of data and the verification of specific and complex contracts. This work thus contributes to the development of a **flexible, efficient, and scalable modular system** for *Assurance checks* based on non-functional properties, regardless of the underlying infrastructure's complexity.
-
-The contributions of this thesis are:
-i) integration of the Assurance Engine with Elasticsearch, leveraging the adopted methodology,
-ii) expression of **complex contracts** to formally evaluate non-functional properties on a target,
-iii) an in-depth **experimental evaluation** of the performance and efficiency of the developed integration.
-
-The thesis shows a concrete implementation of the adopted methodology with the objective of building a single central, efficient, and reliable system for monitoring distributed systems, the *Assurance Engine*, minimizing the impact on computational resources. The results confirm that the system is able to provide efficient performance in collecting evidence through metrics and in evaluating contracts.
+---
 
 ## Compilation
 
-To compile the thesis, a LaTeX distribution must be installed (e.g., **TeX Live** or **MiKTeX**).
+Requires TeX Live with LuaLaTeX and latexmk. With VSCode: **LaTeX Workshop** extension with the `Compila (LuaLaTeX)` recipe.
 
-The main file is `Tesi/main.tex`.
+```bash
+cd Tesi/
+latexmk -pdflua main.tex
+```
 
-### Compilation Commands
-
-1.  **Navigate to the thesis directory:**
-
-    ```bash
-    cd Tesi/
-    ```
-
-2.  **Compile the document (using LuaLaTeX):**
-    As indicated in the build configuration, the compilation must be performed with the **LuaLaTeX** engine (`-pdflua` option).
-
-    ```bash
-    latexmk -pdflua main.tex
-    ```
-
-    *The final PDF file (`main.pdf` or `Tesi.pdf`) will be generated in the `Tesi/` folder.*
-
-### Cleaning Auxiliary Files
-
-To remove all auxiliary files generated by the compilation process (such as `.aux`, `.log`, `.bbl`, etc., which are directed to the `.temp` folder):
+Auxiliary files are written to `.temp/`. To clean:
 
 ```bash
 latexmk -c
 ```
 
+The PDF is configured in **PDF/A-3b** format (`\usepackage[a-3b,pdf17]{pdfx}` in `Tesi/main.tex`).
+
+---
+
+## Custom Commands and Environments
+
+### Tesi — defined in `Tesi/main.tex`
+
+#### Review highlights
+Highlight text with different colors to distinguish reviewer notes during writing. Remove before submission.
+
+```latex
+\hlA{text}   % cyan background
+\hlB{text}   % orange background
+\hlC{text}   % green background
+```
+
+To personalize with your reviewers' names, add aliases in the preamble of `Tesi/main.tex`:
+```latex
+\newcommand{\hlmarco}[1]{\hlA{Marco: #1}}
+\newcommand{\hlsupervisor}[1]{\hlB{Prof. Rossi: #1}}
+```
+
+#### Symbols
+```latex
+\cmark   % ✓  (from pifont)
+\xmark   % ✗  (from pifont)
+```
+
+#### Mathematical notation
+Shortcuts for the research group's notation.
+
+```latex
+\angled{x}          % ⟨x⟩
+\bigangled{x}       % big⟨x⟩
+\bigsquared{x}      % big[x]
+\tuple{x, y}        % (x, y)
+\interval{a}{b}     % [a, b]
+```
+
+#### Pseudocode
+Extensions of `algpseudocode` for the group's style.
+
+```latex
+\AlgLineComment{text}       % ▷ text  (inline comment)
+\AlgForIn{var}{iterable}    % for var in iterable
+\AlgFalse                   % false (bold)
+\AlgTrue                    % true  (bold)
+```
+
+#### Column types for tabularx
+```latex
+P{3cm}   % fixed-width raggedright p column
+C        % centered X column
+L        % raggedright X column
+R        % raggedleft X column
+```
+
+#### Environments
+```latex
+\begin{exmp}   % Formal example, numbered per section
+\begin{defn}   % Formal definition, numbered per section
+
+\begin{inlineenum}          % Inline enumeration in text
+    \item first \item second    % → "i) first ii) second"
+\end{inlineenum}
+```
+
+---
+
+### Presentazione — defined in `Presentazione/main.tex`
+
+```latex
+\testcolor{maincolor}           % colorbox to display/check a color
+\hrefcol{https://...}{text}     % cyan-colored hyperlink
+```
+
+**Global TikZ styles** (available in all frames):
+```latex
+\node[boxes] {text}         % rectangle with black border
+\node[rboxes] {text}        % rectangle with rounded corners
+\node[arrow_label] {text}   % white label on an arrow
+```
+
+---
+
+### Presentazione — advanced TikZ styles in `00_common_tikz.tex`
+
+Diagram styles for the research group. Available after `\input{00_common_tikz.tex}`.
+
+| Style | Use |
+|-------|-----|
+| `entity` | thin ellipse (conceptual nodes) |
+| `artifact` | rounded grey rectangle |
+| `service` | 30° chamfered rectangle |
+| `highlight` | gold border and fill |
+| `highlight light` / `highlight very light` | gold fill at 50% / 20% |
+| `highlight text` | Goldenrod-colored text |
+| `connector` | Stealth arrow |
+| `connector assurance` | dashed Stealth arrow |
+| `link` | Latex arrow |
+| `lattice element bound/selected/not chosen` | nodes for lattice diagrams |
+| `arrow` | shape=signal, DarkBlue/White background |
+
+**Conditional overlay** — show a node only on a specific slide:
+```latex
+\node[boxes, on slide=<2>{opacity=0}] {text};
+```
+
+**Macro**:
+```latex
+\highlightprofilecolor   % current highlight color (redefinable)
+```
+
+---
+
+### Presentazione — commands from `beamertheme_statale.sty`
+
+The theme was developed for the university. Commands available in the presentation document:
+
+```latex
+\course{Master's Degree in ...}     % degree program in title slide
+\IDnumber{987326}                   % student ID in title slide
+
+\footlinecolor{maincolor}           % footline bar color
+% available colors: maincolor, stataledarkgreen, statalegreen,
+%   statalelightgreen, statalered, stataleyellow, statalelilla
+
+\footlinepayoff{custom text}        % custom text in footline
+
+\titlebackground{assets/file}       % fullscreen title slide background
+\titlebackground*{assets/file}      % split title slide background
+
+\themecolor{main}   % light theme (default)
+\themecolor{dark}   % dark theme
+
+\backmatter             % final thank-you slide
+\backmatter[notitle]    % variant without title repetition
+
+\hrefcol{url}{text}     % cyan-colored link
+\testcolor{color}       % colorbox for debugging colors
+```
+
+**Special environments** (defined in `chapters/special_slides.tex`):
+
+```latex
+% Chapter divider slide
+\begin{chapter}[assets/background_negative]{maincolor}{Chapter Title}
+    optional content
+\end{chapter}
+
+% Frame with fixed side image
+\begin{sidepic}{assets/path/image}{Frame Title}
+    content
+\end{sidepic}
+```
+
+---
+
 ## License
 
 [![CC BY-NC-ND 4.0][cc-by-nc-nd-image]][cc-by-nc-nd]
 
-This work is licensed under a
-**Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License**.
+This work is licensed under a **Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License**.
 
-You are free to share it as long as you credit the author,
-do not use it for commercial purposes, and do not modify it.
+You are free to share it as long as you credit the author, do not use it for commercial purposes, and do not modify it.
 
 [cc-by-nc-nd]: https://creativecommons.org/licenses/by-nc-nd/4.0/
 [cc-by-nc-nd-image]: https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png

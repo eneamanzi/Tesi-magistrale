@@ -1,3 +1,21 @@
+% !TEX root = ../main.tex
+% AMBIENTI BEAMER CUSTOM DEFINITI IN QUESTO FILE:
+%
+% \begin{chapter}[image]{color}{title}
+%   Slide divisore capitolo con sfondo colorato.
+%   image  (facoltativo) — path asset per sfondo, default assets/background_negative
+%   color  — colore tema: maincolor, stataledarkgreen, statalegreen,
+%             statalelightgreen, statalered, stataleyellow, statalelilla
+%   title  — testo del titolo capitolo
+%   Nota: aggiungere opzione [fragile] se il contenuto contiene verbatim.
+%   Esempio: \begin{chapter}[assets/background_negative]{maincolor}{Background}
+%
+% \begin{sidepic}{image}{title}
+%   Frame con immagine fissa sul lato destro e contenuto a sinistra.
+%   image — path asset (senza estensione se supportata dal tema)
+%   title — titolo del frame
+%   Esempio: \begin{sidepic}{assets/logo_RGB}{Titolo}\end{sidepic}
+
 \begin{chapter}[assets/background_negative]{statalelilla}{Special Slides}
 \begin{itemize}
     \item Chapter slides
@@ -24,6 +42,8 @@
 
 %=======================================================================
 
+% NOTA: background_alternative non è incluso negli asset di default.
+% Sostituire con un asset esistente, es. assets/background o assets/background_negative.
 \begin{sidepic}{assets/background_alternative}{Side-Picture Slides}
 \begin{itemize}
     \item Opened with \texttt{$\backslash$begin\{sidepic\}\{<image>\}\{<title>\}}
@@ -60,8 +80,8 @@
         \item You can remove the title from the final slide with \verb|\backmatter[notitle]|
     \end{itemize}
     \item The aspect ratio defaults to 16:9, and you should not change it to 4:3 for old projectors as it is inherently impossible to perfectly convert a 16:9 presentation to 4:3 one; spacings \emph{will} break
-    \begin{itemize}    
-        \item The \texttt{aspectratio} argument to the \texttt{beamer} class is overridden by the SINTEF theme
+    \begin{itemize}
+        \item The \texttt{aspectratio} argument to the \texttt{beamer} class is overridden by the \_statale theme
         \item If you \emph{really} know what you are doing, check the package code and look for the \texttt{geometry} class.
     \end{itemize}
 \end{itemize}

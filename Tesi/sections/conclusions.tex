@@ -1,73 +1,11 @@
+% !TEX root = ../main.tex
 \chapter{Conclusioni}\label{conclusione}
-%%%%CONTENUTI%%%%
-% thesis
-% methodology
-% experiments e results
-% future work
 
-%\section{Obbiettivo - Domanda - TODO}
-%Nelle conclusioni vanno ripresi domanda/problema e gaps + obiettivi in modo puntuale; Non ci devono essere ri-definizioni 
-%nelle conclusioni si dice questi gap li ho coperti più o meno, questi obbiettivi li ho raggiunti più o meno
+% PATTERN: \nameref{label} per fare cross-reference per nome, non numero.
+% Esempio: "L'obiettivo \nameref{o1: nome obiettivo} è stato raggiunto."
 
-Questa tesi si occupa di soddisfare alcune delle esigenze e limitazioni, introdotte dalla decentralizzazione e dalla conseguente adozione di architetture distribuite basate su microservizi, legate al monitoring.
+\section{Conclusioni}
+% TODO
 
-L'Obiettivo \nameref{o1: estensione ae} di questa tesi, che va a risolvere il primo Gap \nameref{g1: generalizzabilità}, è l'estensione di un sistema generico e altamente scalabile, capace di raccogliere dati da diverse fonti e di effettuare valutazioni basate su contratti predefiniti.
-Viene quindi integrato il sistema presente con Elasticsearch, uno strumento di monitoring, rendendo possibile l'esecuzione di metriche per ottenere \textit{measurements} dal servizio di backend e la valutazione di contratti basati sulle \textit{evidence} ottenute.
-
-Il secondo Obbiettivo \nameref{o2: contratti}, che va a risolvere i successivi due Gaps \nameref{g2: performance e PNF} e \nameref{g3: contratti avanzati}, riguarda l'implementazione di contratti specifici e più strutturati che definiscono le modalità per verificare \gls{PNF} sulla base delle \textit{evidence} ottenute.
-Oltre agli aspetti prestazionali del sistema è possibile la valutazione di proprietà specifiche sui dati ottenuti grazie a delle regole \textit{taylor-made} sviluppate nei contratti, ottenendo così un sistema di \textit{Assurance} più flessibile e completo.
-
-L'ultimo Obbiettivo \nameref{o3: valutazione sperimentale} infine viene soddisfatto implementando benchmark che ne valutano l'efficienza complessiva.
-
-\section{Metodologia e Funzionamento}
-La \emph{metodologia di Assurance} adottata, illustrata nel Capitolo \ref{assurance methodology}, si basa sulla definizione di due componenti base dell'intera infrastruttura, le \emph{metriche} e i \emph{contratti}, per la verifica di \gls{PNF}, ovvero vincoli al modo in cui il sistema implementa e fornisce le sue funzionalità.
-I dati vengono raccolti dagli endpoint del sistema target attraverso l'esecuzione di Metriche focalizzate sulla misurazione di un comportamento specifico. 
-Una volta raccolte le \textit{evidence} o prove, i Contratti ne specificano come deve avvenire la valutazione.
-
-Il \emph{processo di Assurance} utilizzato, illustrato nel Capitolo \ref{assurance process}, si suddivide in 4 fasi eseguite ciclicamente.
-\textit{Evaluation mapping}, identificazione delle metriche e dei contratti necessari per verificare le proprietà desiderate. \textit{Measurement collection}, valutazione delle metriche e salvataggio delle evidence.
-\textit{Contract evaluation}, calcolo del risultato booleano dei contratti applicati alle evidence raccolte sulla base delle condizioni espresse al loro interno. \textit{Report composition}, i risultati vengono aggregati in un report machine-readable che contiene l'esito della verifica e le evidence su cui si basa. 
-
-Il \emph{funzionamento dell'Assurance-Engine}, illustrato nel Capitolo \ref{funzionamento ae}, prevede che un utente interagisca con il metodo POST di una delle \gls{API} esposte per dare inizio all'esecuzione.
-L'esecuzione rispecchia la suddivisione fatta nel processo di Assurance e ne vengono illustrati i 3 punti principali.
-\textit{Measurement collection}, viene utilizzato il metodo \texttt{measure()} per ottenere prove da un target o per inviare richieste personalizzate; i dati raccolti vengono identificati come \textit{measurements} e costituiscono le \textit{evidence} necessarie per la valutazione del sistema. Si esegue infine un parsing della risposta JSON per estrarre campi e valori desiderati.
-\textit{Contract evaluation}, vengono eseguiti controlli booleani, tramite il metodo \texttt{evaluate()}, confrontando le measurements ottenute con i parametri del contratto; i risultati dei vari controlli vengono infine aggregati per stabilire se la proprietà oggetto di verifica è stata soddisfatta.
-\textit{Report composition}, i risultati finali vengono formalizzati in una struttura contenente le evidence, il risultato e il timestamp per poi essere inviate in formato JSON all'utente che ha avviato la richiesta.
-
-\section{Esperimenti e risultati}
-%OK-riassunto dei risultati ottenuti (quanto bene ha funzionato, ci si può rifare alla discussione)
-Come mostrato nel Capitolo \ref{implementazione} e verificato nel Capitolo \ref{esperimenti} sono stati condotti 2 benchmark per valutare le performance del sistema sviluppato sull'ottenimento di metriche e sulla valutazione di contratti. Il primo benchmark esegue query nel Query \gls{DSL} di Elastic mentre il secondo le esegue in SQL.
-Entrambi valutano le performance di esecuzione dei metodi \texttt{measure()} ed \texttt{evaluate()}, rispettivamente di Metriche e Contratti.
-I risultati emersi hanno dimostrato una grande efficienza del sistema, eseguendo le query proposte in tempi tra i 6 e gli 8 millisecondi. \\
-Data la differenza anomala di tempistiche tra i due metodi, illustrata nella Sezione \ref{valori anomali}, si è notato come Elasticsearch performi leggermente meglio quando possiede le query e i risultati in cache, con miglioramenti nell'ordine dei decimi di millisecondo, trascurabili in termini di valutazione.
-Si sono notate anche oscillazioni nelle performance tra benchmark eseguiti consecutivamente con regressioni e miglioramenti fino al 50\%, rientrando però sempre in un range di efficienza accettabile. Analizzando i sample dei benchmark è stata associata alla rete la causa principale di questa latenza variabile, in quanto non si presenta in modo prevedibile tra le richieste.\\
-Il sistema sviluppato permette quindi di effettuare \textit{verifiche di Assurance} tramite dati collezionati all'interno di Elasticsearch con estrema efficienza e poco overhead. Si è notato come il tempo computazionale di esecuzione dei metodi \texttt{measure()} o \texttt{evaluate()}, i quali assolvono rispettivamente al compito di ottenere prove e verificare contratti complessi per garantire \gls{PNF}, sia proporzionalmente irrisorio rispetto alla latenza introdotta dalla rete che ne definisce il tempo medio di esecuzione. Di conseguenza, si ottiene un sistema estremamente efficiente che si pone come intermediario generando un overhead trascurabile.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Future Work}
-In questa tesi sono state poste le basi per un \textit{sistema di assurance} per sistemi distribuiti scalabile e generico. Il sistema attualmente realizzato si presta come struttura di partenza per nuovi possibili sviluppi e migliorie.
-
-\paragraph{Nuove integrazioni}
-Il framework descritto, grazie alla sua struttura modulare e alla funzione di intermediario, può essere facilmente esteso per integrare nuove sorgenti di dati oltre a quelle già supportate, come Elasticsearch e Prometheus, e per eseguire specifiche \textit{probe ad-hoc}. 
-Questo consente la creazione di un sistema unificato in grado di interfacciarsi con molteplici soluzioni di monitoring e storage comunemente utilizzate.
-L'obiettivo finale è sviluppare una piattaforma centralizzata in grado di raccogliere e gestire dati da diverse fonti, migliorando la visibilità e il controllo su vari sistemi informativi.
-La modularità è il fattore chiave di questa soluzione che ne permette una facile estensibilità e una maggiore versatilità nel rispondere a esigenze diverse.
-
-
-\paragraph{Contratti e probe avanzate}
-Attualmente, le \gls{API} esposte dal sistema offrono solo una gamma limitata di funzionalità.
-Una direzione di sviluppo promettente è l'espansione delle \gls{API} esposte per supportare funzionalità più complesse e specifiche.
-Tra questi sviluppi futuri ricade la generazione di nuovi contratti, sempre più strutturati e complessi, sui dati raccolti dalle varie sorgenti per verificare \gls{PNF}.
-Allo stesso modo, si possono sviluppare probe che eseguono test più sofisticati su comportamenti dei sistemi target.
-L'obbiettivo è ottenere un sistema più robusto, che permetta di effettuare una vasta gamma di controlli, sempre più fini, sulla base del target scelto per verificare proprietà specifiche.
-
-\paragraph{Contratti su sistemi reali}
-Finora, il sistema è stato testato in ambienti controllati o sperimentali, il cluster del laboratorio, dove si è comportato come previsto.
-La fase successiva consiste nell'andare ad applicarlo ad un caso di studio reale, monitorando un sistema di produzione con traffico e carichi effettivi; è un passaggio cruciale per verificare come il framework gestisce situazioni reali, incluse eventuali anomalie o casi limite non riscontrati negli ambienti sperimentali.
-Inoltre, ciò consentirà di eseguire un'analisi comparativa tra i benchmark prestazionali effettivi e quelli sperimentali, facilitando l'individuazione di aree di ottimizzazione e potenziali miglioramenti.
-
-\paragraph{Scalabilità}
-Il sistema è stato progettato per essere scalabile, senza necessità di amministrazione aggiuntiva o overhead.
-Per verificare effettivamente quanto bene il framework possa scalare, si possono eseguire una serie di test che misurano le performance ottenute con diverse repliche deployate dell'assurance-agent.
-Questo tipo di test fornirà dati concreti sulle performance di un sistema scalato su varie istanze e permetterà di verificare o meno l'assunzione teorica della facilità di scalabilità fatta nella sezione sulla replicabilità.
+\section{Lavori futuri}
+% TODO

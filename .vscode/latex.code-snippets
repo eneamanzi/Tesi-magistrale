@@ -1,0 +1,8 @@
+{
+    "English technical term": {
+        "scope": "latex",
+        "prefix": "eng",
+        "body": "\\foreignlanguage{english}{\\textit{$1}}$0",
+        "description": "Termine tecnico inglese — spell check EN + corsivo + sillabazione corretta"
+    }
+}

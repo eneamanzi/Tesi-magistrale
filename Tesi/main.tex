@@ -2,7 +2,7 @@
 \documentclass{scrbook}
 \usepackage{fontspec} % Enable full UTF-8 support
 % \KOMAoption{DIV}{20}
-\usepackage[italian]{babel}
+\usepackage[english, italian]{babel}
 
 % KOMA
 %\usepackage{scrhack}
@@ -59,6 +59,9 @@
 \makeglossaries{}
 
 % PSEUDOCODE
+% \AlgLineComment{testo}    — commento inline con ▷ (State + triangleright)
+% \AlgForIn{var}{iterable}  — ciclo for x in y
+% \AlgFalse, \AlgTrue       — letterali booleani in grassetto
 \usepackage{algorithm} % Used for algorithm blocks
 \usepackage[noend]{algpseudocode} % For pseudocode
 \algnewcommand{\AlgLineComment}[1]{\State{} \(\triangleright\) #1}
@@ -82,16 +85,33 @@
 % STYLE JSON in folder style
 \usepackage{style/json}
 
+% Colori per syntax highlighting JSON (usati da style/json.sty)
+\definecolor{delim}{RGB}{20,105,176}
+\definecolor{numb}{RGB}{106, 109, 32}
+\definecolor{string}{rgb}{0.64,0.08,0.08}
+
 
 % CUSTOM COMMANDS
 \usepackage{soul}
-\DeclareRobustCommand{\hlmarco}[1]{{\sethlcolor{cyan}\hl{Marco: #1}}}
-\DeclareRobustCommand{\hlclaudio}[1]{{\sethlcolor{orange}\hl{Ruslan: #1}}}
-\DeclareRobustCommand{\hlfilippo}[1]{{\sethlcolor{green}\hl{Filippo: #1}}}
+% HIGHLIGHT PER REVISIONE — 3 colori per distinguere note durante la scrittura.
+% Uso: \hlA{nota}, \hlB{nota}, \hlC{nota}
+% Da rimuovere (o commentare) prima della consegna finale.
+%
+% Per personalizzare con i nomi dei tuoi revisori, aggiungi alias:
+%   \newcommand{\hlmarco}[1]{\hlA{Marco: #1}}
+%   \newcommand{\hlrelatore}[1]{\hlB{Prof. Rossi: #1}}
+% oppure ridefinisci direttamente il comando con sethlcolor e hl.
+\DeclareRobustCommand{\hlA}[1]{{\sethlcolor{cyan}\hl{#1}}}      % cyan
+\DeclareRobustCommand{\hlB}[1]{{\sethlcolor{orange}\hl{#1}}}    % arancione
+\DeclareRobustCommand{\hlC}[1]{{\sethlcolor{green}\hl{#1}}}     % verde
 
+% \cmark → ✓   \xmark → ✗   (utili nelle tabelle di confronto)
 \newcommand{\cmark}{\ding{51}}%
 \newcommand{\xmark}{\ding{55}}%
 
+% NOTAZIONE MATEMATICA CUSTOM:
+% \angled{x} → ⟨x⟩   \bigangled{x} → big⟨x⟩   \bigsquared{x} → big[x]
+% \tuple{x,y} → (x,y)   \interval{a}{b} → [a,b]
 \newcommand{\angled}[1]{\ensuremath{\langle #1\rangle}}
 \newcommand{\bigangled}[1]{\ensuremath{\big\langle #1 \big\rangle}}
 \newcommand{\bigsquared}[1]{\ensuremath{\big[ #1 \big]}}
@@ -108,6 +128,9 @@
 % \newconstantfamily{property_category}{symbol={t}}
 
 % TABLES
+% TIPI COLONNA CUSTOM (usare con tabularx):
+% P{larghezza} — colonna p raggedright di larghezza fissa
+% C — colonna X centrata   L — colonna X raggedright   R — colonna X raggedleft
 \usepackage{array}
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
@@ -132,6 +155,8 @@
 \newtheorem{defn}{Definition}[section]
 \newtheorem{exmp}{Esempio}[section]
 
+% COMPILAZIONE PARZIALE: decommentare \includeonly{} per compilare solo alcune
+% sezioni e ridurre i tempi di build durante la scrittura.
 %\includeonly{
 %sections/introduction.tex,
 %sections/background.tex,
@@ -142,41 +167,7 @@
 %}
 
 \begin{document}
-%listings json
-\definecolor{delim}{RGB}{20,105,176}
-\definecolor{numb}{RGB}{106, 109, 32}
-\definecolor{string}{rgb}{0.64,0.08,0.08}
-
-\subject{
-	\uppercase{\huge Università degli Studi di Milano} \\
-	\uppercase{\large Facoltà di scienze e tecnologie}
-	\vspace{1em}\\
-	\uppercase{\large Dipartimento di Informatica }\\
-	\uppercase{\large ``Giovanni Degli Antoni''}
-	\vspace{1em}\\
-	\includegraphics[width=7em]{images/unimi.pdf}
-	\vspace{1em}\\
-	\uppercase{\large Laurea Triennale in} \\
-	\uppercase{\large Sicurezza dei sistemi e delle reti informatiche} \\
-}
-
-\title{\LARGE\uppercase{Design e sviluppo di una soluzione \\per la valutazione di sistemi distribuiti}}
-\author{
-	\begin{tabular}{@{}r@{}rr@{}}
-		\hspace{10em} & Autore:    & Enea Manzi \\
-		\hspace{10em} & Matricola: & 987326
-	\end{tabular}
-	\\\\\vspace{1em}
-	\begin{tabular}{@{}ll@{}r@{}}
-		Relatore:    & Prof.~Marco Anisetti & \hspace{10em} \\
-		Correlatore: & Dr.~Filippo Berto    &               \\
-	\end{tabular}
-}
-
-
-% \publishers{Università degli Studi di Milano}
-% \uppertitleback{\vspace{3cm}I want to thank Scrooge MacDuck for his financial Support}
-\date{A.A. 2023-2024}
+\input{sections/titlepage.tex}
 
 \frontmatter
 \maketitle

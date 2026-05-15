@@ -2,21 +2,52 @@
     "latex-workshop.latex.recipes": [
         {
             "name": "Compila (LuaLaTeX)",
-            "tools": ["latexmk-lua"]
+            "tools": [
+                "latexmk-lua"
+            ]
         }
     ],
-
+    "latex-workshop.formatting.latex": "latexindent",
+    "latex-workshop.synctex.afterBuild.enabled": true,
     "latex-workshop.latex.tools": [
         {
             "name": "latexmk-lua",
             "command": "latexmk",
             "args": [
-                "-synctex=1", 
+                "-synctex=1",
                 "-interaction=nonstopmode",
                 "-file-line-error",
-                "-pdflua", 
+                "-pdflua",
                 "%DOC%"
             ]
         }
-    ]
+    ],
+    "ltex.language": "it",
+    "ltex.additionalRules.motherTongue": "it",
+    "ltex.additionalRules.enablePickyRules": true,
+    "ltex.checkFrequency": "edit",
+    "ltex.enabled": [
+        "latex"
+    ],
+    "ltex.dictionary": {
+        "it": []
+    },
+    "ltex.latex.commands": {
+        "\\sethlcolor{}": "ignore",
+        "\\usetheme{}": "ignore",
+        "\\usefonttheme[]{}": "ignore",
+        "\\titlebackground*{}": "ignore",
+        "\\footlinecolor{}": "ignore",
+        "\\newlist{}{}{}": "ignore",
+        "\\DeclareRobustCommand{}[]{}": "ignore",
+        "\\DeclareRobustCommand{}{}": "ignore",
+        "\\algnewcommand{}[]{}": "ignore",
+        "\\algnewcommand{}{}": "ignore"
+    },
+    "cSpell.language": "en,it",
+    "cSpell.enabledFileTypes": {
+        "latex": false,
+        "bibtex": false,
+        "ignore": false
+    }
 }

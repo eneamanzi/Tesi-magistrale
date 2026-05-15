@@ -4,80 +4,215 @@
 [cc-by-nc-nd-shield]: https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg
 
 [English version](README.en.md) | **Versione Italiana**
-# Tesi di Laurea Triennale: Design e sviluppo di una soluzione per la valutazione di sistemi distribuiti
+# Template Tesi Magistrale — Università degli Studi di Milano
 
-## Informazioni sulla Tesi
+Template LaTeX per tesi magistrale (e presentazione Beamer) al Dipartimento di Informatica "Giovanni Degli Antoni", UniMI.
 
-Questa repository contiene i sorgenti LaTeX della tesi di Laurea Triennale in Sicurezza dei sistemi e delle reti informatiche.
+Derivato dalla tesi triennale di Enea Manzi (A.A. 2023-2024), supervisore Prof. Marco Anisetti.
 
-* **Titolo:** Design e sviluppo di una soluzione per la valutazione di sistemi distribuiti
-* **Autore:** Enea Manzi (Matricola: 987326)
-* **Corso di Laurea:** Sicurezza dei sistemi e delle reti informatiche
-* **Università:** Università degli Studi di Milano
-* **Relatore:** Prof. Marco Anisetti
-* **Correlatore:** Dr. Filippo Berto
-* **Anno Accademico:** A.A. 2023-2024
+---
 
-***
+## Struttura
 
-## Abstract
+```
+├── Tesi/               # Documento principale (scrbook, LuaLaTeX)
+│   ├── main.tex
+│   ├── glossary.tex    # Acronimi (\gls{}, \glspl{})
+│   ├── biblio.bib      # Bibliografia (stile IEEE)
+│   ├── sections/       # Un file per capitolo
+│   └── style/          # Syntax highlighting: yaml.sty, rust.sty, json.sty
+├── Presentazione/      # Slide Beamer 16:9
+│   ├── main.tex
+│   ├── sections/       # Un file per sezione
+│   ├── 00_common_tikz.tex   # Stili TikZ avanzati
+│   └── chapters/special_slides.tex  # Ambienti chapter e sidepic
+├── Riassunto/          # Sommario breve (scrartcl, ~1 pagina)
+│   └── main.tex
+└── .github/workflows/  # CI: compila i 3 PDF e li pubblica su pdf-release
+```
 
-Le moderne architetture distribuite, caratterizzate da decentralizzazione e dalla suddivisione in microservizi, pongono sfide rilevanti nella **valutazione del comportamento del sistema**.
-Data la complessità introdotta da tali architetture, vengono richiesti sistemi di monitoraggio avanzati in grado di verificare Proprietà Non Funzionali (PNF) per valutare il comportamento dell'infrastruttura. Le soluzioni attuali, sebbene efficaci nella valutazione di performance, risultano limitate quando si tratta di fornire una valutazione olistica e continua di tali sistemi, basata sulla verifica di *proprietà non funzionali* tramite *contratti formali e specifici*. È sorta quindi la necessità di sistemi di monitoraggio sempre più sofisticati, che possano raccogliere informazioni su molteplici aspetti del sistema in modo da garantire il soddisfacimento di specifiche proprietà.
-
-Questa tesi, sfruttando una *metodologia di assurance* innovativa, mira a colmare alcune lacune nel monitoraggio e nella valutazione delle ormai comuni infrastrutture distribuite. La metodologia si basa su:
-i) una raccolta continua e trasparente di *evidence*, o prove, che misurano stati rilevanti del sistema, tramite metriche che interrogano sistemi di monitoring dei nodi distribuiti,
-ii) la verifica formale di specifiche proprietà non funzionali, sulla base delle *evidence* raccolte con le metriche, attraverso contratti che ne definiscono i controlli da effettuare.
-
-Viene proposta, basandosi su tale metodologia, un'integrazione per **Elasticsearch** tra le funzionalità dell'*Assurance Engine*, il sistema di monitoraggio e valutazione in corso di sviluppo, permettendo la raccolta di dati e la verifica di specifici e complessi contratti. Questo lavoro contribuisce quindi allo sviluppo di un sistema modulare flessibile, efficiente e scalabile per *verifiche di Assurance* basate su proprietà non funzionali, indipendentemente dalla complessità dell'infrastruttura sottostante.
-
-I contributi di questa tesi sono:
-i) integrazione dell'Assurance Engine con Elasticsearch, sfruttando la metodologia adottata,
-ii) espressione di contratti complessi per valutare formalmente proprietà non funzionali su un target,
-iii) una valutazione sperimentale approfondita delle performance e dell'efficienza dell'integrazione sviluppata.
-
-La tesi mostra una implementazione concreta della metodologia adottata con l'obiettivo di costruire un unico sistema centrale, efficiente e affidabile per monitorare sistemi distribuiti, l'*Assurance engine*, riducendo al minimo l'impatto sulle risorse computazionali. I risultati confermano che il sistema è in grado di fornire prestazioni efficienti nella raccolta di evidence tramite metriche e nella valutazione di contratti.
+---
 
 ## Compilazione
 
-Per compilare la tesi, è necessario avere una distribuzione LaTeX installata (es. **TeX Live** o **MiKTeX**).
+Richiede TeX Live con LuaLaTeX e latexmk. Con VSCode: estensione **LaTeX Workshop** con la recipe `Compila (LuaLaTeX)`.
 
-Il file principale è `Tesi/main.tex`.
+```bash
+cd Tesi/
+latexmk -pdflua main.tex
+```
 
-### Comandi di Compilazione
-
-1.  **Naviga nella directory della tesi:**
-
-    ```bash
-    cd Tesi/
-    ```
-
-2.  **Compila il documento (utilizzando LuaLaTeX):**
-    Come indicato nella configurazione di build, la compilazione deve essere eseguita con l'engine **LuaLaTeX** (opzione `-pdflua`).
-
-    ```bash
-    latexmk -pdflua main.tex
-    ```
-
-    *Il file PDF finale (`main.pdf` o `Tesi.pdf`) verrà generato nella cartella `Tesi/`.*
-
-### Pulizia dei File Ausiliari
-
-Per rimuovere tutti i file ausiliari generati dal processo di compilazione (come `.aux`, `.log`, `.bbl`, ecc., che sono diretti nella cartella `.temp`):
+I file ausiliari vengono scritti in `.temp/`. Per pulire:
 
 ```bash
 latexmk -c
 ```
 
+Il PDF è configurato in formato **PDF/A-3b** (`\usepackage[a-3b,pdf17]{pdfx}` in `Tesi/main.tex`).
+
+---
+
+## Comandi e ambienti custom
+
+### Tesi — definiti in `Tesi/main.tex`
+
+#### Highlight per revisione
+Evidenziano testo con colori diversi per distinguere le note dei revisori durante la scrittura. Da rimuovere prima della consegna.
+
+```latex
+\hlA{testo}   % sfondo cyan
+\hlB{testo}   % sfondo arancione
+\hlC{testo}   % sfondo verde
+```
+
+Per personalizzare con i nomi dei tuoi revisori, aggiungi alias nel preambolo di `Tesi/main.tex`:
+```latex
+\newcommand{\hlmarco}[1]{\hlA{Marco: #1}}
+\newcommand{\hlrelatore}[1]{\hlB{Prof. Rossi: #1}}
+```
+
+#### Simboli
+```latex
+\cmark   % ✓  (da pifont)
+\xmark   % ✗  (da pifont)
+```
+
+#### Notazione matematica
+Scorciatoie per la notazione del gruppo di ricerca.
+
+```latex
+\angled{x}          % ⟨x⟩
+\bigangled{x}       % big⟨x⟩
+\bigsquared{x}      % big[x]
+\tuple{x, y}        % (x, y)
+\interval{a}{b}     % [a, b]
+```
+
+#### Pseudocode
+Estensioni di `algpseudocode` per lo stile del gruppo.
+
+```latex
+\AlgLineComment{testo}      % ▷ testo  (commento inline)
+\AlgForIn{var}{iterable}    % for var in iterable
+\AlgFalse                   % false (grassetto)
+\AlgTrue                    % true  (grassetto)
+```
+
+#### Tipi colonna per tabularx
+```latex
+P{3cm}   % colonna p raggedright di larghezza fissa
+C        % colonna X centrata
+L        % colonna X raggedright
+R        % colonna X raggedleft
+```
+
+#### Ambienti
+```latex
+\begin{exmp}   % Esempio formale, numerato per sezione
+\begin{defn}   % Definizione formale, numerata per sezione
+
+\begin{inlineenum}          % Enumerazione inline nel testo
+    \item primo \item secondo   % → "i) primo ii) secondo"
+\end{inlineenum}
+```
+
+---
+
+### Presentazione — definiti in `Presentazione/main.tex`
+
+```latex
+\testcolor{maincolor}           % colorbox per visualizzare/verificare un colore
+\hrefcol{https://...}{testo}    % hyperlink colorato in cyan
+```
+
+**Stili TikZ globali** (disponibili in tutti i frame):
+```latex
+\node[boxes] {testo}        % rettangolo con bordo nero
+\node[rboxes] {testo}       % rettangolo con angoli arrotondati
+\node[arrow_label] {testo}  % etichetta bianca su una freccia
+```
+
+---
+
+### Presentazione — stili TikZ avanzati in `00_common_tikz.tex`
+
+Stili per diagrammi del gruppo di ricerca. Disponibili dopo `\input{00_common_tikz.tex}`.
+
+| Stile | Uso |
+|-------|-----|
+| `entity` | ellisse sottile (nodi concettuali) |
+| `artifact` | rettangolo arrotondato grigio |
+| `service` | rettangolo smussato a 30° |
+| `highlight` | bordo e sfondo oro |
+| `highlight light` / `highlight very light` | sfondo oro 50% / 20% |
+| `highlight text` | testo color Goldenrod |
+| `connector` | freccia Stealth |
+| `connector assurance` | freccia Stealth tratteggiata |
+| `link` | freccia Latex |
+| `lattice element bound/selected/not chosen` | nodi per diagrammi a reticolo |
+| `arrow` | shape=signal, sfondo DarkBlue/White |
+
+**Overlay condizionale** — mostra un nodo solo su una slide specifica:
+```latex
+\node[boxes, on slide=<2>{opacity=0}] {testo};
+```
+
+**Macro**:
+```latex
+\highlightprofilecolor   % colore corrente highlight (ridefinibile)
+```
+
+---
+
+### Presentazione — comandi del tema `beamertheme_statale.sty`
+
+Il tema è stato sviluppato per l'ateneo. Comandi disponibili nel documento:
+
+```latex
+\course{Laurea Magistrale in ...}   % corso nel titolo
+\IDnumber{987326}                   % matricola nel titolo
+
+\footlinecolor{maincolor}           % colore barra inferiore
+% colori disponibili: maincolor, stataledarkgreen, statalegreen,
+%   statalelightgreen, statalered, stataleyellow, statalelilla
+
+\footlinepayoff{testo custom}       % testo personalizzato nella barra
+
+\titlebackground{assets/file}       % sfondo fullscreen slide titolo
+\titlebackground*{assets/file}      % sfondo split slide titolo
+
+\themecolor{main}   % tema chiaro (default)
+\themecolor{dark}   % tema scuro
+
+\backmatter             % slide finale di ringraziamenti
+\backmatter[notitle]    % variante senza ripetizione titolo
+
+\hrefcol{url}{testo}    % link colorato in cyan
+\testcolor{color}       % colorbox per debug colori
+```
+
+**Ambienti speciali** (definiti in `chapters/special_slides.tex`):
+
+```latex
+% Slide divisore capitolo
+\begin{chapter}[assets/background_negative]{maincolor}{Titolo capitolo}
+    contenuto opzionale
+\end{chapter}
+
+% Slide con immagine laterale fissa
+\begin{sidepic}{assets/path/image}{Titolo frame}
+    contenuto
+\end{sidepic}
+```
+
+---
+
 ## Licenza
 
 [![CC BY-NC-ND 4.0][cc-by-nc-nd-image]][cc-by-nc-nd]
 
-Questo lavoro è distribuito con licenza
-**Creative Commons Attribuzione - Non commerciale - Non opere derivate 4.0 Internazionale**.
-
-Puoi condividerlo liberamente purché tu citi l'autore,
-non lo usi per scopi commerciali e non lo modifichi.
+Distribuito con licenza **Creative Commons BY-NC-ND 4.0**.
+Puoi condividerlo purché citi l'autore, non lo usi commercialmente e non lo modifichi.
 
 [cc-by-nc-nd]: https://creativecommons.org/licenses/by-nc-nd/4.0/deed.it
 [cc-by-nc-nd-image]: https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png

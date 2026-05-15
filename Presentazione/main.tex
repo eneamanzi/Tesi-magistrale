@@ -1,7 +1,4 @@
 % manuale beamer http://www.ctan.org/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf
-% **************************************************************
-% Hi! Edit this file for your presentation!
-% **************************************************************
 
 % ==================///==================///==================///
 % ==================/// LATEX'S STUFF
@@ -12,6 +9,17 @@
 \usetheme{_statale}
 \usefonttheme[onlymath]{serif}
 
+% COMANDI CUSTOM DEL TEMA:
+% \testcolor{color}      — colorbox per visualizzare/verificare un colore
+% \hrefcol{url}{testo}   — hyperlink colorato in cyan
+% \course{...}           — campo corso di laurea (comando del tema _statale)
+% \IDnumber{...}         — numero di matricola (campo del tema _statale)
+% \footlinecolor{color}  — colore barra inferiore (switchabile per sezione)
+%   colori disponibili: maincolor, stataledarkgreen, statalegreen,
+%   statalelightgreen, statalered, stataleyellow, statalelilla
+% \backmatter            — slide finale di ringraziamenti
+% \backmatter[notitle]   — variante senza ripetizione del titolo
+% Vedere chapters/special_slides.tex per gli ambienti chapter e sidepic.
 \newcommand{\testcolor}[1]{\colorbox{#1}{\textcolor{#1}{test}}~\texttt{#1}}
 \newcommand{\hrefcol}[2]{\textcolor{cyan}{\href{#1}{#2}}}
 \titlebackground*{assets/background}
@@ -19,6 +27,13 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, backgrounds, calc, chains, fit, graphs, graphdrawing, graphdrawing.layered, intersections, positioning, shadings, shapes, shapes.geometric, shapes.misc}
 
+% STILI TIKZ GLOBALI (disponibili in tutti i frame):
+% base        — stile base: testo centrato, inner sep 0.5em
+% boxes       — rettangolo con bordo nero
+% rboxes      — boxes con angoli arrotondati
+% arrow_label — etichetta bianca centrata sulle frecce (usare come nodo su un path)
+% Stili avanzati (entity, artifact, service, highlight*, lattice*, connector*):
+% vedere 00_common_tikz.tex
 \tikzset{%
 	base/.style = {
 			% minimum width=1cm,
@@ -52,14 +67,7 @@
 % ==================/// SPLASH PAGE
 % ==================///==================///==================///
 
-\title{Design e Sviluppo di una Soluzione per la Valutazione di Sistemi Distribuiti}
-\course{Laure Triennale in Sicurezza dei Sistemi e delle Reti Informatiche}
-\author{\href{mailto:enea.manzi@studenti.unimi.it}{Enea Manzi}}
-\IDnumber{987326}
-\date{
-	Relatore: Prof. Marco Anisetti\\
-	Correlatore: Dottor. Filippo Berto\\
-	22 Ottobre 2024}
+\input{sections/00_titlepage.tex}
 
 % ==================///==================///==================///
 % ==================/// START PRESENTATION
@@ -84,7 +92,7 @@
 \input{sections/01_contesto}
 \input{sections/02_motivazioni}
 \input{sections/03_obbiettivi}
-\input{sections/04_PNF_metodologia}
+\input{sections/04_metodologia}
 \input{sections/05_implementazione}
 \input{sections/06_conclusion}
 
