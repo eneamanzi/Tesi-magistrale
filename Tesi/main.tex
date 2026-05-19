@@ -167,7 +167,7 @@
 %}
 
 \begin{document}
-\input{sections/titlepage.tex}
+\input{sections/0.0-titlepage.tex}
 
 \frontmatter
 \maketitle
@@ -177,9 +177,9 @@
 \clearpage
 \setcounter{page}{1}
 
-\include{sections/abstract.tex}
+\include{sections/0.1-abstract.tex}
 \addcontentsline{toc}{chapter}{Abstract}
-\include{sections/acknowledgement.tex}
+\include{sections/0.2-acknowledgement.tex}
 \addcontentsline{toc}{chapter}{Ringraziamenti}
 
 % print index with chapter, section and subsection
@@ -193,12 +193,13 @@
 \lstlistoflistings
 
 \mainmatter{}
-\include{sections/introduction.tex}
-\include{sections/background.tex}
-\include{sections/implementation.tex}
-\include{sections/experiments.tex}
-\include{sections/discussion.tex}
-\include{sections/conclusions.tex}
+\include{sections/1-introduction.tex}
+\include{sections/2-background.tex}
+\include{sections/3-methodology.tex}
+\include{sections/4-implementation.tex}
+\include{sections/5-experiments.tex}
+\include{sections/6-discussion.tex}
+\include{sections/7-conclusions.tex}
 
 
 % \appendix

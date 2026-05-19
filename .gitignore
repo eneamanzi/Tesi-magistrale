@@ -9,6 +9,9 @@ Tesi/*.pdf
 Riassunto/*.pdf
 Presentazione/*.pdf
 
+# Markdown docs 
+docs/
+
 *.bib.*
 
 ### VisualStudioCode ###

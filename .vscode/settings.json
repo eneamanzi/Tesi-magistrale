@@ -49,5 +49,8 @@
         "latex": false,
         "bibtex": false,
         "ignore": false
-    }
+    },
+    "cSpell.words": [
+        "microservizi"
+    ]
 }
