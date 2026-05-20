@@ -48,7 +48,8 @@
     "cSpell.enabledFileTypes": {
         "latex": false,
         "bibtex": false,
-        "ignore": false
+        "ignore": false,
+        "markdwon": false
     },
     "cSpell.words": [
         "microservizi"

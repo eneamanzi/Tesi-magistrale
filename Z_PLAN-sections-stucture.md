@@ -68,9 +68,9 @@ Analisi dei limiti intrinseci degli approcci attuali, identificati come tre gap 
 ### 1.3 Obiettivi della Ricerca
 La tesi risponde ai tre gap identificati attraverso i seguenti obiettivi di ricerca:
 
-* **O1:** Progettare e implementare un framework di security assessment API che sia applicativo-agnostico (P01), derivando tutta la conoscenza del target esclusivamente dalla specifica OpenAPI e dal file di configurazione, senza riferimenti hardcoded a nessun sistema specifico.
+* **O1:** Progettare e implementare un framework di security assessment API che sia applicativo-agnostico (D1.P1), derivando tutta la conoscenza del target esclusivamente dalla specifica OpenAPI e dal file di configurazione, senza riferimenti hardcoded a nessun sistema specifico.
 * **O2:** Dimostrare che un approccio contract-driven, che utilizza la specifica OpenAPI come oracolo formale, supera i limiti del fuzzing cieco nell'identificazione di vulnerabilità logiche e semantiche nelle API REST.
-* **O3:** Garantire la riproducibilità deterministica dell'assessment (P28) e validarla empiricamente, producendo un tool integrabile in pipeline CI/CD tramite semantic exit codes (P17).
+* **O3:** Garantire la riproducibilità deterministica dell'assessment (D3.P4) e validarla empiricamente, producendo un tool integrabile in pipeline CI/CD tramite semantic exit codes (D6.P1).
 
 ### 1.4 Organizzazione della Tesi
 Panoramica logica dei capitoli successivi per guidare il lettore attraverso lo sviluppo del framework. Il Capitolo 2 stabilisce il background teorico e la tassonomia delle minacce. Il Capitolo 3 presenta la metodologia e le scelte architetturali. Il Capitolo 4 descrive l'implementazione. Il Capitolo 5 valida empiricamente il sistema. Il Capitolo 6 discute i limiti e le traiettorie future. Il Capitolo 7 conclude.
@@ -154,52 +154,52 @@ L'impiego delle specifiche formali (OpenAPI/Swagger) come "Ground Truth" per abb
 
 | Categoria | Proprietà |
 |---|---|
-| Architettura & Design | P01, P02, P04, P07, P08, P18 |
-| Estensibilità & Manutenibilità | P05, P06, P09, P10, P19, P24, P30, P32 |
-| Config & Riproducibilità | P03, P20, P21, P28, P34 |
-| Robustezza & Sicurezza | P11, P12, P13, P14, P15, P16, P31, P33, P35 |
-| Qualità & Osservabilità | P22, P23, P26, P27, P29 |
-| CI/CD & DevEx | P17, P25, P39 |
-| Packaging & Deployment | P36, P37, P38 |
+| Architettura & Design | D1.P1, D1.P2, D1.P3, D1.P4, D1.P5, D1.P6 |
+| Estensibilità & Manutenibilità | D2.P1, D2.P2, D2.P3, D2.P4, D2.P5, D2.P6, D2.P7, D2.P8 |
+| Config & Riproducibilità | D3.P1, D3.P2, D3.P3, D3.P4, D3.P5 |
+| Robustezza & Sicurezza | D4.P1, D4.P2, D4.P3, D4.P4, D4.P5, D4.P6, D4.P7, D4.P8, D4.P9 |
+| Qualità & Osservabilità | D5.P1, D5.P2, D5.P3, D5.P4, D5.P5 |
+| CI/CD & DevEx | D6.P1, D6.P2, D6.P3 |
+| Packaging & Deployment | D7.P1, D7.P2, D7.P3 |
 
 ---
 
 ### 3.1 Principi Fondamentali: il Perché delle Scelte Architetturali
 Presentazione dei quattro fondamenti da cui discendono tutte le decisioni di design successive. Queste proprietà rispondono alla domanda "perché il sistema esiste in questa forma", non ancora a "come è fatto".
 
-* **Agnosticismo Applicativo (P01):** Il tool non contiene nessun riferimento hardcoded a un'applicazione specifica. Tutta la conoscenza del target è derivata a runtime da due sole sorgenti: `config.yaml` e la specifica OpenAPI. Questa proprietà è la principale giustificazione accademica del lavoro: un tool che funziona su un solo target è uno script; uno che funziona su qualsiasi API REST documentata è un contributo metodologico.
+* **Agnosticismo Applicativo (D1.P1):** Il tool non contiene nessun riferimento hardcoded a un'applicazione specifica. Tutta la conoscenza del target è derivata a runtime da due sole sorgenti: `config.yaml` e la specifica OpenAPI. Questa proprietà è la principale giustificazione accademica del lavoro: un tool che funziona su un solo target è uno script; uno che funziona su qualsiasi API REST documentata è un contributo metodologico.
 
-* **OpenAPI come Single Source of Truth (P20):** La specifica OpenAPI non è documentazione, ma il vincolo contrattuale che guida l'intera pipeline. È l'oracolo che definisce la superficie d'attacco legittima, discrimina endpoint documentati da Shadow API, e permette di costruire payload strutturalmente validi invece di ricorrere al fuzzing cieco. Il "paradosso del Ground Truth" (cosa succede quando il contratto è sbagliato) viene discusso come limite strutturale nella Sezione 6.1.
+* **OpenAPI come Single Source of Truth (D3.P2):** La specifica OpenAPI non è documentazione, ma il vincolo contrattuale che guida l'intera pipeline. È l'oracolo che definisce la superficie d'attacco legittima, discrimina endpoint documentati da Shadow API, e permette di costruire payload strutturalmente validi invece di ricorrere al fuzzing cieco. Il "paradosso del Ground Truth" (cosa succede quando il contratto è sbagliato) viene discusso come limite strutturale nella Sezione 6.1.
 
-* **Config-Driven Development (P03):** Ogni parametro di tuning operativo risiede in `config.yaml`. Il codice non contiene literal decisionali hardcoded. Stesso `config.yaml` sullo stesso target produce sempre lo stesso risultato. Questa proprietà è il prerequisito di P28 e il fondamento dell'integrabilità in pipeline CI/CD standardizzate.
+* **Config-Driven Development (D3.P1):** Ogni parametro di tuning operativo risiede in `config.yaml`. Il codice non contiene literal decisionali hardcoded. Stesso `config.yaml` sullo stesso target produce sempre lo stesso risultato. Questa proprietà è il prerequisito di D3.P4 e il fondamento dell'integrabilità in pipeline CI/CD standardizzate.
 
-* **Reproducibility (P28):** Il determinismo dell'esecuzione come garanzia di validità scientifica. Un assessment non riproducibile non è un assessment: è un'osservazione irripetibile. P28 è il presupposto per cui i risultati del Capitolo 5 hanno valore dimostrativo e non soltanto descrittivo. La dimostrazione empirica è in Sezione 5.3.
+* **Reproducibility (D3.P4):** Il determinismo dell'esecuzione come garanzia di validità scientifica. Un assessment non riproducibile non è un assessment: è un'osservazione irripetibile. D3.P4 è il presupposto per cui i risultati del Capitolo 5 hanno valore dimostrativo e non soltanto descrittivo. La dimostrazione empirica è in Sezione 5.3.
 
 ---
 
 ### 3.2 Architettura dell'Assessment Engine
 Descrizione strutturale del sistema: come i componenti sono organizzati, come si relazionano, e perché quella struttura è stata scelta rispetto alle alternative. Ogni proprietà in questa sezione risponde a una frizione architetturale specifica.
 
-* **Flusso di Dipendenze Monodirezionale (P02):** Il grafo delle dipendenze tra moduli è strettamente aciclico: `core/` ← `connectors/` ← `tests/` ← `engine.py`. Modificare un test non può rompere `core/`. Questa proprietà è il prerequisito per la manutenibilità a lungo termine e per la futura estensibilità tramite plugin di terze parti.
+* **Flusso di Dipendenze Monodirezionale (D1.P2):** Il grafo delle dipendenze tra moduli è strettamente aciclico: `core/` ← `connectors/` ← `tests/` ← `engine.py`. Modificare un test non può rompere `core/`. Questa proprietà è il prerequisito per la manutenibilità a lungo termine e per la futura estensibilità tramite plugin di terze parti.
 
-* **DAG-Based Scheduling e Orchestrazione Deterministica (P06):** L'ordine di esecuzione dei test è determinato da un Directed Acyclic Graph costruito a partire dalle dipendenze dichiarate da ogni test. Il DAG garantisce che test con dipendenze funzionali vengano eseguiti nell'ordine corretto senza race condition. L'output è una sequenza di batch: all'interno di ogni batch i test sono indipendenti, i batch sono sequenziali tra loro. Il legame diretto con P28, ovvero il determinismo del DAG come fondamento della riproducibilità, viene esplicitato qui come catena causale.
+* **DAG-Based Scheduling e Orchestrazione Deterministica (D2.P2):** L'ordine di esecuzione dei test è determinato da un Directed Acyclic Graph costruito a partire dalle dipendenze dichiarate da ogni test. Il DAG garantisce che test con dipendenze funzionali vengano eseguiti nell'ordine corretto senza race condition. L'output è una sequenza di batch: all'interno di ogni batch i test sono indipendenti, i batch sono sequenziali tra loro. Il legame diretto con D3.P4, ovvero il determinismo del DAG come fondamento della riproducibilità, viene esplicitato qui come catena causale.
 
-* **Split State e Immutabilità (P04):** Lo stato del sistema è diviso in due oggetti con caratteristiche opposte. `TargetContext` (`frozen=True` Pydantic) è creato una volta e mai modificato: nessun test può alterare la visione del sistema che gli altri leggono. `TestContext` è mutabile via interfacce tipizzate esplicite. La separazione è enforced a livello di tipo, non per convenzione. Il costo accettato è la rigidità del `TargetContext`, giustificato dal fatto che il target non cambia durante un singolo assessment run.
+* **Split State e Immutabilità (D1.P3):** Lo stato del sistema è diviso in due oggetti con caratteristiche opposte. `TargetContext` (`frozen=True` Pydantic) è creato una volta e mai modificato: nessun test può alterare la visione del sistema che gli altri leggono. `TestContext` è mutabile via interfacce tipizzate esplicite. La separazione è enforced a livello di tipo, non per convenzione. Il costo accettato è la rigidità del `TargetContext`, giustificato dal fatto che il target non cambia durante un singolo assessment run.
 
-* **Gateway-Agnostic Adapter (P18):** P18 estende il principio di agnosticismo di P01 dallo strato applicativo allo strato di controllo del gateway. I test WHITE_BOX accedono al piano di configurazione del gateway tramite `BaseGatewayAdapter`, un ABC con metodi uniformi. L'implementazione concreta (Kong) è selezionata a runtime dal `config.yaml`. Il disaccoppiamento permette di sostituire Kong con qualsiasi altro gateway senza modificare i test. Il limite intrinseco di questa astrazione, la tensione tra generalità dell'interfaccia e profondità delle verifiche vendor-specific, è discusso nella Sezione 6.1.
+* **Gateway-Agnostic Adapter (D1.P6):** D1.P6 estende il principio di agnosticismo di D1.P1 dallo strato applicativo allo strato di controllo del gateway. I test WHITE_BOX accedono al piano di configurazione del gateway tramite `BaseGatewayAdapter`, un ABC con metodi uniformi. L'implementazione concreta (Kong) è selezionata a runtime dal `config.yaml`. Il disaccoppiamento permette di sostituire Kong con qualsiasi altro gateway senza modificare i test. Il limite intrinseco di questa astrazione, la tensione tra generalità dell'interfaccia e profondità delle verifiche vendor-specific, è discusso nella Sezione 6.1.
 
-* **Streaming Evidence Store (P11):** Per ogni test, l'`EvidenceStore` scrive ogni record su file JSONL con flush immediato, eliminando strutturalmente la classe di bug del design precedente a buffer fisso: con `deque(maxlen=100)`, i primi record venivano evicti silenziosamente, generando `Finding.evidence_ref` che puntavano a record inesistenti: audit trail rotto senza errori visibili. L'architettura JSONL garantisce la non-repudiabilità di ogni finding: ogni FAIL è corredato da evidenza HTTP dimostabile e riproducibile.
+* **Streaming Evidence Store (D4.P1):** Per ogni test, l'`EvidenceStore` scrive ogni record su file JSONL con flush immediato, eliminando strutturalmente la classe di bug del design precedente a buffer fisso: con `deque(maxlen=100)`, i primi record venivano evicti silenziosamente, generando `Finding.evidence_ref` che puntavano a record inesistenti: audit trail rotto senza errori visibili. L'architettura JSONL garantisce la non-repudiabilità di ogni finding: ogni FAIL è corredato da evidenza HTTP dimostabile e riproducibile.
 
-* **Zero External State Dependency (P34):** Il tool non dipende da nessun database esterno, message broker o cache a runtime. Tutto lo stato vive in memoria di processo o in file locali. Questo vincolo è il prerequisito diretto di P17 (exit codes affidabili per CI/CD): un tool con dipendenze di stato esterno non può garantire che il proprio exit code rifletta fedelmente lo stato dell'assessment senza service readiness check preventivi.
+* **Zero External State Dependency (D3.P5):** Il tool non dipende da nessun database esterno, message broker o cache a runtime. Tutto lo stato vive in memoria di processo o in file locali. Questo vincolo è il prerequisito diretto di D6.P1 (exit codes affidabili per CI/CD): un tool con dipendenze di stato esterno non può garantire che il proprio exit code rifletta fedelmente lo stato dell'assessment senza service readiness check preventivi.
 
 ---
 
 ### 3.3 Domini di Sicurezza e Box Gradient Applicato
-Presentazione della tassonomia originale degli 8 Domini di Assurance e della sua relazione con il Box Gradient (P21). Questa sezione è il punto di convergenza tra la teoria del Capitolo 2 e la struttura operativa del tool.
+Presentazione della tassonomia originale degli 8 Domini di Assurance e della sua relazione con il Box Gradient (D3.P3). Questa sezione è il punto di convergenza tra la teoria del Capitolo 2 e la struttura operativa del tool.
 
 * **Tassonomia degli 8 Domini:** Domain-0 (API Discovery), Domain-1 (Identity & Authentication), Domain-2 (Authorization), Domain-3 (Data Integrity), Domain-4 (Availability & Resilience), Domain-5 (Observability — Milestone 2), Domain-6 (Configuration & Hardening), Domain-7 (Business Logic & Sensitive Flows). La suddivisione rispecchia la gerarchia di fiducia di un sistema API: non ha senso verificare l'autorizzazione (D2) se non si è prima verificato che l'autenticazione funzioni (D1); non ha senso verificare l'autenticazione se non si conosce la superficie di attacco (D0). La gerarchia non è una convenzione organizzativa, è una catena logica di precondizioni.
 
-* **Applicazione del Box Gradient (P21):** APIGuard non è vincolato a un unico stile di test. Il gradiente Black/Grey/White Box è mappato strutturalmente alle priorità: i test P0 sono BLACK_BOX perché simulano un attaccante esterno senza credenziali: simulare l'attaccante è l'unico modo per ottenere evidenza non contaminata da privilegi impliciti. I test P1/P2 sono prevalentemente GREY_BOX perché richiedono token validi per almeno due ruoli distinti: senza quello stato autenticato, il test non raggiunge nemmeno la logica che intende sondare. I test P3 sono WHITE_BOX perché accedono all'Admin API del gateway per configuration audit. Questa mappatura non è una tassonomia teorica applicata retroattivamente, ma il prodotto delle precondizioni che ciascuna garanzia di sicurezza impone al tester.
+* **Applicazione del Box Gradient (D3.P3):** APIGuard non è vincolato a un unico stile di test. Il gradiente Black/Grey/White Box è mappato strutturalmente alle priorità: i test P0 sono BLACK_BOX perché simulano un attaccante esterno senza credenziali: simulare l'attaccante è l'unico modo per ottenere evidenza non contaminata da privilegi impliciti. I test P1/P2 sono prevalentemente GREY_BOX perché richiedono token validi per almeno due ruoli distinti: senza quello stato autenticato, il test non raggiunge nemmeno la logica che intende sondare. I test P3 sono WHITE_BOX perché accedono all'Admin API del gateway per configuration audit. Questa mappatura non è una tassonomia teorica applicata retroattivamente, ma il prodotto delle precondizioni che ciascuna garanzia di sicurezza impone al tester.
 
 ---
 
@@ -211,8 +211,8 @@ Presentazione della tassonomia originale degli 8 Domini di Assurance e della sua
 Descrizione del mapping fisico-logico: le 7 fasi dell'assessment corrispondono alle cartelle della repository (`config/`, `discovery/`, `core/`, `tests/`, `report/`). Implementazione di `engine.py` come orchestratore puro: esegue le fasi nell'ordine corretto, non contiene logica di dominio.
 
 Proprietà discusse in questa sezione:
-* **Fail-Safe Error Isolation (P13):** Il contratto di `BaseTest.execute()` impone che nessuna eccezione si propaghi verso l'engine. L'assenza di `try/except` attorno a `test.execute()` in `engine.py` non è una dimenticanza, è la dichiarazione esplicita che il contratto è del test, non dell'engine. Un test in eccezione produce `TestResult(ERROR)` e la pipeline prosegue.
-* **Custom Exception Hierarchy con Phase Mapping (P14):** 11 classi di eccezione custom con mapping esplicito alla fase della pipeline in cui si verificano. Eccezioni di Phase 1-4 sono fatali; eccezioni di Phase 5-6 sono recuperate localmente. La scelta documentata di non avere `ExternalToolNotFoundError` (un tool mancante è condizione operativa attesa, non un errore) è un esempio della precisione semantica della gerarchia.
+* **Fail-Safe Error Isolation (D4.P3):** Il contratto di `BaseTest.execute()` impone che nessuna eccezione si propaghi verso l'engine. L'assenza di `try/except` attorno a `test.execute()` in `engine.py` non è una dimenticanza, è la dichiarazione esplicita che il contratto è del test, non dell'engine. Un test in eccezione produce `TestResult(ERROR)` e la pipeline prosegue.
+* **Custom Exception Hierarchy con Phase Mapping (D4.P4):** 11 classi di eccezione custom con mapping esplicito alla fase della pipeline in cui si verificano. Eccezioni di Phase 1-4 sono fatali; eccezioni di Phase 5-6 sono recuperate localmente. La scelta documentata di non avere `ExternalToolNotFoundError` (un tool mancante è condizione operativa attesa, non un errore) è un esempio della precisione semantica della gerarchia.
 
 ---
 
@@ -220,8 +220,8 @@ Proprietà discusse in questa sezione:
 Implementazione del `TestRegistry`: come il tool scopre i test a runtime senza un registro centrale hardcoded tramite `pkgutil.walk_packages`. Il `DAGScheduler` (`core/dag.py`): impiego di `graphlib.TopologicalSorter` per tradurre le dipendenze `depends_on` in `ScheduledBatch` sequenziali, e logica di stall detection per prevenire loop infiniti.
 
 Proprietà discusse in questa sezione:
-* **Dynamic Test Discovery (P05):** Zero-registration via `pkgutil`. Aggiungere un test richiede creare un file nella directory corretta: nessun altro file viene modificato. Il plugin system come traiettoria futura è una conseguenza diretta, non un piano aggiunto a posteriori.
-* **Type-Level TestResult Invariant Enforcement (P35):** Tre invarianti su `TestResult` sono enforced al momento della costruzione da un `model_validator` Pydantic: FAIL richiede `findings` non vuoto, SKIP richiede `skip_reason`, PASS richiede `findings` vuoto. Il validator è il single point of truth, non una convenzione distribuita nei caller.
+* **Dynamic Test Discovery (D2.P1):** Zero-registration via `pkgutil`. Aggiungere un test richiede creare un file nella directory corretta: nessun altro file viene modificato. Il plugin system come traiettoria futura è una conseguenza diretta, non un piano aggiunto a posteriori.
+* **Type-Level TestResult Invariant Enforcement (D4.P9):** Tre invarianti su `TestResult` sono enforced al momento della costruzione da un `model_validator` Pydantic: FAIL richiede `findings` non vuoto, SKIP richiede `skip_reason`, PASS richiede `findings` vuoto. Il validator è il single point of truth, non una convenzione distribuita nei caller.
 
 ---
 
@@ -231,11 +231,11 @@ La struttura interna dei test: il contratto imposto da `BaseTest` e l'uso obblig
 Nota sulla copertura dei domini: Milestone 1 implementa D0, D1, D2, D3, D4, D6, D7. Domain-5 (Observability) è pianificato per Milestone 2.
 
 Proprietà discusse in questa sezione:
-* **Dual Test Hierarchy (P07):** La separazione dei contratti `BaseTest` e `ExternalToolTest` previene che un `ExternalToolTest` erediti metodi inutilizzabili (es. `_log_transaction()` che accede a `SecurityClient`). Non è estetica, è prevenzione di errori per costruzione.
-* **Auth Abstraction Layer (P19):** Il dispatcher `auth.py` è idempotente: N test che chiamano `acquire_tokens()` producono un solo login HTTP. Aggiungere un nuovo metodo di autenticazione richiede una nuova implementazione e un ramo nel dispatcher, senza modifiche ai test esistenti.
-* **Methodology Traceability (P22):** Ogni test porta come `ClassVar` i riferimenti normativi della garanzia che verifica: `cwe_id`, `tags` (OWASP, NIST, RFC). Ogni `Finding` propaga `references`. I risultati sono tracciabili agli standard, non sono annotazioni arbitrarie del tool.
-* **Finding/InfoNote Semantic Distinction (P23):** `Finding` è evidenza di una violazione (presente solo in FAIL, conta nel totale). `InfoNote` è annotazione informativa su un PASS (non cambia lo status, non conta come violazione). L'invariante PASS-senza-Finding è enforced da P35.
-* **Safe HTTP Probing Policy (P31):** Oracle a tre esiti: ENFORCED (401/403), BYPASSED (2xx), INCONCLUSIVE (qualsiasi altro stato); e segregazione degli endpoint in Tier A (path fissi, risposta interpretabile) e Tier B (path parametrici, risposta dipende dalla qualità del seed). Un tool che segna FAIL ogni 404 su path parametrici genera falsi positivi inaccettabili. Il fallback sicuro `"apiguard-probe"` per i DELETE parametrici garantisce che anche un gateway misconfigured non causi perdita di dati sul target.
+* **Dual Test Hierarchy (D1.P4):** La separazione dei contratti `BaseTest` e `ExternalToolTest` previene che un `ExternalToolTest` erediti metodi inutilizzabili (es. `_log_transaction()` che accede a `SecurityClient`). Non è estetica, è prevenzione di errori per costruzione.
+* **Auth Abstraction Layer (D2.P5):** Il dispatcher `auth.py` è idempotente: N test che chiamano `acquire_tokens()` producono un solo login HTTP. Aggiungere un nuovo metodo di autenticazione richiede una nuova implementazione e un ramo nel dispatcher, senza modifiche ai test esistenti.
+* **Methodology Traceability (D5.P1):** Ogni test porta come `ClassVar` i riferimenti normativi della garanzia che verifica: `cwe_id`, `tags` (OWASP, NIST, RFC). Ogni `Finding` propaga `references`. I risultati sono tracciabili agli standard, non sono annotazioni arbitrarie del tool.
+* **Finding/InfoNote Semantic Distinction (D5.P2):** `Finding` è evidenza di una violazione (presente solo in FAIL, conta nel totale). `InfoNote` è annotazione informativa su un PASS (non cambia lo status, non conta come violazione). L'invariante PASS-senza-Finding è enforced da D4.P9.
+* **Safe HTTP Probing Policy (D4.P7):** Oracle a tre esiti: ENFORCED (401/403), BYPASSED (2xx), INCONCLUSIVE (qualsiasi altro stato); e segregazione degli endpoint in Tier A (path fissi, risposta interpretabile) e Tier B (path parametrici, risposta dipende dalla qualità del seed). Un tool che segna FAIL ogni 404 su path parametrici genera falsi positivi inaccettabili. Il fallback sicuro `"apiguard-probe"` per i DELETE parametrici garantisce che anche un gateway misconfigured non causi perdita di dati sul target.
 
 ---
 
@@ -243,13 +243,13 @@ Proprietà discusse in questa sezione:
 Implementazione della Three-Tier Connector Hierarchy: `BaseConnector` (ABC puro), `BaseSubprocessConnector` (tool invocati come subprocess: nuclei, testssl.sh), `BaseLibraryConnector` (package Python-native: sslyze). Parsing standardizzato dell'output (`ConnectorResult`) e iniezione automatica dei connettori in `ExternalToolTest`.
 
 Proprietà discusse in questa sezione:
-* **Three-Tier Connector Hierarchy (P08):** Un `SslyzeConnector` non eredita `BINARY_NAME` né `_run_subprocess()`, metodi irrilevanti per una libreria Python. La gerarchia minimizza la superficie di interfaccia inutilizzabile e rende esplicita la natura dell'integrazione (subprocess vs libreria).
-* **Separation of Data from Evaluation (P09):** Il connector restituisce dati grezzi nel modello `ConnectorResult`; è l'`ExternalToolTest` a valutarli contro il proprio oracle. Lo stesso `NucleiConnector` è riusabile da test con logiche di valutazione diverse senza modifiche.
-* **Connector Lifecycle con Dependency Injection (P10):** Il check di disponibilità (`is_available()`) viene eseguito una sola volta per gruppo di test che usano lo stesso tool. Con N test che dipendono da nuclei, il filesystem viene interrogato una sola volta: un singolo WARNING nel log invece di N entry identiche.
-* **Category A/B Connector Classification (P24):** Connector Cat A sono prerequisiti per la completezza dei test HYBRID. Connector Cat B espandono la copertura senza essere necessari. La classificazione guida le priorità di sviluppo e l'accettazione di contributi esterni.
-* **Path Seed System (P30):** Risolve il problema dei path parametrici con dimostrazione quantitativa: senza seed su Forgejo, i path con `{owner}` e `{repo}` producono INCONCLUSIVE; con seed configurato, gli stessi path producono ENFORCED o BYPASSED. Prima-dopo citabile in Cap. 5.
-* **Test Data Catalog Architecture (P32):** I payload di attacco risiedono in moduli pure-data (`src/tests/data/`) senza logica. Aggiungere un nuovo vettore SSRF richiede una riga nel catalogue, non una modifica alla logica del test. In contesti enterprise dove i payload devono essere approvati separatamente dal codice, questa separazione è un prerequisito.
-* **License-Gated Optional Dependency (P37):** `sslyze` (AGPL v3) è isolato in `[project.optional-dependencies.sslyze]`. Il core rimane MIT-clean. Chi installa l'extra accetta consapevolmente l'AGPL. Esempio concreto di come le decisioni di licensing influenzino l'architettura.
+* **Three-Tier Connector Hierarchy (D1.P5):** Un `SslyzeConnector` non eredita `BINARY_NAME` né `_run_subprocess()`, metodi irrilevanti per una libreria Python. La gerarchia minimizza la superficie di interfaccia inutilizzabile e rende esplicita la natura dell'integrazione (subprocess vs libreria).
+* **Separation of Data from Evaluation (D2.P3):** Il connector restituisce dati grezzi nel modello `ConnectorResult`; è l'`ExternalToolTest` a valutarli contro il proprio oracle. Lo stesso `NucleiConnector` è riusabile da test con logiche di valutazione diverse senza modifiche.
+* **Connector Lifecycle con Dependency Injection (D2.P4):** Il check di disponibilità (`is_available()`) viene eseguito una sola volta per gruppo di test che usano lo stesso tool. Con N test che dipendono da nuclei, il filesystem viene interrogato una sola volta: un singolo WARNING nel log invece di N entry identiche.
+* **Category A/B Connector Classification (D2.P6):** Connector Cat A sono prerequisiti per la completezza dei test HYBRID. Connector Cat B espandono la copertura senza essere necessari. La classificazione guida le priorità di sviluppo e l'accettazione di contributi esterni.
+* **Path Seed System (D2.P7):** Risolve il problema dei path parametrici con dimostrazione quantitativa: senza seed su Forgejo, i path con `{owner}` e `{repo}` producono INCONCLUSIVE; con seed configurato, gli stessi path producono ENFORCED o BYPASSED. Prima-dopo citabile in Cap. 5.
+* **Test Data Catalog Architecture (D2.P8):** I payload di attacco risiedono in moduli pure-data (`src/tests/data/`) senza logica. Aggiungere un nuovo vettore SSRF richiede una riga nel catalogue, non una modifica alla logica del test. In contesti enterprise dove i payload devono essere approvati separatamente dal codice, questa separazione è un prerequisito.
+* **License-Gated Optional Dependency (D7.P2):** `sslyze` (AGPL v3) è isolato in `[project.optional-dependencies.sslyze]`. Il core rimane MIT-clean. Chi installa l'extra accetta consapevolmente l'AGPL. Esempio concreto di come le decisioni di licensing influenzino l'architettura.
 
 ---
 
@@ -257,9 +257,9 @@ Proprietà discusse in questa sezione:
 Sviluppo del `KongGatewayAdapter`: come il motore Python interroga l'Admin API di Kong DB-less per eseguire test White-Box (Domini 3, 4, 6). Fase 6 (Teardown): implementazione del cleanup best-effort tramite la coda LIFO in `TestContext.drain_resources()`.
 
 Proprietà discusse in questa sezione:
-* **Graceful Degradation Multi-Livello (P15):** Tre livelli di degradazione controllata: tool esterno assente → SKIP via `_skip_reason_from_registry`; Admin API non configurata → tutti i test WHITE_BOX ritornano SKIP con motivo esplicito; `external_tools.enabled = false` → registry ritorna lista vuota senza scansionare il filesystem. In ambiente senza Admin API esposta i risultati sono parziali ma corretti, non errori a cascata.
-* **Best-Effort Teardown LIFO (P16):** I test che creano risorse registrano l'endpoint di cancellazione nel `TestContext` al momento stesso della creazione. L'ordine LIFO garantisce che risorse con dipendenze implicite siano eliminate nell'ordine corretto. Un fallimento di teardown è un warning operativo, non un'invalidazione scientifica dell'assessment. Validazione empirica: 0 risorse leakate nell'audit di Milestone 1, discussa in 5.3.
-* **Deployment-Transparent URL Abstraction (P38):** `TargetContext.effective_base_url` astrae la differenza tra deployment standalone (`localhost`) e Docker Compose (nome servizio Compose). Risolto una volta in Phase 3 e frozen nel `TargetContext`: zero logica condizionale di deployment nei connector.
+* **Graceful Degradation Multi-Livello (D4.P5):** Tre livelli di degradazione controllata: tool esterno assente → SKIP via `_skip_reason_from_registry`; Admin API non configurata → tutti i test WHITE_BOX ritornano SKIP con motivo esplicito; `external_tools.enabled = false` → registry ritorna lista vuota senza scansionare il filesystem. In ambiente senza Admin API esposta i risultati sono parziali ma corretti, non errori a cascata.
+* **Best-Effort Teardown LIFO (D4.P6):** I test che creano risorse registrano l'endpoint di cancellazione nel `TestContext` al momento stesso della creazione. L'ordine LIFO garantisce che risorse con dipendenze implicite siano eliminate nell'ordine corretto. Un fallimento di teardown è un warning operativo, non un'invalidazione scientifica dell'assessment. Validazione empirica: 0 risorse leakate nell'audit di Milestone 1, discussa in 5.3.
+* **Deployment-Transparent URL Abstraction (D7.P3):** `TargetContext.effective_base_url` astrae la differenza tra deployment standalone (`localhost`) e Docker Compose (nome servizio Compose). Risolto una volta in Phase 3 e frozen nel `TargetContext`: zero logica condizionale di deployment nei connector.
 
 ---
 
@@ -267,9 +267,9 @@ Proprietà discusse in questa sezione:
 Implementazione dello Streaming Evidence Store e del meccanismo centralizzato di sanitizzazione. Presentazione del Dual Audit Trail: `evidence.json` come forensic trail tecnico e `assessment_report.html` come deliverable operativo.
 
 Proprietà discusse in questa sezione:
-* **Streaming Evidence Store — implementazione (P11):** Il ciclo di vita `begin_test` / scrittura per-record / `end_test` / `merge_and_finalize` in Phase 7. Confronto esplicito con il design precedente a `deque(maxlen=100)`: il difetto, ovvero l'audit trail rotto in silenzio, è la motivazione più efficace per la scelta attuale.
-* **Evidence Sanitization (P12):** La sanitizzazione centralizzata tramite tripla copertura (key-pattern regex su 11 pattern, JWT heuristic per valori stringa indipendentemente dalla chiave, header prefix matching) garantisce che nessun connector che dimentica di redactare un campo sensibile crei una violazione nell'audit trail. La centralizzazione è il contributo: non è una convenzione che i developer devono ricordare, è una garanzia strutturale. In una tesi sulla sicurezza delle API, la proprietà che impedisce alle credenziali di finire nei log merita trattamento dedicato.
-* **Report Domain-Centric Split (P29):** La partizione per `domain × source` nel report è la conseguenza diretta di come l'Evidence Store aggrega i dati. Per ogni dominio il report distingue risultati nativi (con evidenza HTTP diretta) da risultati di tool specializzati (con raw output del tool), senza richiedere sezioni fisicamente separate.
+* **Streaming Evidence Store — implementazione (D4.P1):** Il ciclo di vita `begin_test` / scrittura per-record / `end_test` / `merge_and_finalize` in Phase 7. Confronto esplicito con il design precedente a `deque(maxlen=100)`: il difetto, ovvero l'audit trail rotto in silenzio, è la motivazione più efficace per la scelta attuale.
+* **Evidence Sanitization (D4.P2):** La sanitizzazione centralizzata tramite tripla copertura (key-pattern regex su 11 pattern, JWT heuristic per valori stringa indipendentemente dalla chiave, header prefix matching) garantisce che nessun connector che dimentica di redactare un campo sensibile crei una violazione nell'audit trail. La centralizzazione è il contributo: non è una convenzione che i developer devono ricordare, è una garanzia strutturale. In una tesi sulla sicurezza delle API, la proprietà che impedisce alle credenziali di finire nei log merita trattamento dedicato.
+* **Report Domain-Centric Split (D5.P5):** La partizione per `domain × source` nel report è la conseguenza diretta di come l'Evidence Store aggrega i dati. Per ogni dominio il report distingue risultati nativi (con evidenza HTTP diretta) da risultati di tool specializzati (con raw output del tool), senza richiedere sezioni fisicamente separate.
 
 ---
 
@@ -284,10 +284,10 @@ Descrizione dell'ambiente di validazione: provisioning via Docker Compose di For
 Dimostrazione della qualità del codice prodotto: analisi statica (0 errori Ruff, 0 finding Bandit severity medium+, 0 dead code Vulture, 0 CVE pip-audit) e type-safety rigorosa.
 
 Proprietà discussa in questa sezione:
-* **Dual-Layer Type Safety (P39):** 0 errori mypy su 90 file sorgente in strict mode. La dual-layer enforcement (mypy a compile-time + Pydantic a runtime) copre due classi di bug distinte: errori di tipo nella logica interna ed errori sui dati alle system boundaries. Un tool che si propone come strumento di assurance deve dimostrare di applicare lo stesso rigore alla propria implementazione.
+* **Dual-Layer Type Safety (D6.P3):** 0 errori mypy su 90 file sorgente in strict mode. La dual-layer enforcement (mypy a compile-time + Pydantic a runtime) copre due classi di bug distinte: errori di tipo nella logica interna ed errori sui dati alle system boundaries. Un tool che si propone come strumento di assurance deve dimostrare di applicare lo stesso rigore alla propria implementazione.
 
 ### 5.3 Copertura Funzionale e Idempotenza dell'Assessment
-Analisi dei risultati logici: 98 finding totali distribuiti su 18 test attivi (9 PASS, 7 FAIL, 2 SKIP). Dimostrazione empirica dell'idempotenza: due run indipendenti producono risultati byte-identici (Δ wall-clock 0.32%), 0 risorse leakate. Validazione del Teardown Best-Effort (P16) e della Reproducibility (P28) con dati numerici tracciabili all'audit di Milestone 1.
+Analisi dei risultati logici: 98 finding totali distribuiti su 18 test attivi (9 PASS, 7 FAIL, 2 SKIP). Dimostrazione empirica dell'idempotenza: due run indipendenti producono risultati byte-identici (Δ wall-clock 0.32%), 0 risorse leakate. Validazione del Teardown Best-Effort (D4.P6) e della Reproducibility (D3.P4) con dati numerici tracciabili all'audit di Milestone 1.
 
 ### 5.4 Footprint Computazionale e Benchmarking del DAG
 Analisi delle performance del motore Python su setup single-host contro Forgejo 14.0.3 + Kong DB-less (dati da §A.2 e §B.9 dell'audit di Milestone 1): wall-clock medio 286s (media su due run: 290.14s e 290.81s), peak resident set size 287–295 MB, output totale on-disk 4.5 MB. L'utilizzo CPU medio del 26% indica che il run è dominato dagli HTTP round-trip verso il target, non dal calcolo locale. Discussione di come la topologia DAG (16 test in Phase A, 2 in Phase B) non solo prevenga le race condition ma mantenga un profilo di risorse compatibile con l'esecuzione in pipeline CI/CD senza hardware dedicato.
@@ -299,18 +299,18 @@ Analisi delle performance del motore Python su setup single-host contro Forgejo 
 ### 6.1 Analisi Critica e Limiti del Paradigma Contract-Driven
 Discussione oggettiva sui tre limiti strutturali del sistema, ciascuno radicato in una proprietà architetturale specifica:
 
-* **Il Paradosso del Ground Truth (limite di P20):** Il tool assume che la specifica OpenAPI fornita sia corretta, completa e non manipolata. Una specifica obsoleta o deliberatamente alterata produce un assessment parziale senza che il sistema possa rilevarlo. Questo è un open problem nella letteratura sul contract-driven testing, non un difetto specifico di APIGuard Assurance.
+* **Il Paradosso del Ground Truth (limite di D3.P2):** Il tool assume che la specifica OpenAPI fornita sia corretta, completa e non manipolata. Una specifica obsoleta o deliberatamente alterata produce un assessment parziale senza che il sistema possa rilevarlo. Questo è un open problem nella letteratura sul contract-driven testing, non un difetto specifico di APIGuard Assurance.
 
-* **La Tensione dell'Astrazione (limite di P18):** Il Gateway-Agnostic Adapter garantisce compatibilità multi-vendor a costo di esporre solo i controlli concettualmente generalizzabili a qualsiasi gateway. Un test che volesse accedere a feature Kong-specifiche senza equivalente in altri gateway (es. plugin ordering con effetti sulla sicurezza) dovrebbe castare al tipo concreto, rompendo l'agnosticismo del test stesso. Il design corrente non usa questa possibilità, e questo è il trade-off da dichiarare.
+* **La Tensione dell'Astrazione (limite di D1.P6):** Il Gateway-Agnostic Adapter garantisce compatibilità multi-vendor a costo di esporre solo i controlli concettualmente generalizzabili a qualsiasi gateway. Un test che volesse accedere a feature Kong-specifiche senza equivalente in altri gateway (es. plugin ordering con effetti sulla sicurezza) dovrebbe castare al tipo concreto, rompendo l'agnosticismo del test stesso. Il design corrente non usa questa possibilità, e questo è il trade-off da dichiarare.
 
-* **La Dipendenza dall'Admin API (limite di P15):** In ambienti cloud managed (Amazon API Gateway, Azure APIM) l'Admin API non è mai esposta pubblicamente. La graceful degradation funziona (tutti i test WHITE_BOX ritornano SKIP con motivo esplicito), ma la copertura dell'assessment si riduce ai soli domini black-box e grey-box. Nella prassi industriale questo limite si affronta con accordi specifici che concedono accesso privilegiato durante l'assessment, un modello operativo in cui APIGuard Assurance si inserisce naturalmente configurando il campo `gateway_adapter` nel `config.yaml`.
+* **La Dipendenza dall'Admin API (limite di D4.P5):** In ambienti cloud managed (Amazon API Gateway, Azure APIM) l'Admin API non è mai esposta pubblicamente. La graceful degradation funziona (tutti i test WHITE_BOX ritornano SKIP con motivo esplicito), ma la copertura dell'assessment si riduce ai soli domini black-box e grey-box. Nella prassi industriale questo limite si affronta con accordi specifici che concedono accesso privilegiato durante l'assessment, un modello operativo in cui APIGuard Assurance si inserisce naturalmente configurando il campo `gateway_adapter` nel `config.yaml`.
 
 ### 6.2 Applicabilità Industriale e Integrazione DevSecOps
 Valutazione di come APIGuard possa essere integrato come quality gate automatizzato in pipeline CI/CD.
 
 Proprietà discusse in questa sezione:
-* **Semantic Exit Codes (P17):** Quattro exit code semanticamente distinti (0 clean, 1 FAIL, 2 ERROR, 10 infrastrutturale) permettono l'integrazione in qualsiasi pipeline CI/CD con un semplice check sul codice di uscita. La distinzione tra "il tool non si è avviato" (10) e "il tool si è avviato e ha trovato problemi" (1) è essenziale per la diagnostica automatica.
-* **Fail-Fast P0 Escalation (P33):** Combinato con P17, abilita un quality gate a due velocità: fail-fast sui test P0 (interruzione immediata alla prima violazione perimetrale confermata) per risparmiare wall-clock nei casi chiari, assessment completo negli altri. La distinzione tra P33 (quando fermarsi) e P17 (cosa comunicare dopo il completamento) è il punto architetturale da chiarire.
+* **Semantic Exit Codes (D6.P1):** Quattro exit code semanticamente distinti (0 clean, 1 FAIL, 2 ERROR, 10 infrastrutturale) permettono l'integrazione in qualsiasi pipeline CI/CD con un semplice check sul codice di uscita. La distinzione tra "il tool non si è avviato" (10) e "il tool si è avviato e ha trovato problemi" (1) è essenziale per la diagnostica automatica.
+* **Fail-Fast P0 Escalation (D4.P8):** Combinato con D6.P1, abilita un quality gate a due velocità: fail-fast sui test P0 (interruzione immediata alla prima violazione perimetrale confermata) per risparmiare wall-clock nei casi chiari, assessment completo negli altri. La distinzione tra D4.P8 (quando fermarsi) e D6.P1 (cosa comunicare dopo il completamento) è il punto architetturale da chiarire.
 
 ### 6.3 Sviluppi Futuri (Prospettiva di Ricerca Dottorale)
 Le traiettorie di sviluppo si articolano su due scale temporali distinte: estensioni operative pianificate a breve termine nella roadmap di Milestone 2, e traiettorie di ricerca aperte che richiedono validazione sperimentale autonoma.
@@ -325,24 +325,24 @@ Conseguenze dirette dell'architettura attuale, identificate dalla roadmap in `PR
 
 #### Traiettorie di Ricerca Avanzata
 Direzioni che l'architettura attuale abilita ma che richiedono ricerca e validazione sperimentale indipendente, non semplice implementazione:
-* **Plugin system (P05):** Il discovery dinamico via `pkgutil` è già compatibile con moduli di test contribuiti da terze parti. Un package `apiguard-tests-graphql` è inseribile senza modifiche al core.
-* **Parallelizzazione batch (P06):** La struttura a batch del DAG è già parallelizzabile con un `ThreadPoolExecutor` localizzato in Phase 5. Le questioni di thread-safety su `TestContext` ed `EvidenceStore` sono note e documentate, ma richiedono analisi formale prima dell'implementazione.
-* **Auto-seed dall'OpenAPI spec (P30):** Derivare il seed cercando i campi `example:` / `x-example:` nella spec, riducendo il lavoro manuale di configurazione.
-* **ML/LLM per inferenza contratti:** Traiettoria che affronta il paradosso del Ground Truth di P20, rendere il tool indipendente dalla documentazione fornita tramite inferenza della specifica dall'analisi del traffico reale. È un open problem nella letteratura sul contract-driven testing, con sfide aperte sulla correttezza dell'inferenza e sulla gestione dei falsi positivi generati da specifiche parziali.
+* **Plugin system (D2.P1):** Il discovery dinamico via `pkgutil` è già compatibile con moduli di test contribuiti da terze parti. Un package `apiguard-tests-graphql` è inseribile senza modifiche al core.
+* **Parallelizzazione batch (D2.P2):** La struttura a batch del DAG è già parallelizzabile con un `ThreadPoolExecutor` localizzato in Phase 5. Le questioni di thread-safety su `TestContext` ed `EvidenceStore` sono note e documentate, ma richiedono analisi formale prima dell'implementazione.
+* **Auto-seed dall'OpenAPI spec (D2.P7):** Derivare il seed cercando i campi `example:` / `x-example:` nella spec, riducendo il lavoro manuale di configurazione.
+* **ML/LLM per inferenza contratti:** Traiettoria che affronta il paradosso del Ground Truth di D3.P2, rendere il tool indipendente dalla documentazione fornita tramite inferenza della specifica dall'analisi del traffico reale. È un open problem nella letteratura sul contract-driven testing, con sfide aperte sulla correttezza dell'inferenza e sulla gestione dei falsi positivi generati da specifiche parziali.
 
 ---
 
 ## 7. Conclusioni
 
 ### 7.1 Sintesi del Lavoro e Risoluzione del Problema Iniziale
-Ritorno alla tesi fondamentale: riassunto di come l'approccio Contract-Driven (P20) abbia colmato il "Semantic Gap" discusso nel Capitolo 2, superando la cecità sintattica dei fuzzer tradizionali. Conferma che un approccio ibrido, guidato dalla specifica OpenAPI e svincolato dal target (P01), è superiore all'analisi statica o dinamica isolate.
+Ritorno alla tesi fondamentale: riassunto di come l'approccio Contract-Driven (D3.P2) abbia colmato il "Semantic Gap" discusso nel Capitolo 2, superando la cecità sintattica dei fuzzer tradizionali. Conferma che un approccio ibrido, guidato dalla specifica OpenAPI e svincolato dal target (D1.P1), è superiore all'analisi statica o dinamica isolate.
 
 ### 7.2 Contributi Scientifici e Ingegneristici
 Elenco degli artefatti concreti prodotti dalla ricerca:
 
 1. Il design di un **Assessment Engine deterministico basato su DAG** per l'orchestrazione di test di sicurezza su API REST documentate.
-2. La formalizzazione delle **39 Proprietà Architetturali (P01-P39)** come modello di design riutilizzabile e indipendente dall'implementazione.
-3. La **Tassonomia a 8 Domini** associata al Box Gradient (P21) come metodo originale di classificazione dei test di sicurezza in funzione delle precondizioni informative del tester.
+2. La formalizzazione delle **39 Proprietà Architetturali distribuite su 7 domini** come modello di design riutilizzabile e indipendente dall'implementazione.
+3. La **Tassonomia a 8 Domini** associata al Box Gradient (D3.P3) come metodo originale di classificazione dei test di sicurezza in funzione delle precondizioni informative del tester.
 4. Una **codebase release-ready** (0 errori mypy strict su 90 file, 100% green static analysis) validata empiricamente contro un target reale (Forgejo 14.0.3 + Kong 3.9 DB-less), con idempotenza dimostrata su run multiple.
 
 ### 7.3 Considerazioni Finali sull'Assurance Continuo

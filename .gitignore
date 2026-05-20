@@ -10,7 +10,7 @@ Riassunto/*.pdf
 Presentazione/*.pdf
 
 # Markdown docs 
-docs/
+#docs/
 
 *.bib.*
 
