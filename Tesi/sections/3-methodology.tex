@@ -1,219 +1,247 @@
 % !TEX root = ../main.tex
 \chapter{Metodologia, Architettura e Principi di Design}\label{chap:methodology}
+La presentazione di \textit{APIGuard Assurance} segue un approccio \textit{top-down}, a partire dai principi generali di sistema fino al dettaglio implementativo.
+La struttura ricalca la dipendenza causale del progetto: le decisioni architetturali definiscono i confini del tool, mentre le realizzazioni descritte nel Capitolo~\ref{chap:implementation} ne costituiscono la concretizzazione in codice.
+Comprendere il sistema in quest'ordine logico permette di giustificare ogni scelta implementativa come diretta applicazione dei vincoli architetturali definiti.
 
 
-Il progetto di APIGuard Assurance è formalizzato in 39 proprietà architetturali,
-organizzate nella Tabella~\ref{tab:property-taxonomy} in sette categorie omogenee.
-La tabella non è una classificazione decorativa: costituisce la mappa di navigazione
-dell'intero sistema, l'indice che consente al lettore di rintracciare la trattazione
-di ciascun aspetto progettuale nel capitolo appropriato. Le proprietà che rispondono
-alla domanda \textit{perché il sistema è costruito in questa forma} vengono discusse
-nelle Sezioni~\ref{sec:principi} e~\ref{sec:engine}; quelle che descrivono
-\textit{come i componenti realizzano tale forma} trovano trattazione nel
-Capitolo~\ref{chap:methodology}. In ogni caso, nessuna proprietà viene omessa:
-la tabella garantisce tracciabilità completa tra decisioni progettuali e loro
-realizzazione in codice.
+Il design di APIGuard Assurance è formalizzato in 39 proprietà architetturali distribuite su sette categorie; la Tabella~\ref{tab:property-index} le raccoglie come mappa di riferimento per questo capitolo\footnote{In grassetto le proprietà trattate in questo capitolo.} e per il successivo, dove le scelte architetturali qui descritte trovano la concreta implementazione.
 
-\begin{table}[htbp]
+\begin{table}[ht]
   \centering
   \small
-  \caption{Tassonomia delle 39 proprietà architetturali di APIGuard Assurance,
-    organizzate per categoria funzionale.}
-  \label{tab:property-taxonomy}
-  \begin{tabular}{lp{9cm}}
+  \begin{tabular}{@{}lp{0.62\textwidth}@{}}
     \toprule
-    \textbf{Categoria} & \textbf{Proprietà}                                 \\
+    \textbf{Dominio}                    & \textbf{Proprietà}                                                             \\
     \midrule
-    Architettura \& Design
-                       & P01~(CHANGE-ME), P02~(CHANGE-ME), P04~(CHANGE-ME),
-    P07~(CHANGE-ME), P08~(CHANGE-ME), P18~(CHANGE-ME)                       \\[4pt]
-    Estensibilità \& Manutenibilità
-                       & P05~(CHANGE-ME), P06~(CHANGE-ME), P09~(CHANGE-ME),
-    P10~(CHANGE-ME), P19~(CHANGE-ME), P24~(CHANGE-ME),
-    P30~(CHANGE-ME), P32~(CHANGE-ME)                                        \\[4pt]
-    Config \& Riproducibilità
-                       & P03~(CHANGE-ME), P20~(CHANGE-ME), P21~(CHANGE-ME),
-    P28~(CHANGE-ME), P34~(CHANGE-ME)                                        \\[4pt]
-    Robustezza \& Sicurezza
-                       & P11~(CHANGE-ME), P12~(CHANGE-ME), P13~(CHANGE-ME),
-    P14~(CHANGE-ME), P15~(CHANGE-ME), P16~(CHANGE-ME),
-    P31~(CHANGE-ME), P33~(CHANGE-ME), P35~(CHANGE-ME)                       \\[4pt]
-    Qualità \& Osservabilità
-                       & P22~(CHANGE-ME), P23~(CHANGE-ME), P26~(CHANGE-ME),
-    P27~(CHANGE-ME), P29~(CHANGE-ME)                                        \\[4pt]
-    CI/CD \& DevEx
-                       & P17~(CHANGE-ME), P25~(CHANGE-ME), P39~(CHANGE-ME)  \\[4pt]
-    Packaging \& Deployment
-                       & P36~(CHANGE-ME), P37~(CHANGE-ME), P38~(CHANGE-ME)  \\
+    D1: Architettura \& Design          & \textbf{D1.P1}, \textbf{D1.P2}, \textbf{D1.P3}, D1.P4, D1.P5, \textbf{D1.P6}   \\
+    \addlinespace
+    D2: Estensibilità \& Manutenibilità & D2.P1, \textbf{D2.P2}, D2.P3, D2.P4, D2.P5, D2.P6, D2.P7, D2.P8                \\
+    \addlinespace
+    D3: Config \& Riproducibilità       & \textbf{D3.P1}, \textbf{D3.P2}, \textbf{D3.P3}, \textbf{D3.P4}, \textbf{D3.P5} \\
+    \addlinespace
+    D4: Robustezza \& Sicurezza         & \textbf{D4.P1}, D4.P2, D4.P3, D4.P4, D4.P5, D4.P6, D4.P7, D4.P8, D4.P9         \\
+    \addlinespace
+    D5: Qualità \& Osservabilità        & D5.P1, D5.P2, D5.P3, D5.P4, D5.P5                                              \\
+    \addlinespace
+    D6: CI/CD \& DevEx                  & D6.P1, D6.P2, D6.P3                                                            \\
+    \addlinespace
+    D7: Packaging \& Deployment         & D7.P1, D7.P2, D7.P3                                                            \\
+    \bottomrule
+  \end{tabular}
+  \caption{Proprietà APIGuard Assurance per dominio.}
+  \label{tab:property-index}
+\end{table}
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Principi Fondamentali: il Perché delle Scelte Architetturali}%
+\label{sec:principi-fondamentali}
+% ─────────────────────────────────────────────────────────────────────────────
+
+
+In coerenza con la progressione \textit{top-down} esplicitata, l'analisi ha inizio dal livello di massima astrazione dell'architettura, dove risiedono i principi che determinano la postura metodologica del framework.
+Questa sezione formalizza i principi fondamentali che stabiliscono il perimetro operativo del motore, la natura delle sue sorgenti informative a runtime e i vincoli di determinismo dell'assessment.
+Tali proprietà non costituiscono una convenzione organizzativa astratta; al contrario, esse strutturano lo spazio logico e i vincoli di dipendenza causale entro cui tutte le successive decisioni di design e di implementazione devono necessariamente collocarsi.
+
+
+
+Il punto di partenza è il livello più alto dell'architettura: le decisioni che definiscono il carattere del tool prima ancora di descriverne i componenti. Sono le proprietà che stabiliscono cosa APIGuard Assurance può e non può essere, quale tipo di conoscenza può usare, con quali garanzie può operare. Ogni altra scelta di design discussa in questo capitolo e nel successivo ne deriva: non per convenzione, ma perché alcune proprietà strutturano lo spazio in cui le altre vivono.
+
+
+\subsection{Agnosticismo Applicativo (D1.P1)}\label{subsec:agnosticismo}
+
+Tutta la conoscenza del target viene derivata a runtime da due sole sorgenti: il file \texttt{config.yaml}, che raccoglie i parametri operativi quali \gls{URL}, credenziali e soglie di esecuzione, e la specifica OpenAPI del target, che fornisce la topologia completa degli endpoint, gli schemi dei payload e i tipi di risposta attesi. Ne consegue un vincolo strutturale preciso: APIGuard Assurance non contiene nessun riferimento hardcoded a path, strutture dati o comportamenti di un'applicazione specifica, e qualsiasi \gls{API} REST documentata è testabile senza modificare una riga di codice.
+
+La conseguenza operativa di questo vincolo si manifesta nel comportamento osservabile dei test. Un test che interroga la superficie di attacco derivata dalla specifica e non individua endpoint pertinenti alle proprie condizioni di esecuzione restituisce uno stato \texttt{SKIP}: la conseguenza prevista di uno scope legittimamente vuoto, distinta dall'\texttt{ERROR} che segnalerebbe un malfunzionamento interno al tool. Il principio si estende a qualsiasi requisito non soddisfatto: un tool esterno non installato, la Admin \gls{API} del gateway non raggiungibile, un insieme di endpoint privi di seed configurato. Ciascuna di queste condizioni produce \texttt{SKIP} sui test che ne dipendono e lascia proseguire gli altri, a meno che non si tratti di una violazione perimetrale critica confermata, caso in cui la pipeline può essere interrotta esplicitamente tramite configurazione.
+
+La differenza tra uno script target-specifico e un tool di assessment generale non è di complessità, ma di generalità. Uno script con path e credenziali scritte nel codice esegue correttamente su quel target e solo su quello: cambiate l'applicazione, il codice va riscritto. Un tool che deriva tutta la propria conoscenza dalla specifica formale del target funziona su qualsiasi \gls{API} REST documentata senza modifiche, e questa generalità è precisamente il confine che separa un artefatto di progetto da un contributo riutilizzabile.
+
+Il costo accettato è la dipendenza da una specifica valida. Una specifica obsoleta o deliberatamente incompleta produce un assessment parziale senza che il sistema possa rilevarne l'incoerenza: il tool non ha modo di distinguere un'assenza di vulnerabilità da un'assenza di copertura, perché l'unico oracolo di cui dispone è la specifica stessa. Questa tensione costituisce il limite strutturale discusso nella Sezione~\ref{sec:limiti} e si qualifica come problema aperto nel testing contract-driven, non come difetto correggibile con intervento locale. Stabilire dove si trovano i confini del sistema è parte integrante della sua descrizione architettuale.
+
+
+\subsection{La Specifica OpenAPI come Unico Oracolo Formale (D3.P2)}%
+\label{subsec:openapi-sot}
+
+L'agnosticismo applicativo stabilisce la sorgente della conoscenza del target; D3.P2 determina come quella conoscenza viene impiegata. La specifica OpenAPI non è documentazione destinata al tester umano: è il vincolo contrattuale che guida l'intera pipeline. Non descrive il target, lo vincola, e quella differenza è decisiva per la classe di vulnerabilità che il tool è in grado di rilevare.
+
+Un fuzzer tradizionale che genera payload casuali affronta un ostacolo strutturale già prima di raggiungere la logica applicativa: la maggioranza delle richieste viene rifiutata con \texttt{HTTP~400} dal layer di validazione dell'input, perché i tipi, i formati e i vincoli enumerati nello schema non sono rispettati. Questo è il \emph{combinatorial wall} discusso nel Capitolo~\ref{chap:background}: lo spazio di tutti i payload sintattica\-mente possibili è vastissimo, ma lo spazio dei payload strutturalmente validi rispetto al contratto è definito e navigabile. Usare la specifica come oracolo formale abbatte quella barriera: ogni richiesta è costruita nel rispetto dei vincoli dichiarati, spostando il punto di osservazione dalla sintassi alla semantica.
+
+Ne derivano due capacità operativamente distinte rispetto al fuzzing cieco. In primo luogo, la superficie di attacco viene delimitata con precisione: gli endpoint documentati dalla specifica costituiscono l'insieme di ciò che il contratto dichiara raggiungibile, mentre qualsiasi endpoint risponda senza essere incluso in quella lista è, per definizione, una Shadow API. In secondo luogo, le risposte ricevute vengono valutate rispetto a ciò che il contratto prevede per quella richiesta, non rispetto a euristiche generiche: un campo sensibile restituito in risposta a una richiesta autenticata è un finding solo se lo schema di risposta contrattuale non lo dichiarava atteso.
+
+Anche questa proprietà porta con sé un costo che vale la pena enunciare con precisione. Più il sistema si affida alla specifica come oracolo, più il suo comportamento dipende dalla correttezza di quell'oracolo. Una specifica obsoleta o deliberatamente incompleta produce un assessment parziale senza che il sistema possa rilevarne l'incoerenza: si tratta del paradosso del Ground Truth, discusso nella Sezione~\ref{sec:limiti} come limite strutturale del paradigma contract-driven e non come anomalia specifica di questa implementazione.
+
+
+\subsection{Config-Driven Development (D3.P1)}\label{subsec:config-driven}
+
+Stabilito che la conoscenza del target risiede nella specifica OpenAPI, rimane da definire il meccanismo che governa l'esecuzione. D3.P1 risponde a questa questione in modo perentorio: ogni parametro di tuning operativo risiede nel file \texttt{config.yaml}. Il codice sorgente non contiene literal decisionali hardcoded. Soglie di timeout, credenziali, \gls{URL} del gateway, strategie di test abilitate, configurazione del path seed: tutto ciò che può variare tra un deployment e l'altro è dichiarato esplicitamente nel file di configurazione e validato a runtime prima che la pipeline si avvii.
+
+Il vantaggio non è solo organizzativo. Separare la configurazione dal codice elimina la classe di bug in cui il comportamento del tool cambia in assenza di qualsiasi modifica al codice stesso, perché qualcuno ha alterato un parametro implicito. Con D3.P1 questa classe di bug non può esistere per costruzione: se il comportamento è cambiato, è cambiata la configurazione, e quella modifica è tracciabile, versionabile e auditabile come qualsiasi altro artefatto del progetto.
+
+La relazione con la proprietà successiva è di tipo causale, non di semplice coesistenza. D3.P1 è il prerequisito strutturale di D3.P4: senza la centralizzazione di ogni parametro decisionale in un file di configurazione immutabile durante il run, la riproducibilità non è garantibile. Un sistema che legge valori da ambienti variabili non dichiarati, da file di stato impliciti o da sorgenti runtime non controllate non può produrre lo stesso risultato a ogni esecuzione, indipendentemente dalla qualità della logica di test.
+
+
+\subsection{Riproducibilità Deterministica (D3.P4)}\label{subsec:reproducibility}
+
+Un assessment di sicurezza non riproducibile non è un assessment: è un'osservazione irripetibile. Lo stesso target, nella stessa configurazione, interrogato con lo stesso \texttt{config.yaml}, deve produrre risultati deterministicamente identici a ogni esecuzione. Questa non è una proprietà di comodità operativa, ma il presupposto epistemico che conferisce valore dimostrativo ai risultati del Capitolo~\ref{chap:experiments}.
+
+Il determinismo è ottenuto attraverso tre meccanismi distinti che si completano a vicenda. Il primo è il config-driven development già descritto in D3.P1: se tutti i parametri decisionali sono fissi, la pipeline non ha sorgenti di variazione endogene. Il secondo è l'ordinamento deterministico del registro dei test: i test vengono ordinati in modo stabile e riproducibile prima di essere passati allo scheduler, garantendo che l'insieme di partenza del grafo sia sempre lo stesso. Il terzo è la struttura del \gls{DAG} stesso, trattata in Sezione~\ref{subsec:dag}: un grafo aciclico orientato con ordinamento topologico deterministico produce sempre la stessa sequenza di batch, indipendentemente dall'ordine in cui i test vengono scoperti a runtime.
+
+La garanzia di riproducibilità non implica che l'output sia byte-identico in ogni sua componente. Timestamp e identificatori \gls{UUID} dei singoli record vengono esclusi dal confronto; ciò che è invariante sono i contatori PASS, FAIL e SKIP, la distribuzione dei finding per dominio, e la sequenza di batch prodotta dal \gls{DAG}. La validazione empirica di questa proprietà, condotta su due run indipendenti con un delta sul wall-clock di 0,32\%, è discussa nella Sezione~\ref{sec:idempotenza}.
+
+Queste quattro proprietà, considerate insieme, rispondono alla domanda più generale che un lavoro di ricerca deve saper porre a se stesso: perché questo sistema, in questa forma, è un contributo e non un artefatto? La risposta è che un tool applicazione-agnostico (D1.P1), guidato da un oracolo formale (D3.P2), controllato da configurazione esplicita (D3.P1) e deterministicamente riproducibile (D3.P4) può essere validato, confrontato e integrato in processi automatici, laddove un tool manuale, opaco e target-specifico non può. Nella Sezione~\ref{sec:architettura} si mostrerà come questi principi si traducano in scelte strutturali concrete.
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Architettura dell'Assessment Engine}\label{sec:architettura}
+% ─────────────────────────────────────────────────────────────────────────────
+
+I principi enunciati nella sezione precedente rispondono alla domanda del perché. Questa sezione risponde alla domanda del come: come quei principi si traducono in struttura, come i componenti si relazionano tra loro, e perché quella struttura è stata scelta rispetto alle alternative disponibili. Ogni proprietà discussa qui risponde a una frizione architetturale specifica; presentarle in isolamento, senza nominare il problema che ciascuna risolve, ridurrebbe la descrizione a un inventario di decisioni opache.
+
+
+\subsection{Flusso di Dipendenze Monodirezionale (D1.P2)}\label{subsec:dep-flow}
+
+Prima ancora di descrivere i singoli componenti, occorre descrivere la regola che ne governa le relazioni. Il grafo delle dipendenze tra strati è strettamente aciclico e orientato in una sola direzione: il nucleo del sistema è importato dagli strati di integrazione, che sono importati dagli strati di test, che sono importati dall'orchestratore. Nessun modulo può importare da un livello superiore nella gerarchia. In termini operativi: modificare un test non può rompere il nucleo; aggiungere un connector non può influenzare l'orchestratore; l'intera base del nucleo può essere testata unitariamente senza istanziare alcun client \gls{HTTP} né alcun test di sicurezza.
+
+Questa regola non emerge da preferenze stilistiche, ma dal problema che risolve. In assenza di un vincolo esplicito sulla direzione delle dipendenze, la pressione evolutiva naturale del codice tende verso cicli: un test che trova conveniente importare un'utility da un altro test, un connector che ha bisogno di un modello definito nell'orchestratore. Ogni ciclo rende un modulo impossibile da isolare, e un modulo non isolabile non è testabile né sostituibile. Il vincolo monodirezionale è verificabile staticamente per ispezione del grafo di importazione e viene dichiarato esplicitamente nel contratto pubblico di ogni strato, non lasciato a convenzione implicita. I dettagli di come questo vincolo è enforced a livello di codice sono descritti nella Sezione~\ref{sec:dep-flow-impl}.
+
+Ne deriva, come conseguenza diretta, la praticabilità del plugin system descritto come traiettoria futura nella Sezione~\ref{sec:sviluppi-futuri}: un modulo di test contribuito da terze parti viene scoperto automaticamente senza che nessuna modifica al nucleo del sistema sia necessaria, perché il nucleo non sa nulla dei test.
+
+
+\subsection{Scheduling Basato su \glsentrytext{DAG} e Orchestrazione Deterministica (D2.P2)}\label{subsec:dag}
+
+L'ordine in cui i test vengono eseguiti non è arbitrario, né è codificato a mano in un file di configurazione. Viene calcolato a partire dalle dipendenze che ogni test dichiara esplicitamente come parte del proprio contratto. Lo scheduler raccoglie queste dichiarazioni, costruisce un \gls{DAG} orientato e risolve l'ordine topologico, producendo una sequenza di batch: gruppi di test il cui insieme di dipendenze è già stato soddisfatto. I batch sono sequenziali tra loro; all'interno di ogni batch, i test sono privi di dipendenze reciproche. La traduzione di questo schema in codice, incluse le strutture dati e le librerie impiegate, è descritta nella Sezione~\ref{subsec:dag-impl}.
+
+Il problema che questa struttura risolve non è solo di ordinamento, ma di correttezza semantica. Un test che verifica la validità crittografica di un token \gls{JWT} presuppone che il meccanismo di autenticazione funzioni: se il test di autenticazione non viene eseguito prima, il token non è disponibile nello stato condiviso e il test successivo fallirebbe per la ragione sbagliata. Dichiarare questa dipendenza esplicitamente sposta la precondizione dallo stato implicito al contratto formale, verificato dal \gls{DAG} prima che la pipeline entri in esecuzione.
+
+Due proprietà di sicurezza completano l'ordinamento. La prima è la rilevazione statica dei cicli: se il grafo delle dipendenze contiene un ciclo, l'errore viene segnalato prima che un singolo test venga eseguito, non a runtime durante l'esecuzione. La seconda è la gestione dello stallo: se lo scheduler si trova in uno stato in cui non riesce a estrarre nuovi nodi pronti pur avendo lavoro pendente, il sistema registra l'elenco esatto dei test bloccati e interrompe il drain in modo controllato, garantendo all'operatore la diagnostica necessaria per individuare la dipendenza mal dichiarata.
+
+Il legame con la riproducibilità descritta in D3.P4 è causale, non accidentale. L'ordinamento topologico puro non garantisce un ordine unico quando più test sono pronti allo stesso livello: senza un criterio di rottura dei pareggi stabile, la sequenza potrebbe variare tra esecuzioni. La scelta di un criterio di ordinamento deterministico all'interno di ogni batch, descritta nella Sezione~\ref{subsec:dag-impl}, è il punto in cui il non-determinismo strutturale del grafo viene convertito in sequenza riproducibile.
+
+La struttura a batch ha infine una conseguenza per il futuro: ogni batch è già concettualmente parallelizzabile. Introdurre esecuzione parallela all'interno di un batch è una modifica localizzata allo scheduler che non richiede modifiche al design dei test, purché le implicazioni di concorrenza sullo stato condiviso vengano analizzate formalmente. Questo limite è documentato; la decisione di non parallelizzare nella versione attuale è una scelta esplicita, non una dimenticanza.
+
+
+\subsection{Split State e Immutabilità (D1.P3)}\label{subsec:split-state}
+
+Durante l'esecuzione sequenziale dei test, due categorie di informazione coesistono nel processo: ciò che si sapeva del target prima che la pipeline iniziasse, e ciò che si scopre o si produce durante l'esecuzione. Trattarle con lo stesso oggetto mutabile è la ricetta per una classe di bug difficile da diagnosticare: un test che scrive accidentalmente sulla rappresentazione del target altera la vista condivisa da cui ogni verdetto dipende, senza che il sistema possa rilevarlo.
+
+La soluzione è la separazione netta in due oggetti con caratteristiche opposte. Il contesto del target è immutabile per costruzione: viene popolato una volta sola prima che la pipeline inizi e qualsiasi tentativo di modifica produce un errore immediato nel punto in cui viene effettuato, non in un punto remoto della pipeline. Incapsula tutto ciò che si conosce del target prima dell'esecuzione: la specifica OpenAPI come modello della superficie d'attacco, le credenziali, i parametri di tuning, l'adapter del gateway. Il contesto di esecuzione, al contrario, è mutabile e raccoglie ciò che la pipeline produce: i token acquisiti, le risorse create sul target che dovranno essere rimosse al teardown, i dati condivisi tra test dipendenti. L'implementazione concreta di questa separazione, inclusi i tipi e i meccanismi di accesso, è descritta nella Sezione~\ref{subsec:split-state-impl}.
+
+L'accesso allo stato mutabile avviene attraverso canali tipizzati distinti, non attraverso un dizionario libero. Il canale token è indicizzato per ruolo, eliminando le stringhe magiche. Il canale teardown mantiene un registro \gls{LIFO} delle risorse create durante il run, garantendo che il cleanup segua l'ordine inverso della creazione, come discusso nella Sezione~\ref{subsec:teardown}. Il canale dei dati condivisi permette a test in batch successivi di consumare risultati prodotti da batch precedenti senza introdurre dipendenze di importazione tra moduli.
+
+Il costo accettato è la rigidità del contesto del target. Qualsiasi informazione scoperta a runtime, inclusi gli endpoint presenti sul target ma non dichiarati nella specifica, appartiene allo stato dell'assessment e non allo stato del target: non può quindi essere scritta sul contesto immutabile, ma trova il suo posto nel canale condiviso del contesto di esecuzione. Questo confine non è sempre intuitivo, ma la sua esplicitezza è la garanzia che rende la riproducibilità di D3.P4 dimostrabile senza ambiguità.
+
+
+\subsection{Gateway-Agnostic Adapter (D1.P6)}\label{subsec:gateway-adapter}
+
+L'agnosticismo applicativo dichiarato in D1.P1 riguarda la conoscenza del target applicativo: la specifica OpenAPI e il \texttt{config.yaml} come sole sorgenti. D1.P6 estende lo stesso principio a un livello distinto: lo strato di controllo del gateway. Alcune garanzie di sicurezza non sono osservabili dall'esterno del sistema, cioè interrogando gli endpoint esposti ai client. La verifica che un timeout sia configurato sui servizi upstream, che il plugin di circuit breaking sia attivo, che le credenziali di servizio non siano hardcoded nelle variabili d'ambiente del gateway: queste informazioni risiedono nel piano di configurazione amministrativo del gateway, non nella superficie \gls{HTTP} che il client vede. Accedervi richiede un meccanismo separato dagli \gls{HTTP} probe ordinari.
+
+Il pattern scelto è un adapter astratto con interfaccia uniforme e read-only: i test \texttt{WHITE\_BOX} accedono al gateway esclusivamente tramite questa astrazione, senza dipendere dal tipo concreto sottostante. L'implementazione concreta viene selezionata a runtime in base alla configurazione e iniettata nel contesto del target prima che la pipeline di test abbia inizio. Se la Admin \gls{API} del gateway non è configurata o non è raggiungibile, tutti i test \texttt{WHITE\_BOX} transitano a \texttt{SKIP} con motivazione esplicita, senza errori a cascata: la degradazione è controllata, non silenziosa. I dettagli dell'interfaccia e dell'implementazione Kong sono descritti nella Sezione~\ref{subsec:kong-adapter-impl}.
+
+La conseguenza diretta per l'estensibilità è precisa: aggiungere supporto per un gateway diverso richiede una nuova implementazione concreta dell'adapter, senza modificare nessuno dei test che lo utilizzano, perché la loro logica opera sull'interfaccia astratta. Il limite intrinseco di questa astrazione, vale a dire la tensione tra la generalità dell'interfaccia e la profondità delle verifiche vendor-specific che essa non può esprimere, costituisce uno dei tre limiti strutturali discussi nella Sezione~\ref{sec:limiti}.
+
+
+\subsection{Streaming Evidence Store (D4.P1)}\label{subsec:evidence-store}
+
+Ogni finding prodotto da un test deve essere corredato da evidenza \gls{HTTP} dimostabile: request inviata, response ricevuta, timestamp, identificatori di traccia. Questa non è una funzionalità opzionale per la presentazione del report; è il requisito di non-repudiabilità che conferisce valore legale e tecnico a un audit trail. Un finding senza evidenza è un'asserzione.
+
+Il design originale dell'Evidence Store utilizzava un buffer a capacità fissa in memoria: i record più vecchi venivano evicti silenziosamente quando il buffer si riempiva, generando riferimenti a record inesistenti nell'audit trail. Il risultato era un trail rotto senza che il sistema producesse nessun errore visibile. Il difetto era strutturale, non correggibile aumentando la capacità: qualsiasi limite fisso avrebbe trasformato la capacità in un parametro di tuning il cui valore corretto dipende da ciò che si vuole misurare, informazione non disponibile a priori.
+
+La risposta adottata elimina la classe di bug per costruzione: l'Evidence Store scrive ogni record su file con flush immediato, senza buffering in memoria, garantendo che ogni record sia permanente nel momento in cui viene prodotto. Non esiste un limite superiore al numero di record per test. Il ciclo di vita dettagliato del componente, incluse le strutture dati e le operazioni di apertura, scrittura e consolidamento, è descritto nella Sezione~\ref{subsec:evidence-lifecycle}.
+
+La relazione con D3.P5, proprietà discussa nella sottosezione seguente, è di tipo prerequisito. L'Evidence Store scrive su file locali senza dipendenze verso database o storage remoto. Questo vincolo non è accidentale: è la condizione necessaria perché l'intero assessment sia eseguibile in ambienti senza infrastruttura esterna, inclusi i runner \gls{CI/CD} privi di servizi accessori.
+
+
+\subsection{Assenza di Dipendenze di Stato Esterno (D3.P5)}\label{subsec:zero-state}
+
+Un tool che richiede un database, un message broker o una cache esterna per funzionare sposta il problema della sua affidabilità fuori dai propri confini. L'exit code restituito al termine dell'esecuzione riflette lo stato dell'assessment solo se tutti i servizi da cui dipende erano disponibili e corretti: verificarlo richiede readiness check preventivi che complicano il deployment e rendono il comportamento del tool difficile da ragionare in isolamento.
+
+APIGuard Assurance non ha dipendenze di stato esterno a runtime. Tutto lo stato mutabile del processo risiede in memoria o in file locali. Le uniche connessioni di rete aperte durante un run sono quelle verso il target applicativo e, opzionalmente, verso la Admin \gls{API} del gateway: entrambe sono connessioni di test verso il sistema da valutare, non dipendenze infrastrutturali del tool stesso.
+
+Questo vincolo è verificabile per ispezione del manifesto delle dipendenze del progetto: nessun client di database, nessun client di cache distribuita, nessun \gls{SDK} di storage remoto è incluso tra le dipendenze obbligatorie. Il deployment si riduce all'installazione del package e alla fornitura del file di configurazione: una semplicità che non è una scorciatoia ma una garanzia architetturale. Ed è anche il presupposto che rende affidabile D6.P1: i semantic exit codes discussi nella Sezione~\ref{sec:devsecops} possono essere considerati fedeli allo stato dell'assessment perché non esiste alcun servizio accessorio il cui failure silenzioso potrebbe alterarli.
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Domini di Sicurezza e Box Gradient Applicato}\label{sec:domini}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Le proprietà architetturali descritte nelle sezioni precedenti definiscono come il sistema è costruito. Questa sezione definisce cosa il sistema misura e secondo quale logica organizza le proprie misure. È il punto di convergenza tra la tassonomia delle minacce discussa nel Capitolo~\ref{chap:background}, dove le categorie di vulnerabilità sono state analizzate in quanto problema, e la struttura operativa del tool, dove quelle stesse categorie diventano il perimetro di garanzie che un assessment sistematico è tenuto a coprire.
+
+
+\subsection{Tassonomia degli Otto Domini di Assurance}\label{subsec:domini-tassonomia}
+
+La superficie di sicurezza di un'\gls{API} esposta tramite gateway non è omogenea. Alcune garanzie sono verificabili senza nessuna conoscenza del sistema, interrogando semplicemente gli endpoint esposti senza credenziali; altre richiedono uno stato autenticato; altre ancora diventano accessibili solo attraverso il piano di configurazione amministrativo del gateway. Trattare queste garanzie come una lista piatta, senza riconoscere la struttura di precondizioni che le lega, è la premessa per assessment incompleti: non perché manchino i test, ma perché vengono eseguiti nell'ordine sbagliato o con il livello di privilegio sbagliato.
+
+La tassonomia adottata organizza le garanzie di APIGuard Assurance in otto domini, ciascuno corrispondente a una categoria semantica distinta di rischio. La Tabella~\ref{tab:domini} li riporta con il loro titolo e l'orizzonte delle garanzie che ciascuno racchiude.
+
+\begin{table}[ht]
+  \centering
+  \caption{I otto Domini di Assurance di APIGuard Assurance e il loro perimetro di garanzie. Domain-5 è architetturalmente predisposto ma implementato nella Milestone~2.}
+  \label{tab:domini}
+  \small
+  \begin{tabular}{@{}clp{0.52\textwidth}@{}}
+    \toprule
+    \textbf{Dominio} & \textbf{Titolo}                   & \textbf{Perimetro di garanzie}                                                                                                \\
+    \midrule
+    D0               & API Discovery                     & Inventario degli endpoint esposti; rilevazione di Shadow API non documentate nella specifica.                                 \\
+    \addlinespace
+    D1               & Identity \& Authentication        & Meccanismi di riconoscimento del chiamante; robustezza del trasporto delle credenziali; ciclo di vita e revoca dei \gls{JWT}. \\
+    \addlinespace
+    D2               & Authorization                     & Logiche di controllo degli accessi; difetti di segregazione orizzontale e verticale (\gls{RBAC}, \gls{BOLA}).                 \\
+    \addlinespace
+    D3               & Data Integrity                    & Coerenza strutturale dei payload; implementazione delle firme crittografiche (\gls{HMAC}).                                    \\
+    \addlinespace
+    D4               & Availability \& Resilience        & Difese contro l'esaurimento delle risorse; audit di circuit breaker e soglie di rate limiting.                                \\
+    \addlinespace
+    D5               & Observability                     & Qualità e tempestività della telemetria generata dal sistema. \textit{(Milestone~2)}                                          \\
+    \addlinespace
+    D6               & Configuration \& Hardening        & Indurimento dell'infrastruttura di gateway; policy di routing; header di sicurezza \gls{HTTP}.                                \\
+    \addlinespace
+    D7               & Business Logic \& Sensitive Flows & Falle semantiche complesse: elusione dei vincoli di processo, \gls{SSRF}, race condition su operazioni critiche.              \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+La sequenza non è arbitraria. Rispecchia una gerarchia logica di precondizioni: non ha senso verificare l'autorizzazione (D2) se non si è prima verificato che l'autenticazione funzioni (D1), così come non ha senso verificare l'autenticazione se non si conosce la superficie di attacco (D0). La gerarchia non è una convenzione organizzativa del codice: è una catena logica di assunzioni di fiducia. Un assessment che verifichi D2 senza avere certezze su D1 raccoglie evidenza su un sistema il cui comportamento in caso di autenticazione compromessa è ignoto; quella evidenza non è affidabile.
 
-% ---------------------------------------------------------------------------
-\section{Principi Fondamentali: il Perché delle Scelte Architetturali}
-\label{sec:principi}
-% ---------------------------------------------------------------------------
+Questa struttura ha una conseguenza diretta sulla topologia del \gls{DAG} discussa nella Sezione~\ref{subsec:dag}. I test che operano su domini logicamente dipendenti dichiarano le proprie precondizioni in forma esplicita: un test di autorizzazione dipende dal completamento di un test di autenticazione, perché senza token validi per ruoli distinti non è possibile distinguere un rifiuto di autorizzazione da un rifiuto di autenticazione. La gerarchia dei domini non si traduce in un ordine totale rigido tra tutti i test, ma in un insieme di dipendenze dichiarate che il \gls{DAG} soddisfa automaticamente.
 
-Quattro proprietà strutturano la motivazione profonda del sistema: non descrivono cosa
-fanno i componenti, ma giustificano perché esiste questa forma architetturale e non
-un'altra. Non si tratta di assiomi indipendenti, ma di una catena causale: la prima
-stabilisce cosa il sistema conosce del target, la seconda come usa quella conoscenza,
-la terza come traduce quella conoscenza in comportamento deterministico, la quarta
-cosa quella determinatezza garantisce sul piano scientifico. Comprenderle nell'ordine
-in cui si condizionano a vicenda è il modo più diretto per capire perché l'intero
-sistema è costruito come illustrato nel Capitolo~\ref{chap:methodology}.
-
-Che qualsiasi API REST documentata sia testabile senza modifiche al codice è la
-conseguenza diretta dell'\textbf{agnosticismo applicativo}
-(P01~(CHANGE-ME)): il tool non contiene nessun riferimento hardcoded a
-path, strutture dati o comportamenti di un'applicazione specifica. Tutta la
-conoscenza del target è derivata a runtime da due sole sorgenti, ossia il file
-\texttt{config.yaml} per i parametri operativi e la specifica OpenAPI per la
-topologia degli endpoint. Un test che consulta la superficie di attacco e non
-trova endpoint applicabili alle proprie condizioni restituisce uno stato di
-\texttt{SKIP}, non un errore: lo \texttt{SKIP} è la conseguenza prevista di uno
-scope legittimamente vuoto, distinta dall'\texttt{ERROR} che segnalerebbe una
-condizione imprevista nell'infrastruttura del tool stesso. Questa distinzione
-semantica non è accessoria; è la forma in cui l'agnosticismo si manifesta nel
-comportamento osservabile del sistema.
-
-Il costo accettato è la dipendenza da una specifica valida. Un tool che non può
-verificare la correttezza del proprio oracolo è un tool che può produrre assessment
-parziali su specifica errata senza diagnosticarlo. Questa tensione costituisce il
-limite strutturale discusso nella Sezione~\ref{sec:limiti}, dove si argomenta che
-non si tratta di un difetto da correggere ma di un problema aperto  nel testing
-contract-driven già documentato in letteratura~\cite{MISSING:contractdriven:2023}.
-
-L'agnosticismo stabilisce la sorgente della conoscenza, ma non dice come quella
-conoscenza viene usata. \textbf{P20~(CHANGE-ME)} colma questo spazio: la specifica
-OpenAPI non è documentazione destinata al tester umano, ma il vincolo contrattuale
-che guida l'intera pipeline. Non descrive il target, lo vincola. A partire da questa
-specifica il sistema costruisce payload strutturalmente validi, discrimina gli endpoint
-documentati dalle Shadow API, e valuta le risposte rispetto a ciò che il contratto
-prevede. Uno scanner HTTP tradizionale che genera payload casuali affronta un muro
-combinatorio: la maggioranza delle richieste viene rifiutata con
-\texttt{HTTP\,400} prima di raggiungere la logica applicativa che si intende sondare,
-perché i tipi, i formati e i vincoli dichiarati nello schema non sono rispettati.
-L'uso della specifica come oracolo formale abbatte questo muro: ogni richiesta è
-costruita nel rispetto dei vincoli dichiarati, spostando il risultato dal dominio
-della sintassi a quello della semantica.
-
-Ne consegue un paradosso che vale la pena di enunciare con precisione: più il sistema
-si affida alla specifica come oracolo, più il suo comportamento dipende dalla
-correttezza di quell'oracolo. Una specifica obsoleta o deliberatamente incompleta
-produce un assessment parziale senza che il sistema possa rilevarne l'incoerenza.
-Non è un difetto specifico di APIGuard Assurance; è la conseguenza strutturale
-di qualsiasi approccio contract-driven, e la Sezione~\ref{sec:limiti} ne discute
-le implicazioni pratiche.
-
-La specifica come oracolo formale risponde alla domanda su \textit{cosa} verificare;
-\textbf{P03~(CHANGE-ME)} risponde alla domanda su \textit{come} il verificatore
-mantiene un comportamento stabile nel tempo. Si è scelto di vincolare ogni parametro
-di tuning operativo al file di configurazione, escludendo i literal decisionali dal
-codice, per una ragione che va oltre la pulizia implementativa: se il comportamento
-del sistema dipendesse dal codice sorgente oltre che dalla configurazione, due
-esecuzioni con lo stesso \texttt{config.yaml} sullo stesso target potrebbero produrre
-risultati diversi a seguito di un aggiornamento del tool, rendendo incomparabili
-assessment eseguiti su versioni differenti. L'insieme dei parametri configurabili
-comprende timeout, soglie di verifica, categorie di payload, strategie di test
-abilitate e percorsi di output: nessuno di questi risiede nel codice come valore
-hardcoded. Il costo accettato è la rigidità della configurazione come interfaccia
-unica verso l'operatore, giustificata dal fatto che ogni deviazione da questo vincolo
-introduce un canale implicito di variabilità non tracciabile.
-
-\textbf{P28~(CHANGE-ME)} traduce P03~(CHANGE-ME) in una garanzia verificabile:
-stesso \texttt{config.yaml}, stesso target, assenza di modifiche all'applicativo
-producono sempre lo stesso risultato. Il determinismo non è un obiettivo di
-ingegneria del software; è un prerequisito epistemologico. Un assessment non
-riproducibile non è un assessment: è un'osservazione irripetibile, il cui valore
-probatorio si esaurisce nel momento in cui viene prodotta. I risultati del
-Capitolo~\ref{cap:validazione} hanno valore dimostrativo e non soltanto descrittivo
-esattamente perché P28~(CHANGE-ME) è verificato empiricamente su due run indipendenti,
-che hanno prodotto output byte-identici con un delta sul wall-clock di \(0{,}32\%\),
-come documentato nella Sezione~\ref{sec:idempotenza}. Quella sezione illustra anche
-le condizioni precise in cui la garanzia vale e quelle in cui si indebolisce,
-completando la catena argomentativa aperta qui.
+Domain-5 occupa una posizione particolare nella tassonomia: il dominio è architetturalmente predisposto nella struttura del sistema, ma i test corrispondenti sono pianificati per la Milestone~2. La numerazione è riservata intenzionalmente per preservare la coerenza della sequenza nelle versioni successive.
 
 
-\section{Architettura dell'Assessment Engine}
+\subsection{Il Box Gradient come Mapping dalle Precondizioni al Privilegio (D3.P3)}%
+\label{subsec:box-gradient}
 
-L'architettura di \textit{APIGuard Assurance} non è il prodotto di scelte accumulate per sedimentazione durante lo sviluppo, ma la realizzazione sistematica di sei proprietà strutturali che rispondono ciascuna a una frizione ingegneristica precisa. Questa sezione le presenta nell'ordine in cui emergono nella pipeline: dalla direzione delle dipendenze tra moduli all'ordinamento dell'esecuzione, dalla gestione dello stato alla persistenza delle evidenze forensi. Per ciascuna proprietà si esplicita il trade-off che la motiva e il costo accettato.
+La classificazione Black/Grey/White Box del testing è nota nella letteratura come distinzione tra gradi di visibilità del sistema sotto test. In APIGuard Assurance quella classificazione non viene applicata come categoria analitica astratta: viene derivata dalle precondizioni concrete che ogni garanzia impone al tester prima ancora che il test possa iniziare. La differenza è sostanziale. Una tassonomia applicata retroattivamente etichetta i test dopo che sono stati scritti; una mappatura derivata dalle precondizioni determina quale postura adottare prima di scrivere il test, perché alcune garanzie sono fisicamente inaccessibili senza un livello di privilegio specifico.
 
-\subsection{Flusso di Dipendenze Monodirezionale (P02)}
+Il mapping adottato, formalizzato come proprietà D3.P3 e sintetizzato nella Tabella~\ref{tab:box-gradient}, correla il livello di priorità del test alla strategia operativa che le sue precondizioni impongono.
 
-Il grafo delle dipendenze tra moduli è strettamente aciclico e orientato in un'unica direzione: \texttt{core/} non importa mai da \texttt{tests/}; \texttt{tests/} e \texttt{external\_tests/} importano esclusivamente da \texttt{core/}; \texttt{engine.py} importa da tutti e li coordina senza essere importato da nessuno. La regola è dichiarata nella docstring di apertura di ogni modulo del layer \texttt{core/} ed è verificabile con un singolo comando grep che, sul codebase di Milestone~1, produce zero risultati.
+\begin{table}[ht]
+  \centering
+  \caption{Mapping tra priorità di test, strategia operativa e prerequisiti tipici in APIGuard Assurance (D3.P3). La colonna Prerequisiti indica le risorse che l'operatore deve fornire prima di avviare i test di quel livello. Il mapping è una raccomandazione strutturale, non un vincolo imposto dal framework: deviazioni architetturalmente giustificate esistono nel codebase.}
+  \label{tab:box-gradient}
+  \small
+  \begin{tabular}{@{}lllp{0.36\textwidth}@{}}
+    \toprule
+    \textbf{Priorità} & \textbf{Strategia}                       & \textbf{Prerequisiti}               & \textbf{Razionale}                                                                        \\
+    \midrule
+    P0 (Critico)      & \texttt{BLACK\_BOX}                      & Nessuno (solo accesso di rete)      & Controlli perimetrali che il gateway applica a qualsiasi interlocutore, autenticato o no. \\
+    \addlinespace
+    P1 (Alto)         & \texttt{GREY\_BOX}                       & Token per \(\geq\)2 ruoli distinti  & Garanzie che presuppongono stato autenticato; inaccessibili senza credenziali valide.     \\
+    \addlinespace
+    P2 (Medio)        & \texttt{GREY\_BOX} / \texttt{WHITE\_BOX} & Variabile per garanzia              & Mix di test empirici e configuration audit; specificato per ogni garanzia.                \\
+    \addlinespace
+    P3 (Basso)        & \texttt{WHITE\_BOX}                      & Accesso Admin \gls{API} del gateway & Configurazione statica verificabile per ispezione diretta, non tramite probe empirici.    \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-La conseguenza non è soltanto organizzativa. Modificare un test non può rompere \texttt{core/}: il grafo lo esclude per costruzione. Modificare \texttt{core/} può rompere i test, ma solo se l'interfaccia pubblica cambia, e la rottura è immediatamente visibile all'analisi statica. Su 90 file sorgente analizzati con mypy in modalità strict, il type checker non ha rilevato nessuna violazione: da questo si inferisce che il contratto tra i componenti, espresso tramite type hints, è consistente lungo l'intera catena di dipendenze. Il costo accettato è una struttura gerarchica rigida, che impone a ogni nuovo modulo di collocarsi esplicitamente in uno dei layer. Tale rigidità è giustificata dal fatto che rende possibile, in una traiettoria futura, introdurre moduli di test contribuiti da terze parti tramite un meccanismo plugin: i moduli esterni rispettano la stessa gerarchia e non richiedono modifiche al core.
+Assegnare a ogni test un livello di visibilità non è dunque una scelta organizzativa, ma una conseguenza diretta di ciò che si vuole misurare. Un controllo perimetrale, ovvero la verifica che il gateway rifiuti richieste non autenticate, non presuppone nessuna conoscenza dell'infrastruttura interna: il risultato atteso è lo stesso indipendentemente da chi effettua la richiesta. Simulare un attaccante esterno senza credenziali è l'unico modo per ottenere evidenza non contaminata da privilegi impliciti, ed è per questo che i test \texttt{P0} adottano la strategia \texttt{BLACK\_BOX}.
 
-\subsection{DAG-Based Scheduling e Orchestrazione Deterministica (P06)}
+Un controllo di autorizzazione \gls{RBAC}, al contrario, richiede che il sistema si trovi in uno stato autenticato con almeno due identità di ruolo distinto, un amministratore e un utente ordinario, ad esempio. Senza quello stato il test non raggiunge nemmeno la logica che intende sondare: il gateway respinge la richiesta al livello di autenticazione, prima ancora che la logica di autorizzazione venga valutata, e il risultato osservato è indistinguibile da un corretto rifiuto di autenticazione. Di conseguenza, i test \texttt{P1} e \texttt{P2} che operano su D2 adottano la strategia \texttt{GREY\_BOX}, con token validi per ruoli distinti forniti dall'operatore prima dell'avvio.
 
-L'ordine in cui i test vengono eseguiti non è fisso né casuale. Ogni test dichiara le proprie dipendenze tramite l'attributo \texttt{ClassVar} \texttt{depends\_on}, una lista di \texttt{test\_id} prerequisiti. Il \texttt{DAGScheduler} in \texttt{core/dag.py} costruisce un grafo orientato aciclico a partire da queste dichiarazioni e lo risolve tramite \texttt{graphlib.TopologicalSorter} della libreria standard Python. L'output è una sequenza di \texttt{ScheduledBatch}: i batch sono eseguiti in ordine topologico; all'interno di ogni batch, i test sono ordinati lessicograficamente per \texttt{test\_id}, garantendo un ordinamento deterministico anche tra test privi di dipendenze reciproche.
+I test \texttt{WHITE\_BOX} di priorità \texttt{P3} occupano una posizione metodologicamente distinta. Alcune garanzie sono più economicamente verificabili tramite ispezione diretta della configurazione del gateway che tramite probe empirici verso gli endpoint: la versione \gls{TLS} supportata, la presenza e la parametrizzazione dei plugin di sicurezza, l'assenza di credenziali hardcoded nelle variabili d'ambiente. Un test empirico che cerchi di inferire questi parametri dall'esterno richiederebbe attacchi elaborati con esito incerto; un audit della configurazione li verifica in modo deterministico e riproducibile. È per questo che i test \texttt{P3} delegano la raccolta dei dati al componente di accesso al piano di controllo del gateway descritto nella Sezione~\ref{subsec:gateway-adapter}, anziché effettuare probe sull'interfaccia pubblica.
 
-Il legame con la riproducibilità (P28) è causale, non contingente. Senza un ordinamento deterministico garantito dalla struttura del grafo, due run identiche potrebbero schedulare gli stessi test in sequenze diverse, producendo stati del \texttt{TestContext} differenti e, di conseguenza, risultati non confrontabili. Il DAG non è un'ottimizzazione per la leggibilità del codice: è il meccanismo che rende P28 dimostrabile empiricamente, come verificato nella Sezione~5.3. Un ciclo di dipendenze è rilevato in Phase~4 tramite \texttt{DAGCycleError} e blocca l'avvio prima che qualsiasi test venga eseguito, evitando che stati inconsistenti si propaghino silenziosamente.
+Va rilevato che il mapping tra priorità e strategia è una raccomandazione strutturale, non un vincolo rigido imposto dal framework. Il codebase contiene deviazioni architetturalmente giustificate: il test di \gls{SSRF} sul Domain-7 ha priorità \texttt{P0} ma strategia \texttt{GREY\_BOX}, perché la verifica di un endpoint che accetta \gls{URL} controllabili dall'utente per effettuare richieste lato server richiede che l'endpoint sia raggiungibile con una richiesta autenticata. Il framework non vieta questa deviazione: la strategia appartiene al test, non al dominio, e la sua correttezza è una responsabilità dello sviluppatore del test.
 
-In Milestone~1, la topologia del DAG si articola in due fasi distinte: sedici test privi di dipendenze (Phase~A, eseguiti per primi) e due test che dipendono da \texttt{1.1} (Phase~B). L'asimmetria non è accidentale. I test perimetrali black-box non presuppongono stato accumulato e possono essere eseguiti immediatamente; i test grey-box che richiedono token JWT precedentemente acquisiti devono attendere che il test di autenticazione perimetrale (\texttt{1.1}) abbia confermato che l'endpoint di login è raggiungibile e funzionante. La struttura del grafo rende questo vincolo esplicito e verificabile, invece di affidarsi a convenzioni non enforced.
-
-\subsection{Split State e Immutabilità (P04)}
-
-Lo stato del sistema durante un assessment è diviso in due oggetti con caratteristiche deliberatamente opposte. Il \texttt{TargetContext}, definito con \texttt{model\_config = \{"frozen": True\}} in Pydantic v2, incapsula tutto ciò che si conosce del target prima dell'esecuzione: la specifica OpenAPI dereferenziata come \texttt{AttackSurface}, le credenziali configurate, i parametri di tuning per ogni test, l'adattatore gateway iniettato in Phase~3. Una volta costruito, non muta mai. Il \texttt{TestContext} è mutabile e accumula tutto ciò che si scopre o si produce durante l'esecuzione: i token JWT acquisiti, le risorse create sul target che dovranno essere rimosse al teardown, i dati calcolati da un test e consumati da test dipendenti.
-
-L'immutabilità del \texttt{TargetContext} non è una scelta stilistica, ma la risposta a un problema preciso. Durante l'esecuzione sequenziale dei test, ciascuno con accesso alla rappresentazione del target, basterebbe una singola scrittura non sincronizzata per corrompere la base informativa da cui ogni verdetto dipende. Congelare lo stato a monte, prima che la pipeline si ramifichi, isola il problema alla radice: nessun test può alterare ciò che gli altri leggono. Il congelamento Pydantic applica questo vincolo a livello di tipo: qualsiasi tentativo di modifica solleva \texttt{ValidationError} al momento dell'assegnazione, prima che la corruzione si propaghi.
-
-L'accesso allo stato mutabile del \texttt{TestContext} avviene tramite tre canali tipizzati distinti. Il canale token (\texttt{set\_token}, \texttt{get\_token}, \texttt{has\_token}) è indicizzato per role constant, non per identificatore di test: le chiavi sono \texttt{ROLE\_ADMIN}, \texttt{ROLE\_USER\_A}, \texttt{ROLE\_USER\_B}. Il canale teardown (\texttt{register\_resource\_for\_teardown}, \texttt{drain\_resources}) mantiene un registro LIFO delle risorse create sul target, garantendo che il cleanup avvenga nell'ordine inverso della creazione. Il canale shared data (\texttt{set\_shared}, \texttt{get\_shared}) è il meccanismo general-purpose per dati calcolati da un test e consumati da test dipendenti, con una convenzione di naming \texttt{"\{test\_id\}.\{data\_name\}"} che rende esplicito il test produttore. L'assenza di un dizionario libero a chiavi arbitrarie è intenzionale: un \texttt{get\_token} che restituisce \texttt{None} è una condizione gestita esplicitamente dal chiamante, non un \texttt{KeyError} silenzioso che si propaga altrove.
-
-Il costo accettato è la rigidità del \texttt{TargetContext}. Una volta costruito, non si aggiorna: qualsiasi informazione scoperta a runtime appartiene concettualmente allo stato dell'assessment, non allo stato del target, e trova il proprio posto nel \texttt{TestContext}. Questo confine non è sempre intuitivo, ma la sua esplicitezza è la garanzia che rende P28 dimostrabile senza ambiguità.
-
-\subsection{Gateway-Agnostic Adapter (P18)}
-
-I test WHITE\_BOX interrogano il piano di configurazione del gateway per verificare parametri non osservabili dall'esterno: timeout configurati sui servizi, presenza e parametrizzazione dei plugin di circuit breaking, pattern delle credenziali nelle variabili d'ambiente. Questa logica non può essere separata dall'implementazione concreta del gateway senza un'astrazione esplicita; costruirla direttamente nei test violerebbe sia P01 (i test conterrebbero riferimenti Kong-specifici) sia P02 (i test dovrebbero importare la logica di connessione all'Admin API).
-
-Il \texttt{BaseGatewayAdapter}, definito come Abstract Base Class in \texttt{src/core/gateway/base.py}, espone un'interfaccia uniforme read-only: \texttt{check\_connectivity()}, \texttt{get\_routes()}, \texttt{get\_plugins()}, \texttt{get\_services()}, \texttt{get\_upstreams()}, \texttt{get\_plugin\_by\_name()} e \texttt{get\_status()}. L'implementazione concreta \texttt{KongGatewayAdapter} realizza questa interfaccia interrogando la Admin API di Kong DB-less tramite chiamate HTTP standard. La selezione a runtime avviene tramite il campo \texttt{gateway\_adapter} nel \texttt{config.yaml}: il motore instanzia il tipo corretto in Phase~3, verifica la raggiungibilità tramite \texttt{check\_connectivity()}, e inietta l'istanza in \texttt{TargetContext.gateway}. Se \texttt{admin\_api\_url} non è configurato, \texttt{target.gateway} rimane \texttt{None} e tutti i test WHITE\_BOX transitano automaticamente a \texttt{SKIP} con motivo esplicito, senza errori a cascata.
-
-La collocazione dell'adapter in \texttt{core/gateway/}, e non in \texttt{connectors/}, riflette una distinzione semantica precisa. I connector wrappano tool esterni per la raccolta di dati di sicurezza sul target applicativo; l'adapter interroga l'infrastruttura di controllo del gateway come estensione della fase di discovery. I test WHITE\_BOX accedono all'adapter tramite \texttt{target.gateway}, indipendentemente dal tipo concreto sottostante: aggiungere supporto per un secondo gateway richiede una nuova sottoclasse di \texttt{BaseGatewayAdapter} e una riga nel dispatcher dell'engine, senza modificare nessuno dei test esistenti.
-
-Il limite intrinseco di questa astrazione, vale a dire la tensione tra la generalità dell'interfaccia e la profondità delle verifiche vendor-specific che essa non può esprimere, viene discusso nella Sezione~6.1.
-
-\subsection{Streaming Evidence Store (P11)}
-
-Ogni finding prodotto dall'assessment deve essere corredato da evidenza HTTP dimostabile: la request completa, la response completa, e un identificatore univoco che consenta di rintracciare il record nell'archivio forense. Questo requisito impone una scelta sulla gestione della capacità dell'archivio. Con il design iniziale basato su \texttt{collections.deque(maxlen=100)}, i test che producevano più di cento record FAIL, come il test~1.1 su un target con numerosi endpoint documentati, espellevano silenziosamente i record più vecchi dal buffer. I \texttt{Finding} prodotti contenevano valori \texttt{evidence\_ref} che puntavano a record inesistenti nell'archivio: audit trail corrotto senza errori visibili e senza alcun modo di distinguere un finding con evidenza valida da uno senza.
-
-L'architettura JSONL elimina questa classe di bug strutturalmente. Per ogni test, al momento dell'invocazione di \texttt{store.begin\_test(test\_id)}, viene aperto un file \texttt{.jsonl} dedicato in \texttt{outputs/evidence\_tmp/}. Ogni record FAIL o \textit{pinned} viene scritto immediatamente con flush. Al termine del test, \texttt{store.end\_test()} chiude il file. In Phase~7, \texttt{store.merge\_and\_finalize()} legge tutti i file JSONL, li ordina cronologicamente per \texttt{timestamp\_utc} e produce il file \texttt{evidence.json} finale con struttura envelope. La directory temporanea viene rimossa al termine dell'operazione.
-
-Due proprietà emergono da questa architettura senza richiedere logica aggiuntiva. La prima è la capacità illimitata: nessun record può essere espulso, indipendentemente dal volume prodotto da un singolo test. La seconda è la resilienza ai crash: i file JSONL in \texttt{evidence\_tmp/} sopravvivono a un'interruzione del processo tra Phase~5 e Phase~7, rendendo l'archivio parzialmente recuperabile per ispezione manuale. Il costo accettato è un overhead di I/O superiore rispetto al buffer in memoria, giustificato dalla non-repudiabilità di ogni finding e dalla necessità che l'audit trail sia affidabile anche nelle condizioni operative più onerose.
-
-\subsection{Zero External State Dependency (P34)}
-
-Il tool non apre connessioni verso database, message broker, cache distribuite o qualsiasi altro servizio di stato esterno durante l'esecuzione dell'assessment. Tutto lo stato mutabile vive in memoria di processo nel \texttt{TestContext}; tutto lo stato persistente è scritto in file locali nella directory configurata tramite \texttt{output.directory}. Le uniche connessioni di rete aperte durante un run sono verso il target API, tramite \texttt{SecurityClient}, e, quando configurata, verso la Admin API del gateway.
-
-Questo vincolo non è una scelta di semplicità operativa. È il prerequisito diretto dell'affidabilità dei semantic exit codes (P17). Un tool con dipendenze di stato esterno non può garantire che il proprio exit code rifletta fedelmente l'esito dell'assessment senza service readiness check preventivi: se il database che persiste i risultati è irraggiungibile, l'exit code potrebbe segnalare un errore infrastrutturale invece di una vulnerabilità nel target, rendendo il tool inutilizzabile come quality gate automatizzato. Di conseguenza, ogni exit code prodotto da \textit{APIGuard Assurance} ha un significato non ambiguo, indipendente dallo stato dell'infrastruttura circostante. Ne deriva che il tool è deployabile in pipeline CI/CD senza overhead di provisioning: è sufficiente disporre di Python~3.11 e della connettività di rete verso il target.
-
-
-
-\section{Domini di Sicurezza e Box Gradient Applicato}
-\label{sec:domini_box_gradient}
-
-La transizione dalla modellazione teorica delle minacce, discussa nel Capitolo~\ref{chap:background}, all'orchestrazione operativa dei test richiede un criterio di partizione rigoroso. L'eterogeneità delle vulnerabilità semantiche impone di frammentare l'analisi in aree di indagine logicamente isolate. Per rispondere a questa necessità, si è optato per strutturare l'architettura delle verifiche secondo una tassonomia originale articolata in otto Domini di Assurance:
-
-\begin{itemize}
-  \item \textbf{Domain-0 (API Discovery):} Identificazione della superficie d'attacco effettiva, inclusa la rilevazione di endpoint ombra (\textit{Shadow API}) e l'enforcement delle policy di negazione di default.
-  \item \textbf{Domain-1 (Identity \& Authentication):} Verifica dei meccanismi di riconoscimento del chiamante, della solidità dei protocolli di trasporto delle credenziali e dei processi di revoca dei JWT.
-  \item \textbf{Domain-2 (Authorization):} Collaudo delle logiche di controllo degli accessi, finalizzato a isolare difetti di segregazione orizzontale e verticale (RBAC).
-  \item \textbf{Domain-3 (Data Integrity):} Validazione della coerenza strutturale dei payload e della corretta implementazione delle firme crittografiche (es. HMAC).
-  \item \textbf{Domain-4 (Availability \& Resilience):} Valutazione delle difese contro l'esaurimento delle risorse, tramite l'audit dei \textit{circuit breaker} e delle soglie di \textit{rate limiting}.
-  \item \textbf{Domain-5 (Observability):} Analisi della qualità e della tempestività della telemetria generata dal sistema (dominio architetturalmente predisposto per la Milestone~2).
-  \item \textbf{Domain-6 (Configuration \& Hardening):} Esame del livello di indurimento dell'infrastruttura sottostante, con particolare focus sulle policy del gateway e sugli header di sicurezza HTTP.
-  \item \textbf{Domain-7 (Business Logic \& Sensitive Flows):} Ricerca di falle semantiche complesse, quali l'elusione dei vincoli di processo e le vulnerabilità di tipo SSRF.
-\end{itemize}
-
-Si è stabilito che questa classificazione non debba costituire una mera convenzione per l'organizzazione del codice sorgente, bensì debba riflettere una rigida gerarchia di fiducia. L'assunto architetturale soggiacente è che l'interrogazione di un livello di sicurezza superiore sia concettualmente invalida qualora i vincoli del livello inferiore non risultino garantiti. È metodologicamente scorretto testare i meccanismi di autorizzazione (\texttt{Domain-2}) senza prima aver certificato l'impenetrabilità dei protocolli di autenticazione (\texttt{Domain-1}), così come risulta impossibile valutare l'autenticazione senza una mappa verificata della superficie esposta (\texttt{Domain-0}). Questa ferrea sequenzialità logica funge da precondizione per la costruzione del grafo aciclico discusso nella Sezione precedente.
-
-Tale impostazione gerarchica trova il suo naturale complemento nell'applicazione dinamica del \textit{Box Gradient} (D3.P3). Piuttosto che vincolare il framework a un unico paradigma di visibilità, si è optato per mappare strutturalmente il livello di accesso (Black, Grey e White Box) al grado di priorità (\texttt{P0}-\texttt{P3}) della garanzia indagata.
-
-I test con priorità \texttt{P0} operano sistematicamente in regime di \textit{Black-Box}: simulano un attaccante esterno, privo di credenziali e di privilegi pregressi. L'adozione di questa postura di cecità iniziale è imperativa, in quanto rappresenta l'unico metodo empirico per ottenere un'evidenza di esposizione perimetrale che non risulti contaminata da autorizzazioni implicite.
-
-I test di priorità \texttt{P1} e \texttt{P2} transitano invece verso un paradigma \textit{Grey-Box}. Per ispezionare la corretta implementazione delle logiche di business e dei confini di segregazione, il motore necessita di esplorare uno stato autenticato plurimo, richiedendo la fornitura di token validi per almeno due ruoli applicativi distinti. In assenza di tali credenziali, i vettori d'attacco diretti contro i Domini 2 e 7 verrebbero respinti prematuramente dai filtri di identità, precludendo l'analisi della logica di business sottostante.
-
-Infine, i test di priorità \texttt{P3} adottano un approccio \textit{White-Box}. Questa postura viene innescata esclusivamente quando il \textit{target} concede al framework l'accesso diretto alla \textit{Admin API} del gateway, permettendo l'estrazione statica e l'audit delle configurazioni di routing e dei plugin installati.
-
-Abbracciare questa variazione dinamica della postura esplorativa impone una netta rinuncia alla semplicità operativa tipica dei fuzzer tradizionali. L'inevitabile conseguenza di tale frammentazione dei privilegi è il sensibile aumento della frizione in fase di configurazione, poiché si obbliga l'operatore a raccogliere e iniettare nel sistema materiale crittografico eterogeneo prima dell'avvio. Questo onere di setup iniziale rappresenta tuttavia un sacrificio calcolato: forzare l'architettura a mantenere un singolo e costante grado di visibilità avrebbe impedito, per definizione, di correlare l'esposizione perimetrale di una rotta non documentata con la misconfigurazione silente di un plugin di resilienza all'interno del medesimo ciclo di assessment.
+Ne deriva che il gradiente Black/Grey/White Box, applicato in questa forma, non è una tassonomia teorica importata dalla letteratura e applicata retroattivamente alla struttura del tool. È il prodotto delle precondizioni informative e operative che ciascuna garanzia di sicurezza impone al tester: la tecnica segue il requisito, non viceversa. Questa distinzione, apparentemente sottile, ha conseguenze pratiche rilevanti per l'usabilità del framework in contesti industriali, dove la disponibilità delle credenziali e dell'accesso amministrativo varia da deployment a deployment e non può essere assunta come uniforme. La Sezione~\ref{sec:devsecops} discute come questa variabilità di privilegio si integri con le pipeline \gls{CI/CD} senza richiedere configurazioni fisse.
