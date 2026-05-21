@@ -1,5 +1,4 @@
-% !TEX root = ../main.tex
-\chapter{Validazione sperimentale e risultati}\label{chap:experiments}
+﻿% !TEX root = ../main.tex
 
 % PATTERN DISPONIBILI IN QUESTO CAPITOLO:
 %
@@ -20,8 +19,428 @@
 % GRAFICI DA PDF (output da Criterion/matplotlib/R):
 %   \includegraphics[width=0.8\textwidth]{images/benchmark/.../nome.pdf}
 
-\section{Setup sperimentale}
-% TODO
 
-\section{Risultati}
-% TODO
+\chapter{Validazione sperimentale e risultati}%
+\label{chap:experiments}
+
+I Capitoli~\ref{chap:methodology} e~\ref{chap:implementation} hanno descritto come APIGuard Assurance è stato progettato e realizzato. Questo capitolo verifica empiricamente che quelle scelte architetturali si comportino nel modo dichiarato quando il tool viene eseguito contro un target reale. La validazione si articola in quattro livelli analitici distinti: la topologia dell'ambiente di test (Sezione~\ref{sec:testbed}), la qualità ingegneristica del codebase misurata attraverso un audit di 73 verifiche (Sezione~\ref{sec:release-readiness}), la copertura funzionale e l'idempotenza dei risultati su due run indipendenti (Sezione~\ref{sec:coverage-idempotenza}), e infine il profilo di risorse computazionali in relazione alla topologia del \gls{DAG} (Sezione~\ref{sec:footprint-dag}).
+
+Tutti i dati quantitativi di questo capitolo traggono origine dal Milestone~1 Pre-Release Audit, condotto il 2026-05-17 sulla versione \texttt{0.1.0} del tool con 73 verifiche indipendenti. Nessun risultato è stimato o interpolato: ogni numero citato ha un corrispondente punto di verifica nell'audit che lo ha prodotto. Questa tracciabilità è deliberata. Un capitolo di risultati senza riferimento alla procedura di misura che li ha generati è, dal punto di vista della riproducibilità, un capitolo di affermazioni.
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Topologia del Testbed Sperimentale}%
+\label{sec:testbed}
+% ─────────────────────────────────────────────────────────────────────────────
+
+La scelta dell'ambiente target non era vincolata a una specifica applicazione, ma a un insieme di requisiti derivati direttamente dalla matrice di copertura della suite. Serviva un'applicazione con una specifica \gls{OpenAPI} nativa, non generata a posteriori, che esponesse endpoint protetti da autenticazione reale, supportasse almeno due livelli di privilegi distinti, e producesse comportamenti osservabili e stabili sufficienti a validare i Domini D0, D1, D2, D3, D4, D6 e D7 senza che il target dovesse essere modificato tra un run e l'altro. Forgejo 14.0.3, esposto attraverso Kong 3.9 in modalità DB-less, soddisfa tutti questi requisiti e aggiunge una caratteristica rilevante per la validazione dell'agnosticismo applicativo (discusso nella Sezione~\ref{subsec:agnosticismo}): il tool non contiene nessun riferimento hardcoded a Forgejo, e il medesimo file \texttt{config.yaml} che governa questo assessment è strutturalmente identico a quello che si userebbe su qualsiasi altra \gls{API} REST documentata.
+
+
+\subsection{Architettura del Testbed}
+
+Il testbed è provisioned tramite un singolo file Docker Compose su host di sviluppo, senza hardware dedicato né virtualizzazione separata. La topologia comprende quattro servizi nel medesimo network \texttt{lab-net}: il database di persistenza (PostgreSQL 15-alpine), l'applicazione target (Forgejo~14), il gateway (Kong~3.9 DB-less) e un container \texttt{forgejo-setup} che esegue il provisioning degli account alla prima accensione e poi termina. La Tabella~\ref{tab:versioni-testbed} riporta la matrice delle versioni fissata durante l'audit.
+
+\begin{table}[ht]
+  \centering
+  \caption{Matrice delle versioni del testbed e dei componenti di assessment
+    al momento dell'audit di Milestone~1 (2026-05-17).}
+  \label{tab:versioni-testbed}
+  \small
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                          \\
+    \midrule
+    \texttt{apiguard-assurance} & 0.1.0                 & Tool sotto validazione                                              \\
+    \addlinespace
+    Python                      & 3.12.3                & Interprete del tool                                                 \\
+    \addlinespace
+    Forgejo                     & 14.0.3 (gitea-1.22.0) & Target applicativo: \gls{API} REST con specifica OpenAPI nativa     \\
+    \addlinespace
+    Kong                        & 3.9 DB-less           & \gls{API} Gateway: proxy, plugin, Admin \gls{API} su porta 8001     \\
+    \addlinespace
+    PostgreSQL                  & 15-alpine             & Backend di persistenza Forgejo                                      \\
+    \addlinespace
+    \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow \gls{API} discovery (test \texttt{ext.0.1}) \\
+    \addlinespace
+    \texttt{nuclei-templates}   & 10.4.3                & Template pinned per riproducibilità dei scan                        \\
+    \addlinespace
+    \texttt{testssl.sh}         & 3.2.3                 & Analisi \gls{TLS} black-box (test \texttt{ext.1.5.testssl})         \\
+    \addlinespace
+    sslyze                      & (libreria Python)     & Analisi \gls{TLS} via libreria (test \texttt{ext.1.5.sslyze})       \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Kong espone due porte di proxy: la~8000 in \gls{HTTP} semplice, usata esclusivamente dal test~1.5 per verificare il redirect verso \gls{HTTPS}, e la~8443 con certificato self-signed generato localmente, che costituisce l'endpoint primario del tool. L'Admin \gls{API} di Kong è accessibile sulla porta~8001 e rappresenta la sorgente dei dati per tutti i test di strategia \texttt{WHITE\_BOX} dei Domini~3, 4 e 6. La configurazione Kong è interamente dichiarativa, contenuta in un file \texttt{kong.yml} montato in sola lettura: questo è il pattern DB-less che il box gradient della Sezione~\ref{subsec:box-gradient} identifica come prerequisito per il testing a visibilità piena sul gateway.
+
+
+\subsection{Configurazione Intenzionale per la Copertura dei Finding}
+
+Un aspetto metodologicamente rilevante della configurazione riguarda quali comportamenti del gateway sono stati deliberatamente non induriti al momento dei run di validazione. Un testbed completamente hardened produrrebbe una suite con tutti \texttt{PASS} e nessun \texttt{FAIL}: un risultato tautologico, non informativo. Che il tool sappia identificare le violazioni presenti in un ambiente realmente misconfigured è il dato di validazione funzionale più utile.
+
+Di conseguenza, tre scelte di configurazione producono \texttt{FAIL} osservabili e attesi nell'assessment:
+
+\begin{enumerate}
+
+  \item Il plugin \texttt{rate-limiting} di Kong è commentato nel file
+        \texttt{kong.yml}. Nessun limite di velocità è attivo sul servizio
+        Forgejo. Il test~4.1, che invia richieste in loop verso un endpoint
+        protetto fino a ricevere \texttt{HTTP~429}, non riceve mai quel codice
+        e registra \texttt{FAIL} con 2 finding. Si tratta di una condizione
+        comune in ambienti di staging dove il rate limiting viene disattivato
+        per non interferire con i test applicativi, e quindi rappresenta uno
+        scenario realistico.
+
+  \item Forgejo espone token \gls{API} e metadati di sessione attraverso
+        alcuni endpoint documentati nella propria specifica OpenAPI senza
+        applicare restrizioni di campo sulla risposta. Il test~1.1, che sonda
+        ogni endpoint della specifica senza credenziali, registra 74 finding
+        per gli endpoint che restituiscono \texttt{2xx} in assenza di
+        autenticazione: il verdetto è \texttt{FAIL} con 74 finding nella
+        categoria \texttt{BYPASSED}.
+
+  \item Il certificato \gls{TLS} self-signed presenta configurazioni
+        non ottimali rilevabili dall'analisi statica del protocollo. I test
+        \texttt{ext.1.5.sslyze} e \texttt{ext.1.5.testssl} registrano
+        rispettivamente 1 e 3 finding sulla configurazione \gls{TLS}.
+
+\end{enumerate}
+
+Al contrario, il plugin \texttt{response-transformer} è attivo e inietta gli header di sicurezza \gls{HTTP} su tutte le risposte del servizio Forgejo: \texttt{Strict-Transport-Security}, \texttt{Content-Security-Policy}, \texttt{X-Content-Type-Options} e \texttt{X-Frame-Options}. Il test~0.1, che verifica la presenza di questi header, registra \texttt{PASS}. Il parametro \texttt{KONG\_HEADERS=off} nella configurazione Kong rimuove l'header \texttt{Server: kong/version}, producendo \texttt{PASS} anche per il test~6.2 che verifica il fingerprinting del gateway. Il servizio \texttt{http-redirect-service} produce un redirect~\texttt{301} con header \texttt{Location} corretto per qualsiasi richiesta \gls{HTTP} sulla porta~8000, consentendo al test~1.5 di verificare il redirect \gls{HTTP}$\to$\gls{HTTPS} e registrare \texttt{PASS}. La combinazione di finding attesi e \texttt{PASS} attesi rende il testbed un banco di prova funzionalmente completo: il tool deve saper rilevare il primo gruppo e non produrre falsi positivi nel secondo.
+
+
+\subsection{Struttura RBAC e Provisioning degli Utenti}
+
+Forgejo viene provisioned con tre account tramite il container \texttt{forgejo-setup}: un amministratore (\texttt{thesis-admin}), un utente con privilegi ordinari (\texttt{user-a}), e un secondo utente senza privilegi specifici (\texttt{user-b}). Questa struttura a tre livelli è il minimo sufficiente per la matrice di test della Milestone~1. Il test~2.1 (\texttt{RBAC enforcement}, \texttt{GREY\_BOX}, P2) richiede un token di \texttt{user-a} con cui tentare endpoint amministrativi: il gate di controllo accesso del gateway deve rispondere \texttt{403}. I test~1.4 e~2.1 dipendono da un token valido ottenuto dal run del test~1.1, dipendenza espressa nel \gls{DAG} come vincolo di Phase~B (discusso nella Sezione~\ref{sec:discovery-dag} e verificato empiricamente nella Sezione~\ref{sec:footprint-dag}).
+
+Il provisioning è deterministico. Il container \texttt{forgejo-setup} usa l'interfaccia \gls{CLI} di Forgejo con flag \texttt{-{}-}or-true, così da non fallire se gli account esistono già da un avvio precedente. Questa scelta è l'implementazione concreta della proprietà di riproducibilità \hyperref[subsec:reproducibility]{D3.P4}: il testbed raggiunge lo stesso stato iniziale indipendentemente da quante volte il comando \texttt{docker compose up} viene eseguito.
+
+
+
+
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Release-Readiness e Integrità Architetturale}%
+\label{sec:release-readiness}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Un tool che dichiara di essere uno strumento di assurance della sicurezza non può essere esente da quel medesimo rigore applicato alla propria implementazione. Questa considerazione non è retorica. Un codebase con errori di tipo non rilevati, dipendenze con \gls{CVE} note, o simboli pubblici privi di contratto documentato produce output il cui grado di affidabilità è difficilmente separabile dalla qualità del codice che lo genera. Prima di discutere cosa il tool ha trovato sul target, è quindi necessario stabilire su quali basi ingegneristiche poggia l'analisi.
+
+L'audit di Milestone~1 ha eseguito 73 verifiche distribuite in 9 categorie. Le prime due, l'analisi statica (verifiche~1--5) e l'ingegneria di produzione (verifiche~37--56), misurano la qualità del codebase indipendentemente dall'output di assessment. I risultati sono riportati come prerequisito di credibilità, non come contributo autonomo.
+
+
+\subsection{Analisi Statica del Codebase}
+
+Su 90 file sorgente Python, la suite di analisi statica ha prodotto i seguenti esiti al momento dell'audit, riassunti nella Tabella~\ref{tab:analisi-statica}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Risultati dell'analisi statica sul codebase APIGuard Assurance
+    v0.1.0 (90 file sorgente), verifiche~1--5 dell'audit di Milestone~1.}
+  \label{tab:analisi-statica}
+  \small
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Tool}      & \textbf{Risultato}           & \textbf{Dettaglio} \\
+    \midrule
+    \texttt{ruff}      & 0 errori                     &
+    Ruleset \texttt{E/W/F/I/N/UP/B/S/ANN}: lint, import order, upgrade,
+    security, annotation coverage                                          \\
+    \addlinespace
+    \texttt{mypy}      & 0 errori su 90 file          &
+    Modalità \texttt{strict = true}: \texttt{no-implicit-optional},
+    \texttt{disallow-untyped-defs}, \texttt{warn-return-any} e tutti i flag
+    associati                                                              \\
+    \addlinespace
+    \texttt{bandit}    & 0 finding severity medium$+$ &
+    3 Low (B404, S603$\times$2 in \texttt{connectors/base.py}), tutti
+    soppressi con \texttt{\#~noqa:~S603} documentati: invocazione
+    subprocess controllata per design                                      \\
+    \addlinespace
+    \texttt{vulture}   & 0 finding                    &
+    Confidence $\ge$80\%: nessun simbolo pubblico inutilizzato.
+    \texttt{execute}, \texttt{model\_*} e \texttt{validator\_*} esclusi
+    per dispatching dinamico                                               \\
+    \addlinespace
+    \texttt{pip-audit} & 0 \gls{CVE}                  &
+    Nessuna vulnerabilità nota nelle dipendenze dichiarate                 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Il dato di \texttt{mypy} merita un approfondimento architetturale, perché trascende la semplice metrica di qualità del codice. La proprietà \hyperref[prop:change-me]{D6.P3} (Sezione~\ref{subsec:dual-hierarchy}% \footnote{La Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation} tratta la dual test hierarchy; \hyperref[prop:change-me]{D6.P3} è la proprietà distinta della dual-layer type safety, il cui locus è in \texttt{pyproject.toml} e \texttt{src/core/models/}.}) formalizza un sistema di type enforcement a due strati indipendenti con copertura complementare.
+
+
+\subsection{Dual-Layer Type Safety (D6.P3)}
+
+Zero errori su 90 file sorgente in modalità \texttt{strict} è un risultato, non un obiettivo. Il problema che questa proprietà risolve ha una struttura precisa: la verifica statica con mypy garantisce che il contratto tra i moduli, espresso tramite type hints, sia consistente lungo l'intera catena di dipendenze. Nessun punto di chiamata riceve un tipo incompatibile con quello dichiarato dal callee. Gli errori di interfaccia tra moduli vengono intercettati prima che il codice venga eseguito contro un target reale.
+
+Mypy non copre però le system boundaries: il punto in cui dati esterni al codebase, un file \texttt{config.yaml} caricato da disco o il raw output di un connector, entrano nel sistema. Quel confine è presidiato da Pydantic~v2. I \texttt{model\_validator} e i \texttt{field\_validator} dei modelli di configurazione applicano le invarianti al momento della costruzione dell'oggetto: un campo \texttt{timeout\_seconds~=~None} con \texttt{enabled~=~True} nel \texttt{config.yaml} produce un \texttt{ConfigurationError} con il path del campo violato durante la Phase~1, non un crash non gestito durante l'esecuzione dei test. La classe di bug ``typecheck verde, runtime crash'' è strutturalmente eliminata.
+
+I due strati sono indipendenti e non ridondanti: ciascuno intercetta una categoria di errori che l'altro non vede. Il costo mantenuto è prossimo allo zero per chi aggiunge un test: type hints e modelli Pydantic con \texttt{frozen=True} sono già vincolati dalle Hard Rules del progetto. La safety non dipende dalla disciplina individuale di chi contribuisce.
+
+
+\subsection{Indicatori di Qualità dell'Ingegneria di Produzione}
+
+Oltre all'analisi statica, l'audit ha verificato una serie di proprietà ingegneristiche che contribuiscono alla riproducibilità e all'affidabilità operativa del tool. Tre meritano menzione esplicita per la loro rilevanza rispetto alle garanzie di assurance che il tool promette.
+
+Il primo è la copertura della documentazione interna: 292 simboli pubblici su 292 analizzati tramite scansione \gls{AST} presentano una docstring di modulo o di classe (100\%). In un tool estensibile per design, la documentazione dei contratti pubblici non è decorativa: è il meccanismo attraverso cui un nuovo test può capire cosa può chiamare e con quali aspettative di comportamento.
+
+Il secondo è la riproducibilità della build. Due esecuzioni consecutive di \texttt{hatch~build~-{}-target~wheel} producono un artefatto con SHA-256 identico (451\,261~byte). Una wheel non deterministica introduce una categoria di variabilità nel deployment che è metodologicamente inaccettabile per un tool che promette idempotenza sui propri risultati.
+
+Il terzo è il cold install: in un ambiente virtuale Python pulito, senza alcuna dipendenza preinstallata, l'esecuzione di \texttt{pip~install~apiguard\_assurance-0.1.0-py3-none-any.whl} seguita da \texttt{apiguard~version} restituisce \texttt{0.1.0}. Il tool è self-contained e non dipende da pacchetti installati nell'ambiente dell'esecutore.
+
+Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto-release}, è: pronto per la difesa di tesi e per il deployment in ambiente chiuso su target con specifica \gls{OpenAPI} documentata. Gli unici due item deferiti, il file \texttt{LICENSE} e il \texttt{CHANGELOG.md}, riguardano esclusivamente la distribuzione pubblica su PyPI e non hanno impatto sul comportamento operativo del tool.
+
+\begin{table}[ht]
+  \centering
+  \caption{Verdetto di release-readiness dall'audit di Milestone~1.
+    Ogni aspetto ha almeno un numero di verifica corrispondente nel
+    registro completo delle 73 verifiche.}
+  \label{tab:verdetto-release}
+  \small
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Aspetto}          & \textbf{Stato} & \textbf{Riferimento} \\
+    \midrule
+    Correttezza funzionale    & \checkmark     &
+    Analisi statica 100\% verde su 90 file (verifiche~1--5)           \\
+    \addlinespace
+    Integrità architetturale  & \checkmark     &
+    18 \texttt{test\_id} unici; \gls{DAG} aciclico; gerarchia eccezioni
+    11 classi; dipendenze monodirezionali (verifiche~19--23)          \\
+    \addlinespace
+    Copertura documentazione  & \checkmark     &
+    100\% docstring su 292 simboli pubblici; 265/265 Pydantic
+    \texttt{Field} description (verifica~65)                          \\
+    \addlinespace
+    Packaging e distribuzione & \checkmark     &
+    Wheel 451\,261~byte, SHA-256 identico su 2 build consecutive
+    (verifica~67)                                                     \\
+    \addlinespace
+    Cold install              & \checkmark     &
+    \texttt{pip install wheel} in fresh venv $\to$
+    \texttt{apiguard version} $\to$ \texttt{0.1.0} (verifica~64)      \\
+    \addlinespace
+    Resilienza di produzione  & \checkmark     &
+    Signal handling garantisce teardown Phase~6 su
+    \texttt{KeyboardInterrupt} (verifica~47)                          \\
+    \addlinespace
+    Item deferiti             & 2              &
+    \texttt{LICENSE} e \texttt{CHANGELOG.md}: solo per distribuzione
+    PyPI pubblica, nessun impatto operativo                           \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+
+
+
+
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Copertura Funzionale e Idempotenza dell'Assessment}%
+\label{sec:coverage-idempotenza}
+% ─────────────────────────────────────────────────────────────────────────────
+
+L'idempotenza non era una proprietà scontata da verificare. Test che creano risorse sul target, le interrogano, e poi le eliminano introducono dipendenze di stato che, se mal gestite, producono risultati diversi al secondo run: la prima esecuzione modifica il target, la seconda trova uno stato diverso. Che il sistema produca risultati identici su due run indipendenti è la dimostrazione empirica che la pipeline non lascia effetti collaterali osservabili, non un'affermazione di principio.
+
+I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso testbed, senza alcun intervento manuale tra l'uno e l'altro. La Tabella~\ref{tab:idempotenza-kpi} riporta i KPI aggregati; la Tabella~\ref{tab:risultati-per-test} dettaglia lo status e il conteggio dei finding per ciascuno dei 18 test attivi.
+
+\begin{table}[ht]
+  \centering
+  \caption{KPI aggregati di idempotenza su due run indipendenti. Tutti i valori sono identici o differiscono entro il margine di rumore del sistema operativo. Dati dall'audit di Milestone~1, §A.3.}
+  \label{tab:idempotenza-kpi}
+  \small
+  \begin{tabularx}{0.85\textwidth}{l C C C}
+    \toprule
+    \textbf{KPI}                           & \textbf{Run~1}    & \textbf{Run~2}    & \textbf{$\Delta$} \\
+    \midrule
+    PASS / FAIL / SKIP / ERROR             & 9 / 7 / 2 / 0     & 9 / 7 / 2 / 0     & identico          \\
+    \addlinespace
+    Finding count totale                   & 98                & 98                & identico          \\
+    \addlinespace
+    \texttt{pass\_rate\_pct}               & 56.2\%            & 56.2\%            & identico          \\
+    \addlinespace
+    \texttt{assessment\_duration\_seconds} & 286.04\,s         & 286.96\,s         & $+$0.32\%         \\
+    \addlinespace
+    Exit code / label                      & 1 / \texttt{FAIL} & 1 / \texttt{FAIL} & identico          \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \caption{Status e finding count per test, identici su entrambi i run. La colonna \textit{Dominio} riflette la classificazione D0--D7 della metodologia; \textit{Tipo} distingue test nativi da test con tool specializzati. Dati dall'audit di Milestone~1, §A.3.}
+  \label{tab:risultati-per-test}
+  \small
+  \begin{tabularx}{\textwidth}{l l l C C}
+    \toprule
+    \textbf{Test ID}         & \textbf{Dominio}    & \textbf{Tipo} & \textbf{Status} & \textbf{Finding} \\
+    \midrule
+    \texttt{0.1}             & D0 — Discovery      & Nativo        & \texttt{FAIL}   & 16               \\
+    \texttt{0.2}             & D0 — Discovery      & Nativo        & \texttt{FAIL}   & 1                \\
+    \texttt{0.3}             & D0 — Discovery      & Nativo        & \texttt{SKIP}   & 0                \\
+    \addlinespace
+    \texttt{1.1}             & D1 — Auth           & Nativo        & \texttt{FAIL}   & 74               \\
+    \texttt{1.4}             & D1 — Auth           & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{1.5}             & D1 — Auth           & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{1.6}             & D1 — Auth           & Nativo        & \texttt{SKIP}   & 0                \\
+    \addlinespace
+    \texttt{2.1}             & D2 — Authorization  & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{3.3}             & D3 — Data Integrity & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{4.1}             & D4 — Availability   & Nativo        & \texttt{FAIL}   & 2                \\
+    \texttt{4.2}             & D4 — Availability   & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{4.3}             & D4 — Availability   & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{6.2}             & D6 — Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{6.4}             & D6 — Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{7.2}             & D7 — Business Logic & Nativo        & \texttt{FAIL}   & 1                \\
+    \addlinespace
+    \texttt{ext.0.1.nuclei}  & D0 — Discovery      & Esterno       & \texttt{PASS}   & 0                \\
+    \texttt{ext.1.5.sslyze}  & D1 — Auth           & Esterno       & \texttt{FAIL}   & 1                \\
+    \texttt{ext.1.5.testssl} & D1 — Auth           & Esterno       & \texttt{FAIL}   & 3                \\
+    \midrule
+    \textbf{Totale}          &                     &               &                 & \textbf{98}      \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+\subsection{Analisi dei Risultati per Dominio}
+
+La distribuzione dei finding non è uniforme. Il test~1.1, che sonda ogni endpoint della specifica OpenAPI di Forgejo in assenza di autenticazione, produce da solo 74 dei 98 finding totali: il 75.5\% dell'intero conteggio. Questo non è un artefatto di un test mal calibrato. Forgejo espone una superficie documentata di oltre cento endpoint, e la configurazione Kong del testbed non applica autenticazione a molti di essi per design sperimentale (come discusso nella Sezione~\ref{sec:testbed}). Ciascun endpoint che risponde \texttt{2xx} a una richiesta non autenticata è un finding distinto nell'oracle a tre esiti della Safe HTTP Probing Policy (\hyperref[subsec:probing-policy]{D4.P7}): la cardinalità riflette la superficie reale del target, non un'amplificazione artificiale del contatore.
+
+I due \texttt{SKIP} meritano una lettura separata. Il test~0.3 verifica che gli endpoint marcati \texttt{deprecated:~true} nella specifica restituiscano \texttt{410~Gone} o portino un header \texttt{Sunset} valido (RFC~8594). La specifica OpenAPI di Forgejo~14.0.3 non dichiara nessun endpoint con questo marcatore: lo scope è legittimamente vuoto, e il test restituisce \texttt{SKIP} con motivo documentato. Il test~1.6 verifica la configurazione del session store tramite l'Admin \gls{API} di Kong; nella configurazione del testbed, Kong non espone un session store gestito esternamente, e la condizione di applicabilità non è soddisfatta. In entrambi i casi, \texttt{SKIP} non è un fallimento silenzioso: è la risposta semanticamente corretta all'assenza di condizioni di applicabilità, distinta dall'\texttt{ERROR} che indicherebbe un malfunzionamento della pipeline stessa.
+
+I tre \texttt{FAIL} del Dominio~1 prodotti dai tool esterni riguardano la configurazione \gls{TLS}. Il certificato self-signed del testbed presenta configurazioni subottimali rilevabili dall'analisi statica del protocollo: \texttt{ext.1.5.sslyze} rileva 1 finding, \texttt{ext.1.5.testssl} ne rileva 3. Questi risultati sono attesi e coerenti con l'uso di un certificato generato localmente per ambiente di laboratorio.
+
+
+\subsection{Idempotenza e Validazione del Teardown}
+
+Il delta sul wall-clock tra i due run è di 0.92~secondi su una durata media di circa 286~secondi, pari allo 0.32\% della durata totale. Questo margine rientra interamente nel rumore delle latenze di rete \gls{HTTP} verso il target e non è distinguibile dalla variabilità attesa di un sistema operativo in esecuzione su hardware condiviso. I contatori di finding, gli status per-test, il codice di uscita e il \texttt{pass\_rate\_pct} sono invece byte-identici: non vi è alcuna variazione nella parte deterministica del risultato.
+
+L'idempotenza ha una precondizione concreta: il teardown deve restituire il target allo stato iniziale dopo ogni run, senza lasciare risorse residue che alterino i risultati dell'esecuzione successiva. La verifica live condotta dopo ciascuno dei due run ha confermato che la Phase~6 ha drenato il registro \gls{LIFO} con 4 risorse transitorie e 0 fallimenti su entrambe le esecuzioni. La Tabella~\ref{tab:teardown-verifica} riporta lo stato delle risorse osservabili sul target prima del primo run e dopo ciascuno dei due.
+
+\begin{table}[ht]
+  \centering
+  \caption{Verifica live del teardown: stato delle risorse transitorie sul target Forgejo prima e dopo ciascun run. Dati dall'audit di Milestone~1, §A.4.}
+  \label{tab:teardown-verifica}
+  \small
+  \begin{tabularx}{\textwidth}{X C C C C}
+    \toprule
+    \textbf{Risorsa sul target}                                         & \textbf{Prima run~1} & \textbf{Dopo run~1} & \textbf{Dopo run~2} & \textbf{Verdetto} \\
+    \midrule
+    Token Forgejo \texttt{thesis-admin} contenenti \texttt{"apiguard"}  & 0                    & 0                   & 0                   & \checkmark        \\
+    \addlinespace
+    Repository Forgejo \texttt{user-a} con prefisso \texttt{"apiguard"} & 0                    & 0                   & 0                   & \checkmark        \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Zero risorse leakate su due run è la dimostrazione empirica che le proprietà \hyperref[subsec:teardown]{D4.P6} (Best-Effort Teardown \gls{LIFO}) e \hyperref[subsec:reproducibility]{D3.P4} (Riproducibilità) si comportano nel modo dichiarato in presenza di stato reale. Non è sufficiente che la logica di teardown sia corretta in teoria: deve produrre uno stato osservabile verificabile. Queste tabelle sono quella verifica.
+
+
+
+
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Footprint Computazionale e Benchmarking del DAG}%
+\label{sec:footprint-dag}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Il profilo di risorse di un tool di assessment non è una metrica accessoria. Un tool che satura la CPU, esaurisce la memoria o produce un output non ingestibile non è integrabile in una pipeline \gls{CI/CD} senza hardware dedicato. I dati di questa sezione rispondono a una domanda precisa: su quale classe di macchina e in quale regime di esecuzione APIGuard Assurance è operativamente sostenibile?
+
+La Tabella~\ref{tab:performance-baseline} riporta le metriche di sistema misurate sui due run dell'audit, ottenute tramite \texttt{/usr/bin/time -v} applicato al processo \texttt{apiguard run}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Metriche di sistema sui due run dell'audit di Milestone~1. Setup single-host, Forgejo~14.0.3 + Kong~3.9 DB-less, suite completa di 18 test in esecuzione sequenziale. Dati dall'audit §A.2.}
+  \label{tab:performance-baseline}
+  \small
+  \begin{tabularx}{\textwidth}{l C C}
+    \toprule
+    \textbf{Metrica}             & \textbf{Run~1}      & \textbf{Run~2}      \\
+    \midrule
+    Wall-clock elapsed           & 290.14\,s (4:50.14) & 290.81\,s (4:50.81) \\
+    \addlinespace
+    User time                    & 35.09\,s            & 34.67\,s            \\
+    \addlinespace
+    System time                  & 41.51\,s            & 41.62\,s            \\
+    \addlinespace
+    CPU utilization (media)      & 26\%                & (simile)            \\
+    \addlinespace
+    Peak resident set size       & 287\,MB             & 295\,MB             \\
+    \addlinespace
+    Voluntary context switches   & 145.356             & (simile)            \\
+    \addlinespace
+    Involuntary context switches & 20.685              & (simile)            \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+\subsection{Regime di Esecuzione: IO-Bound, non CPU-Bound}
+
+Il dato più informativo nella tabella non è il wall-clock. È la relazione tra user time, system time e tempo totale. Su 290\,s di esecuzione reale, il processo ha consumato circa 35\,s di tempo CPU in user space e 41\,s in kernel space: la somma è 76\,s, il 26\% del wall-clock. I restanti 214\,s, il 74\% del tempo totale, il processo li ha trascorsi in attesa: attesa delle risposte \gls{HTTP} dal target, attesa del completamento dei processi esterni (nuclei, testssl.sh), attesa dell'I/O su disco per la scrittura dell'evidence store.
+
+Da questo si ricava un'inferenza architetturale rilevante. Il collo di bottiglia non è l'interprete Python né il \gls{DAG} scheduler, ma la latenza di rete verso il target. Ottimizzare il codice Python non sposterebbe la curva in misura apprezzabile. Ciò che sposta effettivamente il wall-clock è la parallelizzazione dei test che non hanno dipendenze reciproche, traiettoria discussa nella Sezione~\ref{sec:limiti} come sviluppo futuro di Milestone~2. In assenza di parallelizzazione, il profilo attuale è il lower bound dell'architettura sequenziale, non un'inefficienza correggibile con refactoring locale.
+
+Il profilo di memoria è compatibile con l'integrazione \gls{CI/CD} su runner standard. 287--295\,MB di resident set size si collocano ampiamente entro i limiti delle configurazioni GitHub Actions e GitLab \gls{CI} di default (tipicamente 7\,GB per runner condivisi), senza richiedere runner dedicati né configurazioni di memoria particolari. Il footprint su disco è 4.5\,MB: \texttt{apiguard\_report.json} da 2.26\,MB, \texttt{assessment\_report.html} da 2.0\,MB e \texttt{evidence.json} da 254\,KB. I tre file sono autosufficienti e non richiedono dipendenze esterne per essere consultati.
+
+
+\subsection{Topologia del DAG e Implicazioni sull'Ordinamento dell'Esecuzione}
+
+L'esecuzione sequenziale di 18 test in due fasi non è la struttura più semplice realizzabile. Sarebbe stato possibile eseguire tutti i test in un singolo batch senza \gls{DAG}: meno codice, zero overhead di scheduling. Il problema che questa scelta avrebbe lasciato aperto è la correttezza dei risultati in presenza di dipendenze tra test.
+
+Il test~1.4 (revoca del token) richiede un token valido prodotto da un login \gls{HTTP} riuscito. Il test~2.1 (\gls{RBAC} enforcement) richiede lo stesso token per tentare endpoint amministrativi con credenziali di utente ordinario. Entrambi dipendono dal fatto che il test~1.1 abbia già interrogato la superficie di attacco e che l'autenticazione abbia prodotto un token nel \texttt{TestContext}. Eseguire~1.4 o~2.1 in assenza di questo prerequisito non produce un \texttt{ERROR} in fase di bootstrap: produce risultati non deterministici, ovvero output che dipendono dall'ordine di esecuzione e non dall'effettivo comportamento del target.
+
+La topologia del \gls{DAG} all'audit di Milestone~1, riportata nella Figura concettuale della Tabella~\ref{tab:dag-topology}, risolve il problema alla radice: 16 test senza dipendenze formano la Phase~A ed eseguono per primi; 1.4 e~2.1, che dichiarano \texttt{depends\_on~=~["1.1"]}, vengono schedulati in Phase~B e non possono mai essere avviati prima che il test~1.1 abbia prodotto un risultato.
+
+\begin{table}[ht]
+  \centering
+  \caption{Topologia del \gls{DAG} di Milestone~1. La Phase~B non può avviarsi finché tutti i test di Phase~A non hanno completato. L'in-degree di \texttt{1.1} è~2: è l'unico nodo consumato da due test in Phase~B. Verificata aciclica tramite \texttt{graphlib.TopologicalSorter} (audit §A.5).}
+  \label{tab:dag-topology}
+  \small
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Fase DAG}                        & \textbf{Cardinalità} & \textbf{Test}                                                                                                                                                                                  \\
+    \midrule
+    Phase~A (nessuna dipendenza)             & 16 test              &
+    \texttt{0.1}, \texttt{0.2}, \texttt{0.3}, \texttt{1.1}, \texttt{1.5}, \texttt{1.6}, \texttt{3.3}, \texttt{4.1}, \texttt{4.2}, \texttt{4.3}, \texttt{6.2}, \texttt{6.4}, \texttt{7.2}, \texttt{ext.0.1.nuclei}, \texttt{ext.1.5.testssl}, \texttt{ext.1.5.sslyze} \\
+    \addlinespace
+    Phase~B (\texttt{depends\_on = ["1.1"]}) & 2 test               &
+    \texttt{1.4}, \texttt{2.1}                                                                                                                                                                                                                                       \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Due considerazioni emergono da questa topologia. La prima è che il \gls{DAG} è sparso: su 18 nodi, solo 2 hanno dipendenze dichiarate, e queste convergono su un unico predecessore. L'overhead di scheduling introdotto dal \texttt{DAGScheduler} è quindi trascurabile rispetto al tempo di esecuzione dei test; la complessità del componente si giustifica non sul carico attuale ma sulla scalabilità futura, quando dipendenze tra domini distinti renderanno il grafo più denso.
+
+La seconda considerazione riguarda la relazione tra topologia del \gls{DAG} e footprint di memoria. Con 16 test in esecuzione sequenziale nella Phase~A, il \texttt{EvidenceStore} mantiene aperto un file \texttt{.jsonl} per volta: il picco di memoria non è determinato dal numero di test paralleli ma dalla dimensione del singolo audit trail. I 287--295\,MB misurati rappresentano il profilo reale di questa esecuzione, non una stima conservativa. La transizione verso l'esecuzione parallela dei test all'interno della stessa fase, prevista in Milestone~2, richiederà una rivalutazione di questo profilo: più file \texttt{.jsonl} aperti concorrentemente comportano un footprint proporzionalmente maggiore, da misurare prima di fissare i requisiti di memoria per deployment \gls{CI/CD}.
+
+
+
+
+
+
+
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section*{Sintesi della Validazione}
+\addcontentsline{toc}{section}{Sintesi della Validazione}
+% ─────────────────────────────────────────────────────────────────────────────
+
+I quattro livelli di analisi di questo capitolo non sono autonomi: si stratificano in una gerarchia di precondizioni. Il testbed stabilisce le condizioni di osservazione. La release-readiness certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza dimostrano che i risultati prodotti sono stabili e non contaminati da effetti collaterali. Il profilo computazionale ne qualifica l'integrabilità operativa. Rimuovere uno qualsiasi di questi livelli non impoverisce la validazione: la invalida, perché ciascuno è la condizione di interpretabilità del successivo.
+
+Il risultato aggregato è leggibile in termini precisi. Su un target reale con una specifica \gls{OpenAPI} nativa, APIGuard Assurance v0.1.0 ha eseguito 18 test distribuiti su 7 domini di sicurezza, prodotto 98 finding in 9 categorie distinte, restituito risultati byte-identici su due run indipendenti, drenato tutte le risorse transitorie senza residui, e completato l'intero assessment in circa 4 minuti e 50 secondi su hardware non dedicato. Nessuno di questi numeri è stimato: tutti tracciano a un punto di verifica nell'audit.
+
+Ciò che la validazione empirica non può fare è pronunciarsi sui limiti del paradigma che il tool implementa. Un assessment corretto su una specifica errata produce verdetti formalmente validi ma sostanzialmente privi di significato. Un tool che astrae il gateway per garantire portabilità multi-vendor accetta per costruzione di non poter accedere ai controlli vendor-specifici che non abbiano un equivalente generalizzabile. Queste non sono anomalie dell'implementazione: sono tensioni strutturali del contratto che APIGuard Assurance stringe con il proprio dominio applicativo. La loro analisi è l'oggetto del Capitolo~\ref{chap:discussion}.
