@@ -41,8 +41,6 @@ L'intero assessment si svolge in sette fasi sequenziali, orchestrate da \texttt{
 
 \begin{table}[ht]
   \centering
-  \caption{Le sette fasi della pipeline di assessment di APIGuard Assurance. Le fasi 1, 2 e 4 sono bloccanti: un errore interrompe lo startup prima dell'esecuzione dei test. Le fasi 5, 6 e 7 sono non-bloccanti: i fallimenti vengono registrati e l'esecuzione prosegue.}
-  \label{tab:pipeline-fasi}
   \small
   \begin{tabularx}{\textwidth}{c l l X}
     \toprule
@@ -63,6 +61,8 @@ L'intero assessment si svolge in sette fasi sequenziali, orchestrate da \texttt{
     7             & Report                     & \texttt{report/renderer.py}                      & Output su \texttt{evidence.json} e \texttt{assessment\_report.html}                                                \\
     \bottomrule
   \end{tabularx}
+  \caption{Fasi della pipeline di assessment (1-2-4 bloccanti / 5-6-7 non-bloccanti).}
+  \label{tab:pipeline-fasi}
 \end{table}
 
 Il ruolo di \texttt{engine.py} in questa struttura è di orchestratore puro. Il file esegue le fasi nell'ordine corretto, passa i contesti da una fase all'altra, e non contiene nessuna logica di dominio: nessuna regola di sicurezza, nessun criterio di valutazione, nessuna conoscenza del formato della specifica OpenAPI. Questa separazione non è estetica. Un orchestratore che contiene logica di dominio diventa il punto in cui si concentrano le dipendenze, rendendo difficile testare i componenti in isolamento e impossibile sostituire una fase senza rischiare di rompere l'altra. La coerenza di \texttt{engine.py} con il principio del flusso monodirezionale di \hyperref[subsec:dep-flow]{D1.P2} è verificabile per ispezione diretta: il file importa da \texttt{core/}, \texttt{discovery/}, \texttt{tests/} e \texttt{report/}, ma nessuno di questi moduli importa da \texttt{engine.py}.
@@ -83,8 +83,6 @@ Il meccanismo che rende possibile la distinzione tra errori bloccanti e non-bloc
 
 \begin{table}[ht]
   \centering
-  \caption{Le 11 classi di eccezione custom di APIGuard Assurance, distribuite su 3 file sorgente. Le eccezioni di Phase 1--4 sono fatali e interrompono lo startup; quelle di Phase 5--6 vengono recuperate localmente. Le eccezioni \gls{CLI} non transitano dall'engine e sono architetturalmente isolate dal loop di assessment.}
-  \label{tab:exception-hierarchy}
   \small
   \begin{tabularx}{\textwidth}{l c l X}
     \toprule
@@ -103,6 +101,8 @@ Il meccanismo che rende possibile la distinzione tra errori bloccanti e non-bloc
     \texttt{SeedGeneratorParseError}  & \gls{CLI}     & \texttt{seed\_generator.py} & Catturata in \texttt{cli.py}, exit~code 10      \\
     \bottomrule
   \end{tabularx}
+  \caption{Gerarchia delle eccezioni custom (1-4 interrompono start-up; 5-6 recuperate localmente).}
+  \label{tab:exception-hierarchy}
 \end{table}
 
 Due scelte meritano commento esplicito perché riflettono decisioni di design consapevoli, non vincoli tecnici.

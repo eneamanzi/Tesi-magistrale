@@ -42,9 +42,6 @@ Il testbed è provisioned tramite un singolo file Docker Compose su host di svil
 
 \begin{table}[ht]
   \centering
-  \caption{Matrice delle versioni del testbed e dei componenti di assessment
-    al momento dell'audit di Milestone~1 (2026-05-17).}
-  \label{tab:versioni-testbed}
   \small
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
@@ -68,7 +65,9 @@ Il testbed è provisioned tramite un singolo file Docker Compose su host di svil
     \addlinespace
     sslyze                      & (libreria Python)     & Analisi \gls{TLS} via libreria (test \texttt{ext.1.5.sslyze})       \\
     \bottomrule
-  \end{tabularx}
+    tati dell'analisi statica sul codebase AP\end{tabularx}
+  \caption{Componenti del testbed e versioni al Milestone~1.}
+  \label{tab:versioni-testbed}
 \end{table}
 
 Kong espone due porte di proxy: la~8000 in \gls{HTTP} semplice, usata esclusivamente dal test~1.5 per verificare il redirect verso \gls{HTTPS}, e la~8443 con certificato self-signed generato localmente, che costituisce l'endpoint primario del tool. L'Admin \gls{API} di Kong è accessibile sulla porta~8001 e rappresenta la sorgente dei dati per tutti i test di strategia \texttt{WHITE\_BOX} dei Domini~3, 4 e 6. La configurazione Kong è interamente dichiarativa, contenuta in un file \texttt{kong.yml} montato in sola lettura: questo è il pattern DB-less che il box gradient della Sezione~\ref{subsec:box-gradient} identifica come prerequisito per il testing a visibilità piena sul gateway.
@@ -136,9 +135,6 @@ Su 90 file sorgente Python, la suite di analisi statica ha prodotto i seguenti e
 
 \begin{table}[ht]
   \centering
-  \caption{Risultati dell'analisi statica sul codebase APIGuard Assurance
-    v0.1.0 (90 file sorgente), verifiche~1--5 dell'audit di Milestone~1.}
-  \label{tab:analisi-statica}
   \small
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
@@ -167,6 +163,8 @@ Su 90 file sorgente Python, la suite di analisi statica ha prodotto i seguenti e
     Nessuna vulnerabilità nota nelle dipendenze dichiarate                 \\
     \bottomrule
   \end{tabularx}
+  \caption{Analisi statica della codebase APIGuard Assurance v0.1.0}
+  \label{tab:analisi-statica}
 \end{table}
 
 Il dato di \texttt{mypy} merita un approfondimento architetturale, perché trascende la semplice metrica di qualità del codice. La proprietà \hyperref[prop:change-me]{D6.P3} (Sezione~\ref{subsec:dual-hierarchy}% \footnote{La Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation} tratta la dual test hierarchy; \hyperref[prop:change-me]{D6.P3} è la proprietà distinta della dual-layer type safety, il cui locus è in \texttt{pyproject.toml} e \texttt{src/core/models/}.}) formalizza un sistema di type enforcement a due strati indipendenti con copertura complementare.
@@ -195,10 +193,6 @@ Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto
 
 \begin{table}[ht]
   \centering
-  \caption{Verdetto di release-readiness dall'audit di Milestone~1.
-    Ogni aspetto ha almeno un numero di verifica corrispondente nel
-    registro completo delle 73 verifiche.}
-  \label{tab:verdetto-release}
   \small
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
@@ -232,6 +226,8 @@ Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto
     PyPI pubblica, nessun impatto operativo                           \\
     \bottomrule
   \end{tabularx}
+  \caption{Verdetto release-readiness al Milestone~1.}
+  \label{tab:verdetto-release}
 \end{table}
 
 
@@ -248,16 +244,14 @@ Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto
 
 L'idempotenza non era una proprietà scontata da verificare. Test che creano risorse sul target, le interrogano, e poi le eliminano introducono dipendenze di stato che, se mal gestite, producono risultati diversi al secondo run: la prima esecuzione modifica il target, la seconda trova uno stato diverso. Che il sistema produca risultati identici su due run indipendenti è la dimostrazione empirica che la pipeline non lascia effetti collaterali osservabili, non un'affermazione di principio.
 
-I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso testbed, senza alcun intervento manuale tra l'uno e l'altro. La Tabella~\ref{tab:idempotenza-kpi} riporta i KPI aggregati; la Tabella~\ref{tab:risultati-per-test} dettaglia lo status e il conteggio dei finding per ciascuno dei 18 test attivi.
+I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso testbed, senza alcun intervento manuale tra l'uno e l'altro. La Tabella~\ref{tab:idempotenza-kpi} riporta i \gls{KPI} aggregati; la Tabella~\ref{tab:risultati-per-test} dettaglia lo status e il conteggio dei finding per ciascuno dei 18 test attivi.
 
 \begin{table}[ht]
   \centering
-  \caption{KPI aggregati di idempotenza su due run indipendenti. Tutti i valori sono identici o differiscono entro il margine di rumore del sistema operativo. Dati dall'audit di Milestone~1, §A.3.}
-  \label{tab:idempotenza-kpi}
   \small
   \begin{tabularx}{0.85\textwidth}{l C C C}
     \toprule
-    \textbf{KPI}                           & \textbf{Run~1}    & \textbf{Run~2}    & \textbf{$\Delta$} \\
+    \textbf{\gls{KPI}}                     & \textbf{Run~1}    & \textbf{Run~2}    & \textbf{$\Delta$} \\
     \midrule
     PASS / FAIL / SKIP / ERROR             & 9 / 7 / 2 / 0     & 9 / 7 / 2 / 0     & identico          \\
     \addlinespace
@@ -270,12 +264,12 @@ I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso t
     Exit code / label                      & 1 / \texttt{FAIL} & 1 / \texttt{FAIL} & identico          \\
     \bottomrule
   \end{tabularx}
+  \caption{KPI di idempotenza su due run indipendenti.}
+  \label{tab:idempotenza-kpi}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Status e finding count per test, identici su entrambi i run. La colonna \textit{Dominio} riflette la classificazione D0--D7 della metodologia; \textit{Tipo} distingue test nativi da test con tool specializzati. Dati dall'audit di Milestone~1, §A.3.}
-  \label{tab:risultati-per-test}
   \small
   \begin{tabularx}{\textwidth}{l l l C C}
     \toprule
@@ -310,6 +304,8 @@ I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso t
     \textbf{Totale}          &                     &               &                 & \textbf{98}      \\
     \bottomrule
   \end{tabularx}
+  \caption{Status e finding count per test.}
+  \label{tab:risultati-per-test}
 \end{table}
 
 
@@ -330,8 +326,6 @@ L'idempotenza ha una precondizione concreta: il teardown deve restituire il targ
 
 \begin{table}[ht]
   \centering
-  \caption{Verifica live del teardown: stato delle risorse transitorie sul target Forgejo prima e dopo ciascun run. Dati dall'audit di Milestone~1, §A.4.}
-  \label{tab:teardown-verifica}
   \small
   \begin{tabularx}{\textwidth}{X C C C C}
     \toprule
@@ -342,6 +336,8 @@ L'idempotenza ha una precondizione concreta: il teardown deve restituire il targ
     Repository Forgejo \texttt{user-a} con prefisso \texttt{"apiguard"} & 0                    & 0                   & 0                   & \checkmark        \\
     \bottomrule
   \end{tabularx}
+  \caption{Verifica live del teardown post-run.}
+  \label{tab:teardown-verifica}
 \end{table}
 
 Zero risorse leakate su due run è la dimostrazione empirica che le proprietà \hyperref[subsec:teardown]{D4.P6} (Best-Effort Teardown \gls{LIFO}) e \hyperref[subsec:reproducibility]{D3.P4} (Riproducibilità) si comportano nel modo dichiarato in presenza di stato reale. Non è sufficiente che la logica di teardown sia corretta in teoria: deve produrre uno stato osservabile verificabile. Queste tabelle sono quella verifica.
@@ -362,8 +358,6 @@ La Tabella~\ref{tab:performance-baseline} riporta le metriche di sistema misurat
 
 \begin{table}[ht]
   \centering
-  \caption{Metriche di sistema sui due run dell'audit di Milestone~1. Setup single-host, Forgejo~14.0.3 + Kong~3.9 DB-less, suite completa di 18 test in esecuzione sequenziale. Dati dall'audit §A.2.}
-  \label{tab:performance-baseline}
   \small
   \begin{tabularx}{\textwidth}{l C C}
     \toprule
@@ -384,6 +378,8 @@ La Tabella~\ref{tab:performance-baseline} riporta le metriche di sistema misurat
     Involuntary context switches & 20.685              & (simile)            \\
     \bottomrule
   \end{tabularx}
+  \caption{Metriche di sistema sui due run.}
+  \label{tab:performance-baseline}
 \end{table}
 
 
@@ -406,8 +402,6 @@ La topologia del \gls{DAG} all'audit di Milestone~1, riportata nella Figura conc
 
 \begin{table}[ht]
   \centering
-  \caption{Topologia del \gls{DAG} di Milestone~1. La Phase~B non può avviarsi finché tutti i test di Phase~A non hanno completato. L'in-degree di \texttt{1.1} è~2: è l'unico nodo consumato da due test in Phase~B. Verificata aciclica tramite \texttt{graphlib.TopologicalSorter} (audit §A.5).}
-  \label{tab:dag-topology}
   \small
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
@@ -420,6 +414,8 @@ La topologia del \gls{DAG} all'audit di Milestone~1, riportata nella Figura conc
     \texttt{1.4}, \texttt{2.1}                                                                                                                                                                                                                                       \\
     \bottomrule
   \end{tabularx}
+  \caption{Topologia del \gls{DAG} a Milestone~1.}
+  \label{tab:dag-topology}
 \end{table}
 
 Due considerazioni emergono da questa topologia. La prima è che il \gls{DAG} è sparso: su 18 nodi, solo 2 hanno dipendenze dichiarate, e queste convergono su un unico predecessore. L'overhead di scheduling introdotto dal \texttt{DAGScheduler} è quindi trascurabile rispetto al tempo di esecuzione dei test; la complessità del componente si giustifica non sul carico attuale ma sulla scalabilità futura, quando dipendenze tra domini distinti renderanno il grafo più denso.
