@@ -69,8 +69,8 @@
 - [X] 3.2.6 Assenza di Dipendenze di Stato Esterno (D3.P5) `[Stato: OK]`
 
 ### 3.3 Domini di Sicurezza e Box Gradient Applicato
-- [ ] 3.3.1 Tassonomia degli Otto Domini di Assurance `[Stato: POST-CHECK]`
-- [ ] 3.3.2 Il Box Gradient come Mapping dalle Precondizioni al Privilegio (D3.P3) `[Stato: POST-CHECK]`
+- [X] 3.3.1 Tassonomia degli Otto Domini di Assurance `[Stato: OK]`
+- [X] 3.3.2 Il Box Gradient come Mapping dalle Precondizioni al Privilegio (D3.P3) `[Stato: OK]`
 
 ---
 
