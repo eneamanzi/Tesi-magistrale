@@ -61,16 +61,16 @@
 - [X] 3.1.4 Riproducibilità Deterministica (D3.P4) `[Stato: OK]` 
 
 ### 3.2 Architettura dell'Assessment Engine
-- [ ] 3.2.1 Flusso di Dipendenze Monodirezionale (D1.P2) `[Stato: POST-CHECK]` 
-- [ ] 3.2.2 Scheduling Basato su DAG e Orchestrazione Deterministica (D2.P2) `[Stato: POST-CHECK]` 
-- [ ] 3.2.3 Split State e Immutabilità (D1.P3) `[Stato: POST-CHECK]` 
-- [ ] 3.2.4 Gateway-Agnostic Adapter (D1.P6) `[Stato: CHECK]`
-- [ ] 3.2.5 Streaming Evidence Store (D4.P1) `[Stato: CHECK]`
-- [ ] 3.2.6 Assenza di Dipendenze di Stato Esterno (D3.P5) `[Stato: CHECK]`
+- [X] 3.2.1 Flusso di Dipendenze Monodirezionale (D1.P2) `[Stato: OK]` 
+- [X] 3.2.2 Scheduling Basato su DAG e Orchestrazione Deterministica (D2.P2) `[Stato: OK]`
+- [X] 3.2.3 Split State e Immutabilità (D1.P3) `[Stato: OK]`
+- [X] 3.2.4 Gateway-Agnostic Adapter (D1.P6) `[Stato: OK]`
+- [X] 3.2.5 Streaming Evidence Store (D4.P1) `[Stato: OK]`
+- [X] 3.2.6 Assenza di Dipendenze di Stato Esterno (D3.P5) `[Stato: OK]`
 
 ### 3.3 Domini di Sicurezza e Box Gradient Applicato
-- [ ] 3.3.1 Tassonomia degli Otto Domini di Assurance `[Stato: CHECK]`
-- [ ] 3.3.2 Il Box Gradient come Mapping dalle Precondizioni al Privilegio (D3.P3) `[Stato: CHECK]`
+- [ ] 3.3.1 Tassonomia degli Otto Domini di Assurance `[Stato: POST-CHECK]`
+- [ ] 3.3.2 Il Box Gradient come Mapping dalle Precondizioni al Privilegio (D3.P3) `[Stato: POST-CHECK]`
 
 ---
 
