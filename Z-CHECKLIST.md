@@ -55,10 +55,10 @@
 ## 3. Metodologia, Architettura e Principi di Design
 
 ### 3.1 Principi Fondamentali: il Perché delle Scelte Architetturali
-- [ ] 3.1.1 Agnosticismo Applicativo (D1.P1) `[Stato: POST-CHECK]` 
-- [ ] 3.1.2 La Specifica OpenAPI come Unico Oracolo Formale (D3.P2) `[Stato: POST-CHECK]` 
-- [ ] 3.1.3 Config-Driven Development (D3.P1) `[Stato: POST-CHECK]` 
-- [ ] 3.1.4 Riproducibilità Deterministica (D3.P4) `[Stato: POST-CHECK]` 
+- [X] 3.1.1 Agnosticismo Applicativo (D1.P1) `[Stato: OK]` 
+- [X] 3.1.2 La Specifica OpenAPI come Unico Oracolo Formale (D3.P2) `[Stato: OK]` 
+- [X] 3.1.3 Config-Driven Development (D3.P1) `[Stato: OK]` 
+- [X] 3.1.4 Riproducibilità Deterministica (D3.P4) `[Stato: OK]` 
 
 ### 3.2 Architettura dell'Assessment Engine
 - [ ] 3.2.1 Flusso di Dipendenze Monodirezionale (D1.P2) `[Stato: POST-CHECK]` 
