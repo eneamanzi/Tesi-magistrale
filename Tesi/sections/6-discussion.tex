@@ -1,8 +1,184 @@
 % !TEX root = ../main.tex
-\chapter{Discussione e Sviluppi Futuri}\label{discussione}
 
 % PATTERN: \nameref{label} — cross-reference a una sezione per nome, non numero.
 % Esempio: "come illustrato in \nameref{esperimenti}" produce "come illustrato in Esperimenti".
 
-\section{}
-% TODO
+\chapter{Discussione e Sviluppi Futuri}\label{chap:discussion}
+
+La validazione del Capitolo~\ref{chap:experiments} ha risposto a una domanda circoscritta: APIGuard Assurance si comporta come dichiarato su un target reale? La risposta è affermativa, e i dati la supportano con tracciabilità completa. Rimane aperta una domanda di portata diversa: entro quali confini strutturali quella risposta vale? Un sistema di assurance che conosce i propri limiti è più utile di uno che li ignora, perché consente a chi lo adopera di calibrare la fiducia nell'output in modo informato.
+
+Questo capitolo esamina quei confini in tre direzioni. La prima è critica: i limiti strutturali del paradigma contract-driven, ciascuno radicato in una proprietà architetturale specifica, vengono discussi senza attenuarli (Sezione~\ref{sec:limiti}). La seconda è applicativa: le condizioni in cui il tool è integrabile in pipeline \gls{CI/CD} industriali e i pattern di deployment che ne massimizzano il valore (Sezione~\ref{sec:devsecops}). La terza è prospettica: le traiettorie di sviluppo, distinte tra estensioni operative pianificate per la Milestone~2 e direzioni di ricerca che richiedono validazione sperimentale indipendente (Sezione~\ref{sec:sviluppi-futuri}).
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Analisi Critica e Limiti del Paradigma Contract-Driven}%
+\label{sec:limiti}
+% ─────────────────────────────────────────────────────────────────────────────
+
+I tre limiti discussi in questa sezione non sono anomalie correggibili con un refactoring localizzato. Ciascuno è il prezzo di una scelta architetturale deliberata: una proprietà che garantisce un vantaggio specifico impone, per costruzione, una classe di situazioni in cui quel vantaggio si trasforma in vincolo. Nominarli con precisione è il modo corretto di presentare un sistema di assurance: l'alternativa è trasferire al lettore l'onere di scoprirli durante il deployment.
+
+
+\subsection{Il Paradosso del Ground Truth (D3.P2)}\label{subsec:limite-ground-truth}
+
+La proprietà \hyperref[subsec:openapi-sot]{D3.P2} stabilisce che la specifica OpenAPI è l'unico oracolo formale della pipeline: costruisce le richieste, delimita la superficie di attacco, e valuta le risposte. Il vantaggio è la precisione semantica: dove un fuzzer cieco produce \texttt{HTTP~400} a causa di payload strutturalmente invalidi, APIGuard Assurance costruisce richieste conformi al contratto e sposta l'osservazione dalla sintassi alla semantica del controllo di sicurezza. Come discusso nella Sezione~\ref{subsec:openapi-sot}, questo è precisamente il \emph{combinatorial wall} che il paradigma contract-driven abbatte.
+
+Il prezzo è la dipendenza dalla qualità di ciò che si assume come oracolo. Una specifica obsoleta, che non riflette endpoint aggiunti dopo l'ultima pubblicazione della documentazione, riduce la superficie di attacco osservabile senza che il sistema possa rilevare l'incoerenza: l'assenza di un endpoint nell'assessment è indistinguibile dalla sua assenza nella specifica. Una specifica deliberatamente incompleta, costruita per escludere endpoint sensibili dalla copertura del tool, produce un assessment formalmente corretto su una superficie artificialmente ristretta. In entrambi i casi il tool non dispone di un meccanismo per distinguere l'assenza di vulnerabilità dall'assenza di copertura.
+
+Si tratta di un problema aperto nel testing contract-driven, non di un difetto specifico di questa implementazione. Qualsiasi approccio che utilizzi una specifica formale come oracolo eredita la stessa dipendenza: la correttezza dell'assessment è necessariamente condizionale alla correttezza del contratto. La traiettoria di ricerca che affronta strutturalmente questo paradosso, l'inferenza automatica della specifica dall'analisi del traffico reale tramite tecniche di \gls{ML}, è discussa nella Sezione~\ref{sec:sviluppi-futuri} come direzione aperta, non come soluzione disponibile.
+
+In termini operativi, la mitigazione praticabile è procedurale: l'operatore che esegue l'assessment è responsabile di verificare che la specifica fornita sia aggiornata e completa prima di interpretare i risultati. Il tool può segnalare questa dipendenza, ed è quello che fa producendo un \texttt{SKIP} con motivazione esplicita quando uno scope è vuoto; ma non può validare autonomamente che lo scope rifletta fedelmente il sistema reale.
+
+
+\subsection{La Tensione dell'Astrazione (D1.P6)}\label{subsec:limite-astrazione}
+
+\hyperref[subsec:gateway-adapter]{D1.P6} disaccoppia i test dal gateway concreto installato nel deployment: i test \texttt{WHITE\_BOX} accedono al piano di configurazione tramite \texttt{BaseGatewayAdapter}, un'interfaccia astratta i cui metodi sono implementabili per qualsiasi gateway che esponga un piano di controllo interrogabile. Il vantaggio è che aggiungere supporto per un nuovo gateway richiede una nuova classe concreta senza toccare nessuno dei test che la utilizzano.
+
+Il costo è che l'interfaccia può contenere solo ciò che è concettualmente generalizzabile a tutti i gateway che la implementano. Un controllo che dipende da una semantica vendor-specific, priva di equivalente in altri prodotti, non può essere espresso tramite l'interfaccia senza romperla: richiederebbe un cast al tipo concreto, che accoppia il test a un'implementazione specifica e invalida la garanzia di agnosticismo. Il design corrente non usa questa possibilità, e questo è il trade-off da dichiarare.
+
+Un esempio concreto chiarisce la tensione. Kong supporta l'ordinamento esplicito dei plugin tramite il campo \texttt{ordering} della sua \gls{API} di configurazione, una funzionalità che può avere implicazioni sulla sicurezza: un plugin di autenticazione eseguito dopo un plugin di trasformazione del payload potrebbe ricevere dati già alterati. Verificare questa condizione richiede accedere a metadati di configurazione Kong-specifici che non hanno un equivalente strutturale in altri gateway. Un test che effettuasse questa verifica dovrebbe dipendere da \texttt{KongGatewayAdapter} direttamente, non da \texttt{BaseGatewayAdapter}, e non sarebbe portabile.
+
+La tensione non è risolvibile per via architettonica senza modificare il contratto dell'astrazione: è intrinseca alla scelta di preferire la portabilità multi-vendor alla profondità delle verifiche vendor-specific. Un deployment che usa esclusivamente Kong e non prevede mai di cambiare gateway potrebbe valutare se abbandonare l'astrazione per quei test specifici; un deployment che deve funzionare su Kong, AWS \gls{API} Gateway e Azure \gls{APIM} non ha alternativa all'astrazione e accetta consapevolmente la riduzione di profondità come prezzo della portabilità.
+
+
+\subsection{La Dipendenza dall'Admin API (D4.P5)}\label{subsec:limite-admin-api}
+
+La degradazione controllata a tre livelli descritta nella Sezione~\ref{subsec:graceful-degradation} garantisce che l'assenza della Admin \gls{API} del gateway non blocchi la pipeline: i test \texttt{WHITE\_BOX} transitano a \texttt{SKIP} con motivazione esplicita, e l'assessment continua sui domini accessibili. Il sistema è robusto in presenza di questa assenza.
+
+Robustezza non equivale però ad assenza di conseguenze. In ambienti cloud managed, come Amazon \gls{API} Gateway, Azure \gls{APIM} o Google Cloud Endpoints, il piano di configurazione non è mai esposto tramite un'Admin \gls{API} interrogabile direttamente: il gateway è un servizio gestito la cui configurazione è accessibile solo attraverso le \gls{API} del cloud provider, con modelli di autenticazione e autorizzazione specifici per piattaforma. Configurare \texttt{gateway\_adapter} per questi ambienti richiederebbe implementare un adapter dedicato per ciascun provider, lavoro di integrazione che la Milestone~1 non ha prodotto.
+
+Ne consegue che la copertura dell'assessment in questi deployment si riduce ai domini \texttt{BLACK\_BOX} e \texttt{GREY\_BOX}: D0, D1, D2, D3, D4 parzialmente, D7. I domini D6 (Configuration \& Hardening) e le verifiche \texttt{WHITE\_BOX} di D4 rimangono esclusi. La perdita non è silenziosa: il report documenta ogni \texttt{SKIP} con la motivazione \textit{"Admin API not configured"}, rendendo la riduzione di copertura immediatamente leggibile dall'analista.
+
+Dal punto di vista operativo, la prassi industriale che affronta questo limite è l'accordo di accesso privilegiato: nell'ambito di un assessment formale, il team di sicurezza ottiene credenziali read-only alle \gls{API} di gestione del cloud provider per la durata dell'analisi. In questo modello, APIGuard Assurance si inserisce naturalmente: il campo \texttt{gateway\_adapter} nel \texttt{config.yaml} viene popolato con le credenziali e l'endpoint dell'adapter specifico per il provider, e la copertura si estende ai domini \texttt{WHITE\_BOX} senza modifiche al codice. La condizione è che quell'adapter esista: la sua implementazione per i cloud provider principali è identificata come priorità nella roadmap di Milestone~2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Applicabilità Industriale e Integrazione DevSecOps}%
+\label{sec:devsecops}
+% ─────────────────────────────────────────────────────────────────────────────
+
+La riproducibilità deterministica e i limiti strutturali discussi nelle sezioni precedenti non sono solo caratteristiche di un sistema accademico. Definiscono insieme il perimetro operativo dentro il quale APIGuard Assurance è integrabile come componente di una pipeline \gls{CI/CD} industriale, e fuori dal quale quella integrazione richiederebbe adattamenti che la Milestone~1 non ha prodotto. Questa sezione descrive il primo scenario: le condizioni in cui il tool è adottabile senza modifiche, i pattern di deployment che ne massimizzano il valore, e la semantica del canale di comunicazione con la pipeline.
+
+
+\subsection{Semantic Exit Codes come Canale di Comunicazione con la Pipeline \texorpdfstring{(\hyperref[subsec:exit-codes]{D6.P1})}{(D6.P1)}}\label{subsec:exit-codes}
+
+Il contratto tra APIGuard Assurance e la pipeline che lo ospita è espresso da quattro valori interi. Quando il processo termina, l'exit code riflette lo stato aggregato del \texttt{ResultSet} calcolato da \texttt{report/builder.py}: \texttt{0} indica che nessun test ha prodotto \texttt{FAIL} o \texttt{ERROR}; \texttt{1} indica che almeno un test ha prodotto \texttt{FAIL}; \texttt{2} indica che nessun test ha prodotto \texttt{FAIL} ma almeno uno ha prodotto \texttt{ERROR}; \texttt{10} indica un errore infrastrutturale bloccante nelle fasi di startup (Fase~1, 2 o~4), ovvero il processo non ha mai raggiunto l'esecuzione dei test.
+
+La separazione tra \texttt{1} e \texttt{10} non è una sottigliezza tecnica. Dal punto di vista di una pipeline automatizzata, "il tool ha trovato una vulnerabilità" e "il tool non si è avviato" sono condizioni con diagnosi e azioni correttive completamente diverse. Trattarle con lo stesso codice di uscita scarica sull'operatore l'onere di interpretare i log per capire perché la build è fallita. Distinguerle con codici separati rende la diagnostica automatizzabile: un alert su exit~\texttt{10} indica un problema infrastrutturale nel deployment della pipeline; un alert su exit~\texttt{1} indica una regressione di sicurezza nel codice deployato.
+
+L'integrazione in una pipeline GitHub Actions o GitLab \gls{CI} non richiede nessun wrapper: il check sul codice di uscita è il meccanismo nativo di entrambi i sistemi. Un passo di pipeline che esegue \texttt{apiguard run -{}-config config.yaml} blocca automaticamente il merge della \gls{PR} in presenza di exit~\texttt{1}, senza che sia necessario analizzare il contenuto del report. Il report rimane disponibile come artefatto per l'analisi post-hoc; il gate è il codice di uscita.
+
+Lo sviluppo futuro già identificato per questa proprietà prevede un exit code~\texttt{3} (attualmente riservato) per indicare \texttt{FAIL} esclusivamente su test P2/P3, permettendo una politica di \gls{CI/CD} che blocca solo su violazioni ad alta priorità e lascia passare quelle a bassa priorità come avvertimenti non bloccanti. Questa granularità è rilevante per deployment in cui una violazione P3 (configurazione subottimale ma non critica) non deve bloccare un rilascio urgente.
+
+
+\subsection{Quality Gate a Due Velocità: Fail-Fast e Assessment Completo \texorpdfstring{(\hyperref[subsec:fail-fast]{D4.P8})}{(D4.P8)}}\label{subsec:fail-fast}
+
+Il parametro \texttt{execution.fail\_fast} nel \texttt{config.yaml} introduce una seconda dimensione di controllo sul comportamento della pipeline, distinta dai semantic exit codes ma complementare ad essi. La distinzione è architetturalmente precisa: \hyperref[subsec:exit-codes]{D6.P1} descrive cosa il tool comunica al termine dell'esecuzione; \hyperref[subsec:fail-fast]{D4.P8} descrive se e quando il tool interrompe l'esecuzione prima del completamento naturale.
+
+Con \texttt{fail\_fast:~false} (default), la pipeline esegue tutti i test attivi indipendentemente dagli esiti intermedi e produce un report completo. Con \texttt{fail\_fast:~true}, l'engine interrompe la Phase~5 alla prima violazione confermata su un test di priorità P0: i test rimanenti non vengono eseguiti, il \texttt{ResultSet} contiene solo i risultati prodotti fino a quel punto, e il processo termina con exit~\texttt{1}. La condizione di interruzione include anche \texttt{ERROR} sui test P0: una verifica perimetrale incompleta per malfunzionamento del tool è trattata con la stessa urgenza di una violazione confermata, perché l'incertezza sul controllo perimetrale è operativamente equivalente alla sua assenza.
+
+I due profili configurano in modo naturale due scenari d'uso distinti. Il profilo fail-fast è ottimale per i gate sulle \gls{PR}: se un test~1.1 rileva 74 endpoint privi di autenticazione, non è necessario attendere il completamento dei restanti 17 test per decidere di bloccare il merge; l'interruzione immediata riduce il wall-clock del gate da circa 4'50'' a pochi decine di secondi nel caso peggiore. Il profilo completo è ottimale per gli assessment periodici schedulati su rami stabili, dove la completezza del report ha più valore della velocità: ogni dominio deve produrre evidenza, e la distribuzione dei finding per dominio è l'input per le decisioni di remediation del team di sicurezza.
+
+La combinazione dei due parametri, \texttt{fail\_fast} e il filtro sulla priorità minima (\texttt{execution.min\_priority} in \texttt{config.yaml}), produce un sistema di quality gate configurabile senza modifiche al codice. Un gate che esegue solo i test P0 in modalità fail-fast, da affiancare ai test di integrazione nella pipeline di merge, e un assessment completo su tutti i livelli di priorità schedulato settimanalmente sono due configurazioni distinte dello stesso tool sullo stesso \texttt{config.yaml} di base.
+
+
+\subsection{Variabilità di Privilegio nei Deployment Industriali}\label{subsec:privilegio-deployment}
+
+Il box gradient discusso nella Sezione~\ref{subsec:box-gradient} non è solo una tassonomia metodologica. Nei deployment industriali, la disponibilità dei diversi livelli di privilegio varia sistematicamente in funzione del contesto organizzativo in cui il tool viene eseguito.
+
+In un contesto di integrazione continua su rami di sviluppo, i token di autenticazione per i ruoli configurati sono tipicamente disponibili come segreti di pipeline, e la Admin \gls{API} del gateway è accessibile dall'interno della rete di staging: tutti e tre i livelli del box gradient sono raggiungibili, e l'assessment copre l'intera matrice dei domini. È lo scenario di massima copertura.
+
+In un contesto di verifica su ambienti di pre-produzione condivisi tra più team, le credenziali con privilegi amministrativi potrebbero non essere distribuite a tutti gli esecutori della pipeline per ragioni di governance. In questo scenario, il tool opera in modalità \texttt{GREY\_BOX}: i test \texttt{WHITE\_BOX} producono \texttt{SKIP} con motivazione esplicita, e l'assessment copre i domini che non richiedono accesso al piano di configurazione del gateway. La riduzione di copertura è documentata nel report, non silenziosa.
+
+In un contesto di red team o penetration test esterno, solo l'accesso di rete al target è garantito. Il tool opera in modalità \texttt{BLACK\_BOX}: i test \texttt{GREY\_BOX} e \texttt{WHITE\_BOX} producono \texttt{SKIP}, e l'assessment si concentra sui controlli perimetrali che un attaccante esterno senza credenziali potrebbe sfruttare. Questo scenario è anche il più informativo per valutare la postura perimetrale del sistema: la copertura ridotta è il dato, non una limitazione da correggere.
+
+Nessuno di questi tre scenari richiede una versione diversa del tool o un profilo di configurazione strutturalmente distinto: la variazione è nell'insieme di credenziali fornite nel \texttt{config.yaml} e nel campo \texttt{gateway\_adapter}. Il tool adatta la propria copertura alle precondizioni disponibili senza che l'operatore debba scegliere esplicitamente quale "modalità" attivare. La scelta è nella configurazione; la degradazione è automatica e documentata.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Sviluppi Futuri}%
+\label{sec:sviluppi-futuri}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Le traiettorie di sviluppo di APIGuard Assurance si articolano su due scale temporali distinte che richiedono trattamenti separati. Le estensioni operative della Milestone~2 sono conseguenze dirette dell'architettura corrente: dipendenze architetturali già identificate, connector già progettati e non ancora implementati, domini già predisposti nella tassonomia e non ancora coperti. Non richiedono scelte di design nuove, solo implementazione. Le traiettorie di ricerca avanzata appartengono invece a una categoria diversa: direzioni che l'architettura attuale abilita per costruzione, ma che pongono problemi aperti, richiedono analisi formale prima dell'implementazione, e in alcuni casi costituiscono oggetti di ricerca indipendenti. La distinzione non è di importanza ma di natura: confondere le due categorie produrrebbe impegni di rilascio su lavoro che richiede ricerca.
+
+
+\subsection{Roadmap Milestone~2: Estensioni Operative}\label{subsec:milestone2}
+
+\paragraph{Domain-5 Observability.}
+Il Dominio~5 è l'unico dei sette domini di assurance non coperto da nessun test nella Milestone~1. La numerazione nella tassonomia è riservata intenzionalmente, come dichiarato nella Sezione~\ref{subsec:domini-tassonomia}. I test~5.1 (audit logging) e~5.2 (alert real-time su eventi anomali) sono già specificati nella metodologia; la loro implementazione è dipesa dalla necessità di estendere il testbed con un log aggregator (Elasticsearch o Loki) e un sistema di alerting (Alertmanager o un mock PagerDuty) nel Docker Compose. Entrambe le componenti aggiuntive sono architetturalmente isolate dal tool: non richiedono modifiche al core, solo l'aggiunta dei servizi nel testbed e l'implementazione dei due test come \texttt{WHITE\_BOX} con accesso alla Admin \gls{API} del log aggregator.
+
+\paragraph{jwt\_tool connector e Phase~C del DAG.}
+Il \texttt{jwt\_tool} è classificato Categoria~A nella roadmap: la sua assenza blocca un'intera classe di test. I test~1.2 (validazione strutturale del \gls{JWT}), \texttt{ext.1.2.jwt\_tool} (verifica crittografica del \gls{JWT}) e \texttt{ext.1.3.jwt\_tool} (expiry check) dichiarano \texttt{depends\_on~=~["1.1"]} e sono schedulati in Phase~C del \gls{DAG}: non possono avviarsi finché il test~1.1 non ha prodotto un token valido nel \texttt{TestContext}. L'implementazione del \texttt{JwtToolConnector} sblocca questa intera fase e completa la copertura del ciclo di vita delle credenziali nel Dominio~1. La struttura del \gls{DAG} è già predisposta; nessuna modifica all'ordinamento topologico è necessaria.
+
+\paragraph{BOLA/IDOR con OFFAT e Domain-2 esteso.}
+I test~2.2, 2.3, 2.4 e~2.5 estendono la copertura del Dominio~2 (Authorization) oltre il test~2.1 attualmente implementato. I test~2.2 e~2.3 prevedono un connector opzionale Categoria~B con OFFAT, che genera dinamicamente test per Broken Object Level Authorization e per accesso a risorse di altri utenti derivando i path direttamente dalla specifica OpenAPI. La generazione dinamica è architetturalmente coerente con \hyperref[subsec:discovery-impl]{D2.P1}: OFFAT analizza la specifica e produce un insieme di probe che il connector traduce in \texttt{ConnectorResult}. Il valor aggiunto rispetto ai test nativi è la capacità di testare sistematicamente tutti gli endpoint parametrici con coppie di identità distinte, senza che l'autore del test debba enumerarli manualmente.
+
+\paragraph{Vegeta per Race Condition e test~7.3.}
+Il test~7.3 verifica la vulnerabilità \gls{TOCTOU} (Time-Of-Check Time-Of-Use) su operazioni critiche: la finestra temporale tra la verifica di un'autorizzazione e l'esecuzione dell'operazione che la presuppone. Rilevare questa classe di vulnerabilità richiede l'invio di richieste simultanee con sincronizzazione sub-millisecondo. Il \gls{GIL} di Python rende inaffidabile questo requisito: lo scheduling del garbage collector introduce jitter sufficiente a sfasare la finestra temporale critica. Il \texttt{VegetaConnector} risolve il problema delegando la generazione del carico a Vegeta, scritto in Go con goroutine native: il flag \texttt{-rate=0~-max-workers=N} lancia $N$ goroutine in parallelo con sincronizzazione last-byte, producendo la finestra di concorrenza che il test deve osservare. Lo stesso connector è riutilizzabile dal test~4.1 per il load testing del rate limiting, in conformità con \hyperref[subsec:connector-injection]{D2.P4}.
+
+\paragraph{interactsh per SSRF blind.}
+Il test~7.2 attualmente implementato rileva le vulnerabilità \gls{SSRF} che producono una risposta osservabile nel canale normale: il server effettua una richiesta verso un \gls{URL} interno e la risposta riflette il contenuto recuperato. La classe di \gls{SSRF} blind, in cui il server effettua la richiesta verso un server esterno controllato dall'attaccante senza produrre nessun output osservabile nel canale normale, richiede un oracle fuori banda. Il \texttt{InteractshConnector} fornisce questo oracle: registra un \gls{URL} controllato su un server \textit{interactsh} remoto, lo inietta come parametro nel probe, e verifica se il server ha effettuato una richiesta verso quell'indirizzo. L'evidenza non è nella risposta \gls{HTTP} al probe, ma nel callback ricevuto dal server interactsh. L'architettura del connector è già definita come \texttt{BaseSubprocessConnector}; l'implementazione è la sola dipendenza mancante.
+
+
+\subsection{Traiettorie di Ricerca Avanzata}\label{subsec:ricerca-avanzata}
+
+\paragraph{Plugin System per Test di Terze Parti (\hyperref[subsec:discovery-impl]{D2.P1}).}
+Il discovery dinamico via \texttt{pkgutil} descritto nella Sezione~\ref{subsec:discovery-impl} è già tecnicamente compatibile con moduli di test contribuiti da terze parti: un package che aggiunge una directory al \texttt{sys.path} e rispetta le convenzioni di nomenclatura viene scoperto automaticamente senza modifiche al core. La barriera non è tecnica. È di governance: un plugin system aperto richiede una specifica pubblica del contratto di \texttt{BaseTest}, un meccanismo di versioning delle interfacce che garantisca compatibilità al variare del core, e un processo di validazione per i plugin distribuiti che voglia portare l'etichetta di compatibilità con APIGuard Assurance. Lo scenario concreto già identificato è un package \texttt{apiguard-tests-graphql} che aggiunga test specifici per endpoint GraphQL, un dominio non coperto dall'architettura REST-centrica della Milestone~1. Questo scenario è integrabile senza toccare nessuna riga del core attuale; la ricerca necessaria riguarda la specifica del protocollo di estensione.
+
+\paragraph{Parallelizzazione Intra-Batch (\hyperref[subsec:dag]{D2.P2}).}
+La struttura a batch del \gls{DAG} è già parallelizzabile per costruzione: i test all'interno di uno stesso batch non hanno dipendenze reciproche e possono essere eseguiti concorrentemente. Introdurre un \texttt{ThreadPoolExecutor} nella Phase~5 dell'engine è una modifica localizzata allo scheduler, senza impatto sul design dei singoli test. La ricerca necessaria riguarda due problemi di thread-safety che richiedono analisi formale prima dell'implementazione. Il primo è l'\texttt{EvidenceStore}: il metodo \texttt{begin\_test()} apre un file in append e lo mantiene aperto per la durata del test; con più test concorrenti che chiamano \texttt{log\_transaction()} sullo stesso \texttt{EvidenceStore}, le scritture devono essere serializzate senza introdurre un lock globale che annulli il vantaggio della parallelizzazione. Il secondo è il \texttt{TestContext}: il canale dei token è condiviso tra tutti i test e i test \texttt{GREY\_BOX} in Phase~A che chiamano \texttt{acquire\_tokens()} concorrentemente potrebbero produrre login multipli per lo stesso ruolo, violando la proprietà di idempotenza descritta nella Sezione~\ref{subsec:auth-layer}. La soluzione non è ovvia, e l'analisi formale è il prerequisito corretto prima dell'implementazione.
+
+\paragraph{Auto-Seed dall'OpenAPI Spec (\hyperref[subsec:connector-classification]{D2.P7}).}
+Il path seed configurato manualmente in \texttt{config.yaml} è la principale sorgente di attrito nell'onboarding di un nuovo target: l'operatore deve identificare valori concreti per ogni parametro di path prima che i test producano risultati interpretabili anziché \texttt{INCONCLUSIVE\_PARAMETRIC}. Una versione futura del \texttt{seed\_generator} potrebbe derivare il seed automaticamente cercando i campi \texttt{example:} e \texttt{x-example:} nella specifica OpenAPI per ogni parametro parametrico. La specifica OpenAPI~3.0 ammette entrambi i campi come annotazioni non vincolanti; la loro presenza nei target reali è disomogenea ma non trascurabile. L'auto-seed ridurrebbe il lavoro di configurazione iniziale senza modificare la logica di test: \texttt{path\_resolver.py} consumerebbe il seed con la stessa interfaccia, indipendentemente dalla sua origine.
+
+\paragraph{Inferenza dei Contratti tramite \gls{ML}/\gls{LLM}.}
+Questa è la traiettoria più ambiziosa e la più distante dall'implementazione. Affronta direttamente il paradosso del Ground Truth discusso nella Sezione~\ref{subsec:limite-ground-truth}: se la specifica OpenAPI può essere obsoleta o incompleta, un sistema che inferisce il contratto dall'analisi del traffico reale renderebbe il tool indipendente dalla qualità della documentazione fornita. L'approccio richiederebbe l'osservazione passiva del traffico verso il target per un periodo sufficiente, l'inferenza statistica degli schemi di request e response attesi, e la costruzione di una specifica sintetica da usare come oracolo in assenza di quella formale. Le sfide aperte sono note nella letteratura sul contract-driven testing: la correttezza dell'inferenza degrada in presenza di traffico sparso, i falsi positivi generati da specifiche parziali possono superare quelli eliminati, e la privacy del traffico osservato introduce vincoli legali in contesti regolamentati. Nessuna di queste sfide è risolta dall'architettura attuale: richiedono ricerca e validazione sperimentale indipendente, non un'estensione dell'implementazione esistente.

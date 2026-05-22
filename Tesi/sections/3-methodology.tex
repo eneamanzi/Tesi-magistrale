@@ -47,7 +47,7 @@ Il design di APIGuard Assurance è formalizzato in 39 proprietà architetturali 
     \hyperref[subsec:graceful-degradation]{D4.P5},
     \hyperref[subsec:teardown]{D4.P6},
     \hyperref[subsec:probing-policy]{D4.P7},
-    \hyperref[prop:change-me]{D4.P8},
+    \hyperref[subsec:fail-fast]{D4.P8},
     \hyperref[subsec:testresult-invariants]{D4.P9}           \\
     \addlinespace
     D5: Qualità \& Osservabilità        &
@@ -58,9 +58,9 @@ Il design di APIGuard Assurance è formalizzato in 39 proprietà architetturali 
     \hyperref[subsec:dual-audit-trail]{D5.P5}                \\
     \addlinespace
     D6: CI/CD \& DevEx                  &
-    \hyperref[prop:change-me]{D6.P1},
+    \hyperref[subsec:exit-codes]{D6.P1},
     \hyperref[prop:change-me]{D6.P2},
-    \hyperref[prop:change-me]{D6.P3}                         \\
+    \hyperref[subsec:dual-layer-type-safety]{D6.P3}          \\
     \addlinespace
     D7: Packaging \& Deployment         &
     \hyperref[prop:change-me]{D7.P1},
@@ -131,7 +131,7 @@ Il determinismo è ottenuto attraverso tre meccanismi distinti che si completano
   \item Struttura del \gls{DAG}, trattata nella Sezione~\ref{subsec:dag}: un grafo aciclico orientato con risoluzione topologica deterministica produce sempre la stessa sequenza di batch, indipendentemente dall'ordine in cui i test vengono scoperti a runtime.
 \end{itemize}
 
-La garanzia di riproducibilità non riguarda ogni componente dell'output: timestamp e identificatori univoci dei singoli record di evidenza variano per natura tra esecuzioni. Ciò che deve essere invariante sono i contatori aggregati (PASS, FAIL, SKIP), i verdetti per singolo test e la distribuzione dei finding per dominio. La validazione empirica, condotta su due run indipendenti che hanno prodotto contatori aggregati byte-equivalenti (\texttt{9~PASS\,/\,7~FAIL\,/\,2~SKIP\,/\,0~ERROR\,/\,98~finding}, con \texttt{diff status per-test = 0} e delta wall-clock inferiore allo 0,3\%), è discussa nella Sezione~\ref{sec:idempotenza}.
+La garanzia di riproducibilità non riguarda ogni componente dell'output: timestamp e identificatori univoci dei singoli record di evidenza variano per natura tra esecuzioni. Ciò che deve essere invariante sono i contatori aggregati (PASS, FAIL, SKIP), i verdetti per singolo test e la distribuzione dei finding per dominio. La validazione empirica, condotta su due run indipendenti che hanno prodotto contatori aggregati byte-equivalenti (\texttt{9~PASS\,/\,7~FAIL\,/\,2~SKIP\,/\,0~ERROR\,/\,98~finding}, con \texttt{diff status per-test = 0} e delta wall-clock inferiore allo 0,3\%), è discussa nella \hyperref[sec:coverage-idempotenza]{Sezione~\ref*{sec:coverage-idempotenza}}.
 
 
 
@@ -234,7 +234,7 @@ L'Evidence Store scrive ogni record su file locali con flush immediato, senza bu
 APIGuard Assurance non ha dipendenze di stato esterno a runtime: tutto lo stato mutabile del processo risiede in memoria o in file locali, e le uniche connessioni di rete aperte durante un run sono quelle verso il target applicativo e, opzionalmente, verso la Admin \gls{API} del gateway. Entrambe sono connessioni di test verso il sistema da valutare, non dipendenze infrastrutturali del tool. Un tool che richiede database, message broker o cache esterna trasferisce la propria affidabilità a servizi esterni: l'exit code al termine dell'esecuzione riflette lo stato dell'assessment solo se tutti quei servizi erano disponibili e corretti, una garanzia che il tool non può fornire autonomamente.
 
 
-Nessun client di database, cache distribuita o \gls{SDK} di storage remoto figura tra le dipendenze obbligatorie del progetto: il deployment si riduce all'installazione del package e alla fornitura del file di configurazione. Questa assenza è anche la condizione che rende affidabile \hyperref[prop:change-me]{D6.P1}: i semantic exit codes discussi nella Sezione~\ref{sec:devsecops} riflettono fedelmente lo stato dell'assessment perché nessun servizio accessorio può alterarli silenziosamente.
+Nessun client di database, cache distribuita o \gls{SDK} di storage remoto figura tra le dipendenze obbligatorie del progetto: il deployment si riduce all'installazione del package e alla fornitura del file di configurazione. Questa assenza è anche la condizione che rende affidabile \hyperref[subsec:exit-codes]{D6.P1}: i semantic exit codes discussi nella Sezione~\ref{sec:devsecops} riflettono fedelmente lo stato dell'assessment perché nessun servizio accessorio può alterarli silenziosamente.
 
 
 

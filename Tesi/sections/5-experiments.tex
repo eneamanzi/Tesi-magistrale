@@ -167,10 +167,10 @@ Su 90 file sorgente Python, la suite di analisi statica ha prodotto i seguenti e
   \label{tab:analisi-statica}
 \end{table}
 
-Il dato di \texttt{mypy} merita un approfondimento architetturale, perché trascende la semplice metrica di qualità del codice. La proprietà \hyperref[prop:change-me]{D6.P3} (Sezione~\ref{subsec:dual-hierarchy}% \footnote{La Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation} tratta la dual test hierarchy; \hyperref[prop:change-me]{D6.P3} è la proprietà distinta della dual-layer type safety, il cui locus è in \texttt{pyproject.toml} e \texttt{src/core/models/}.}) formalizza un sistema di type enforcement a due strati indipendenti con copertura complementare.
+Il dato di \texttt{mypy} merita un approfondimento architetturale, perché trascende la semplice metrica di qualità del codice. La proprietà \hyperref[subsec:dual-layer-type-safety]{D6.P3} (Sezione~\ref{subsec:dual-hierarchy}% \footnote{La Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation} tratta la dual test hierarchy; \hyperref[subsec:dual-layer-type-safety]{D6.P3} è la proprietà distinta della dual-layer type safety, il cui locus è in \texttt{pyproject.toml} e \texttt{src/core/models/}.}) formalizza un sistema di type enforcement a due strati indipendenti con copertura complementare.
 
 
-\subsection{Dual-Layer Type Safety (D6.P3)}
+\subsection{Dual-Layer Type Safety (D6.P3)}\label{subsec:dual-layer-type-safety}
 
 Zero errori su 90 file sorgente in modalità \texttt{strict} è un risultato, non un obiettivo. Il problema che questa proprietà risolve ha una struttura precisa: la verifica statica con mypy garantisce che il contratto tra i moduli, espresso tramite type hints, sia consistente lungo l'intera catena di dipendenze. Nessun punto di chiamata riceve un tipo incompatibile con quello dichiarato dal callee. Gli errori di interfaccia tra moduli vengono intercettati prima che il codice venga eseguito contro un target reale.
 
