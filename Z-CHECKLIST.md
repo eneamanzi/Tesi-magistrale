@@ -77,36 +77,36 @@
 ## 4. Implementazione
 
 ### 4.1 La Pipeline di Esecuzione a Sette Fasi e il Core Engine
-- [ ] 4.1.1 Fail-Safe Error Isolation (D4.P3) `[Stato: CHECK]`
-- [ ] 4.1.2 Gerarchia delle Eccezioni con Phase Mapping (D4.P4) `[Stato: CHECK]`
+- [ ] 4.1.1 Fail-Safe Error Isolation (D4.P3) `[Stato: POST-CHECK]`
+- [ ] 4.1.2 Gerarchia delle Eccezioni con Phase Mapping (D4.P4) `[Stato: POST-CHECK]`
 
 ### 4.2 Discovery Dinamico e Risoluzione del Grafo
-- [ ] 4.2.1 Discovery Dinamico via pkgutil (D2.P1) `[Stato: CHECK]`
-- [ ] 4.2.2 Scheduling Topologico e DAGScheduler (D2.P2) `[Stato: CHECK]`
-- [ ] 4.2.3 Invarianti di TestResult a Livello di Tipo (D4.P9) `[Stato: CHECK]`
+- [ ] 4.2.1 Discovery Dinamico via pkgutil (D2.P1) `[Stato: POST-CHECK]`
+- [ ] 4.2.2 Scheduling Topologico e DAGScheduler (D2.P2) `[Stato: POST-CHECK]`
+- [ ] 4.2.3 Invarianti di TestResult a Livello di Tipo (D4.P9) `[Stato: POST-CHECK]`
 
 ### 4.3 Architettura dei Test Nativi e Contratto BaseTest
-- [ ] 4.3.1 Gerarchia Duale BaseTest / ExternalToolTest (D1.P4) `[Stato: CHECK]`
-- [ ] 4.3.2 Auth Abstraction Layer e Idempotenza dei Token (D2.P5) `[Stato: CHECK]`
-- [ ] 4.3.3 Tracciabilità Normativa e Distinzione Finding/InfoNote (D5.P1, D5.P2) `[Stato: CHECK]`
-- [ ] 4.3.4 Safe HTTP Probing Policy e Oracle a Tre Esiti (D4.P7) `[Stato: CHECK]`
+- [ ] 4.3.1 Gerarchia Duale BaseTest / ExternalToolTest (D1.P4) `[Stato: POST-CHECK]`
+- [ ] 4.3.2 Auth Abstraction Layer e Idempotenza dei Token (D2.P5) `[Stato: POST-CHECK]`
+- [ ] 4.3.3 Tracciabilità Normativa e Distinzione Finding/InfoNote (D5.P1, D5.P2) `[Stato: POST-CHECK]`
+- [ ] 4.3.4 Safe HTTP Probing Policy e Oracle a Tre Esiti (D4.P7) `[Stato: POST-CHECK]`
 
 ### 4.4 Gerarchia dei Connettori e Integrazione Tool Esterni
-- [ ] 4.4.1 Gerarchia a Tre Livelli e Separazione Dati/Valutazione (D1.P5, D2.P3) `[Stato: CHECK]`
-- [ ] 4.4.2 Lifecycle dei Connector e Dependency Injection (D2.P4) `[Stato: CHECK]`
-- [ ] 4.4.3 Classificazione A/B, Path Seed e Catalogo dei Payload (D2.P6, D2.P7, D2.P8) `[Stato: CHECK]`
-- [ ] 4.4.4 Isolamento della Dipendenza AGPL (D7.P2) `[Stato: CHECK]`
+- [ ] 4.4.1 Gerarchia a Tre Livelli e Separazione Dati/Valutazione (D1.P5, D2.P3) `[Stato: POST-CHECK]`
+- [ ] 4.4.2 Lifecycle dei Connector e Dependency Injection (D2.P4) `[Stato: POST-CHECK]`
+- [ ] 4.4.3 Classificazione A/B, Path Seed e Catalogo dei Payload (D2.P6, D2.P7, D2.P8) `[Stato: POST-CHECK]`
+- [ ] 4.4.4 Isolamento della Dipendenza AGPL (D7.P2) `[Stato: POST-CHECK]`
 
 ### 4.5 Implementazione del Gateway Adapter e Teardown LIFO
-- [ ] 4.5.1 KongGatewayAdapter: Accesso Read-Only all’Admin API `[Stato: CHECK]`
-- [ ] 4.5.2 Degradazione Controllata a Tre Livelli (D4.P5) `[Stato: CHECK]`
-- [ ] 4.5.3 Teardown Best-Effort in Ordine LIFO (D4.P6) `[Stato: CHECK]`
-- [ ] 4.5.4 Astrazione Trasparente dell’URL di Deployment (D7.P3) `[Stato: CHECK]`
+- [ ] 4.5.1 KongGatewayAdapter: Accesso Read-Only all’Admin API `[Stato: POST-CHECK]`
+- [ ] 4.5.2 Degradazione Controllata a Tre Livelli (D4.P5) `[Stato: POST-CHECK]`
+- [ ] 4.5.3 Teardown Best-Effort in Ordine LIFO (D4.P6) `[Stato: POST-CHECK]`
+- [ ] 4.5.4 Astrazione Trasparente dell’URL di Deployment (D7.P3) `[Stato: POST-CHECK]`
 
 ### 4.6 Evidence Store e Sanitizzazione delle Credenziali
-- [ ] 4.6.1 Ciclo di Vita dello Streaming Evidence Store (D4.P1) `[Stato: CHECK]`
-- [ ] 4.6.2 Sanitizzazione Centralizzata delle Credenziali (D4.P2) `[Stato: CHECK]`
-- [ ] 4.6.3 Dual Audit Trail e Report Domain-Centric (D5.P5) `[Stato: CHECK]`
+- [ ] 4.6.1 Ciclo di Vita dello Streaming Evidence Store (D4.P1) `[Stato: POST-CHECK]`
+- [ ] 4.6.2 Sanitizzazione Centralizzata delle Credenziali (D4.P2) `[Stato: POST-CHECK]`
+- [ ] 4.6.3 Dual Audit Trail e Report Domain-Centric (D5.P5) `[Stato: POST-CHECK]`
 
 ---
 

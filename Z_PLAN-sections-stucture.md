@@ -259,7 +259,7 @@ Sviluppo del `KongGatewayAdapter`: come il motore Python interroga l'Admin API d
 Proprietà discusse in questa sezione:
 * **Graceful Degradation Multi-Livello (D4.P5):** Tre livelli di degradazione controllata: tool esterno assente → SKIP via `_skip_reason_from_registry`; Admin API non configurata → tutti i test WHITE_BOX ritornano SKIP con motivo esplicito; `external_tools.enabled = false` → registry ritorna lista vuota senza scansionare il filesystem. In ambiente senza Admin API esposta i risultati sono parziali ma corretti, non errori a cascata.
 * **Best-Effort Teardown LIFO (D4.P6):** I test che creano risorse registrano l'endpoint di cancellazione nel `TestContext` al momento stesso della creazione. L'ordine LIFO garantisce che risorse con dipendenze implicite siano eliminate nell'ordine corretto. Un fallimento di teardown è un warning operativo, non un'invalidazione scientifica dell'assessment. Validazione empirica: 0 risorse leakate nell'audit di Milestone 1, discussa in 5.3.
-* **Deployment-Transparent URL Abstraction (D7.P3):** `TargetContext.effective_base_url` astrae la differenza tra deployment standalone (`localhost`) e Docker Compose (nome servizio Compose). Risolto una volta in Phase 3 e frozen nel `TargetContext`: zero logica condizionale di deployment nei connector.
+
 
 ---
 
