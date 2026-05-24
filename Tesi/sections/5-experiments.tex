@@ -65,7 +65,7 @@ Il testbed è provisioned tramite un singolo file Docker Compose su host di svil
     \addlinespace
     sslyze                      & (libreria Python)     & Analisi \gls{TLS} via libreria (test \texttt{ext.1.5.sslyze})       \\
     \bottomrule
-    tati dell'analisi statica sul codebase AP\end{tabularx}
+  \end{tabularx}
   \caption{Componenti del testbed e versioni al Milestone~1.}
   \label{tab:versioni-testbed}
 \end{table}
@@ -112,9 +112,8 @@ Al contrario, il plugin \texttt{response-transformer} è attivo e inietta gli he
 
 Forgejo viene provisioned con tre account tramite il container \texttt{forgejo-setup}: un amministratore (\texttt{thesis-admin}), un utente con privilegi ordinari (\texttt{user-a}), e un secondo utente senza privilegi specifici (\texttt{user-b}). Questa struttura a tre livelli è il minimo sufficiente per la matrice di test della Milestone~1. Il test~2.1 (\texttt{RBAC enforcement}, \texttt{GREY\_BOX}, P2) richiede un token di \texttt{user-a} con cui tentare endpoint amministrativi: il gate di controllo accesso del gateway deve rispondere \texttt{403}. I test~1.4 e~2.1 dipendono da un token valido ottenuto dal run del test~1.1, dipendenza espressa nel \gls{DAG} come vincolo di Phase~B (discusso nella Sezione~\ref{sec:discovery-dag} e verificato empiricamente nella Sezione~\ref{sec:footprint-dag}).
 
-Il provisioning è deterministico. Il container \texttt{forgejo-setup} usa l'interfaccia \gls{CLI} di Forgejo con flag \texttt{-{}-}or-true, così da non fallire se gli account esistono già da un avvio precedente. Questa scelta è l'implementazione concreta della proprietà di riproducibilità \hyperref[subsec:reproducibility]{D3.P4}: il testbed raggiunge lo stesso stato iniziale indipendentemente da quante volte il comando \texttt{docker compose up} viene eseguito.
-
-
+Il provisioning è deterministico. Il container \texttt{forgejo-setup} usa l'interfaccia \gls{CLI} di Forgejo con flag \texttt{-{}-}or-true, così da non fallire se gli account esistono già da un avvio precedente.
+Questa scelta è l'implementazione concreta della proprietà di riproducibilità discussa nella Sezione~\ref{subsec:reproducibility} (D3.P4): il testbed raggiunge lo stesso stato iniziale indipendentemente da quante volte il comando \texttt{docker compose up} viene eseguito.
 
 
 
@@ -167,16 +166,16 @@ Su 90 file sorgente Python, la suite di analisi statica ha prodotto i seguenti e
   \label{tab:analisi-statica}
 \end{table}
 
-Il dato di \texttt{mypy} merita un approfondimento architetturale, perché trascende la semplice metrica di qualità del codice. La proprietà \hyperref[subsec:dual-layer-type-safety]{D6.P3} (Sezione~\ref{subsec:dual-hierarchy}% \footnote{La Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation} tratta la dual test hierarchy; \hyperref[subsec:dual-layer-type-safety]{D6.P3} è la proprietà distinta della dual-layer type safety, il cui locus è in \texttt{pyproject.toml} e \texttt{src/core/models/}.}) formalizza un sistema di type enforcement a due strati indipendenti con copertura complementare.
+Il sistema di type enforcement a due strati, discusso nella Sezione~\ref{subsec:dual-layer-type-safety} del presente capitolo e distinto dalla dual test hierarchy della Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation},\footnote{La Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation} tratta la dual test hierarchy (gerarchia delle classi di test); la proprietà D6.P3 di dual-layer type safety è un meccanismo distinto, il cui locus è in \texttt{pyproject.toml} e \texttt{src/core/models/}.} formalizza un sistema con copertura complementare.
 
 
 \subsection{Dual-Layer Type Safety (D6.P3)}\label{subsec:dual-layer-type-safety}
 
-Zero errori su 90 file sorgente in modalità \texttt{strict} è un risultato, non un obiettivo. Il problema che questa proprietà risolve ha una struttura precisa: la verifica statica con mypy garantisce che il contratto tra i moduli, espresso tramite type hints, sia consistente lungo l'intera catena di dipendenze. Nessun punto di chiamata riceve un tipo incompatibile con quello dichiarato dal callee. Gli errori di interfaccia tra moduli vengono intercettati prima che il codice venga eseguito contro un target reale.
+Il problema che questa proprietà risolve ha una struttura precisa. Su 90 file sorgente analizzati in modalità \texttt{strict}, il type checker non ha rilevato alcuna violazione: la verifica statica con mypy garantisce che il contratto tra i moduli, espresso tramite type hints, sia consistente lungo l'intera catena di dipendenze. Nessun punto di chiamata riceve un tipo incompatibile con quello dichiarato dal callee. Gli errori di interfaccia tra moduli vengono intercettati prima che il codice venga eseguito contro un target reale.
 
 Mypy non copre però le system boundaries: il punto in cui dati esterni al codebase, un file \texttt{config.yaml} caricato da disco o il raw output di un connector, entrano nel sistema. Quel confine è presidiato da Pydantic~v2. I \texttt{model\_validator} e i \texttt{field\_validator} dei modelli di configurazione applicano le invarianti al momento della costruzione dell'oggetto: un campo \texttt{timeout\_seconds~=~None} con \texttt{enabled~=~True} nel \texttt{config.yaml} produce un \texttt{ConfigurationError} con il path del campo violato durante la Phase~1, non un crash non gestito durante l'esecuzione dei test. La classe di bug ``typecheck verde, runtime crash'' è strutturalmente eliminata.
 
-I due strati sono indipendenti e non ridondanti: ciascuno intercetta una categoria di errori che l'altro non vede. Il costo mantenuto è prossimo allo zero per chi aggiunge un test: type hints e modelli Pydantic con \texttt{frozen=True} sono già vincolati dalle Hard Rules del progetto. La safety non dipende dalla disciplina individuale di chi contribuisce.
+I due strati sono indipendenti e complementari: ciascuno intercetta una categoria di errori che l'altro non raggiunge. Il costo mantenuto è prossimo allo zero per chi aggiunge un test: type hints e modelli Pydantic con \texttt{frozen=True} sono già vincolati dalle Hard Rules del progetto. La safety non dipende dalla disciplina individuale di chi contribuisce.
 
 
 \subsection{Indicatori di Qualità dell'Ingegneria di Produzione}
@@ -242,7 +241,7 @@ Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto
 \label{sec:coverage-idempotenza}
 % ─────────────────────────────────────────────────────────────────────────────
 
-L'idempotenza non era una proprietà scontata da verificare. Test che creano risorse sul target, le interrogano, e poi le eliminano introducono dipendenze di stato che, se mal gestite, producono risultati diversi al secondo run: la prima esecuzione modifica il target, la seconda trova uno stato diverso. Che il sistema produca risultati identici su due run indipendenti è la dimostrazione empirica che la pipeline non lascia effetti collaterali osservabili, non un'affermazione di principio.
+L'idempotenza è una proprietà delicata che richiede di essere attestata empiricamente. Test che creano risorse sul target, le interrogano, e poi le eliminano introducono dipendenze di stato che, se mal gestite, producono risultati diversi al secondo run: la prima esecuzione modifica il target, la seconda trova uno stato diverso. Che il sistema produca risultati identici su due run indipendenti è la dimostrazione empirica che la pipeline non lascia effetti collaterali osservabili, non un'affermazione di principio.
 
 I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso testbed, senza alcun intervento manuale tra l'uno e l'altro. La Tabella~\ref{tab:idempotenza-kpi} riporta i \gls{KPI} aggregati; la Tabella~\ref{tab:risultati-per-test} dettaglia lo status e il conteggio dei finding per ciascuno dei 18 test attivi.
 
@@ -311,7 +310,8 @@ I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso t
 
 \subsection{Analisi dei Risultati per Dominio}
 
-La distribuzione dei finding non è uniforme. Il test~1.1, che sonda ogni endpoint della specifica OpenAPI di Forgejo in assenza di autenticazione, produce da solo 74 dei 98 finding totali: il 75.5\% dell'intero conteggio. Questo non è un artefatto di un test mal calibrato. Forgejo espone una superficie documentata di oltre cento endpoint, e la configurazione Kong del testbed non applica autenticazione a molti di essi per design sperimentale (come discusso nella Sezione~\ref{sec:testbed}). Ciascun endpoint che risponde \texttt{2xx} a una richiesta non autenticata è un finding distinto nell'oracle a tre esiti della Safe HTTP Probing Policy (\hyperref[subsec:probing-policy]{D4.P7}): la cardinalità riflette la superficie reale del target, non un'amplificazione artificiale del contatore.
+La distribuzione dei finding non è uniforme. Il test~1.1, che sonda ogni endpoint della specifica OpenAPI di Forgejo in assenza di autenticazione, produce da solo 74 dei 98 finding totali: il 75.5\% dell'intero conteggio. Questo non è un artefatto di un test mal calibrato. Forgejo espone una superficie documentata di oltre cento endpoint, e la configurazione Kong del testbed non applica autenticazione a molti di essi per design sperimentale (come discusso nella Sezione~\ref{sec:testbed}).
+Ciascun endpoint che risponde \texttt{2xx} a una richiesta non autenticata è un finding distinto nell'oracle a tre esiti della Safe HTTP Probing Policy (Sezione~\ref{subsec:probing-policy}, D4.P7): la cardinalità riflette la superficie reale del target, non un'amplificazione artificiale del contatore.
 
 I due \texttt{SKIP} meritano una lettura separata. Il test~0.3 verifica che gli endpoint marcati \texttt{deprecated:~true} nella specifica restituiscano \texttt{410~Gone} o portino un header \texttt{Sunset} valido (RFC~8594). La specifica OpenAPI di Forgejo~14.0.3 non dichiara nessun endpoint con questo marcatore: lo scope è legittimamente vuoto, e il test restituisce \texttt{SKIP} con motivo documentato. Il test~1.6 verifica la configurazione del session store tramite l'Admin \gls{API} di Kong; nella configurazione del testbed, Kong non espone un session store gestito esternamente, e la condizione di applicabilità non è soddisfatta. In entrambi i casi, \texttt{SKIP} non è un fallimento silenzioso: è la risposta semanticamente corretta all'assenza di condizioni di applicabilità, distinta dall'\texttt{ERROR} che indicherebbe un malfunzionamento della pipeline stessa.
 
@@ -340,7 +340,7 @@ L'idempotenza ha una precondizione concreta: il teardown deve restituire il targ
   \label{tab:teardown-verifica}
 \end{table}
 
-Zero risorse leakate su due run è la dimostrazione empirica che le proprietà \hyperref[subsec:teardown]{D4.P6} (Best-Effort Teardown \gls{LIFO}) e \hyperref[subsec:reproducibility]{D3.P4} (Riproducibilità) si comportano nel modo dichiarato in presenza di stato reale. Non è sufficiente che la logica di teardown sia corretta in teoria: deve produrre uno stato osservabile verificabile. Queste tabelle sono quella verifica.
+Zero risorse leakate su due run è la dimostrazione empirica che le proprietà discusse nella Sezione~\ref{subsec:teardown} (Best-Effort Teardown \gls{LIFO}, D4.P6) e nella Sezione~\ref{subsec:reproducibility} (Riproducibilità, D3.P4) si comportano nel modo dichiarato in presenza di stato reale. La correttezza teorica della logica di teardown trova il proprio banco di prova nello stato osservabile che produce: zero risorse residue è la misura diretta. Queste tabelle sono quella verifica.
 
 
 
@@ -352,7 +352,7 @@ Zero risorse leakate su due run è la dimostrazione empirica che le proprietà \
 \label{sec:footprint-dag}
 % ─────────────────────────────────────────────────────────────────────────────
 
-Il profilo di risorse di un tool di assessment non è una metrica accessoria. Un tool che satura la CPU, esaurisce la memoria o produce un output non ingestibile non è integrabile in una pipeline \gls{CI/CD} senza hardware dedicato. I dati di questa sezione rispondono a una domanda precisa: su quale classe di macchina e in quale regime di esecuzione APIGuard Assurance è operativamente sostenibile?
+Il profilo di risorse di un tool di assessment è un criterio operativo primario. Un tool che satura la CPU, esaurisce la memoria o produce un output non ingestibile non è integrabile in una pipeline \gls{CI/CD} senza hardware dedicato. I dati di questa sezione rispondono a una domanda precisa: su quale classe di macchina e in quale regime di esecuzione APIGuard Assurance è operativamente sostenibile?
 
 La Tabella~\ref{tab:performance-baseline} riporta le metriche di sistema misurate sui due run dell'audit, ottenute tramite \texttt{/usr/bin/time -v} applicato al processo \texttt{apiguard run}.
 
@@ -385,9 +385,8 @@ La Tabella~\ref{tab:performance-baseline} riporta le metriche di sistema misurat
 
 \subsection{Regime di Esecuzione: IO-Bound, non CPU-Bound}
 
-Il dato più informativo nella tabella non è il wall-clock. È la relazione tra user time, system time e tempo totale. Su 290\,s di esecuzione reale, il processo ha consumato circa 35\,s di tempo CPU in user space e 41\,s in kernel space: la somma è 76\,s, il 26\% del wall-clock. I restanti 214\,s, il 74\% del tempo totale, il processo li ha trascorsi in attesa: attesa delle risposte \gls{HTTP} dal target, attesa del completamento dei processi esterni (nuclei, testssl.sh), attesa dell'I/O su disco per la scrittura dell'evidence store.
+Il dato più informativo nella tabella non è il wall-clock. È la relazione tra user time, system time e tempo totale. Su 290\,s di esecuzione reale, il processo ha consumato circa 35\,s di tempo CPU in user space e 41\,s in kernel space: la somma è 76\,s, il 26\% del wall-clock. I restanti 214\,s, il 74\% del tempo totale, il processo li ha trascorsi in attesa: attesa delle risposte \gls{HTTP} dal target, attesa del completamento dei processi esterni (nuclei, testssl.sh), attesa dell'I/O su disco per la scrittura dell'evidence store. Ne emerge un'inferenza architetturale diretta: il collo di bottiglia è la latenza di rete verso il target, non l'interprete Python né il \gls{DAG} scheduler. Qualsiasi refactoring del codice Python lascerebbe il wall-clock sostanzialmente invariato. Ciò che sposta effettivamente il wall-clock è la parallelizzazione dei test che non hanno dipendenze reciproche, traiettoria discussa nella Sezione~\ref{sec:limiti} come sviluppo futuro di Milestone~2. In assenza di parallelizzazione, il profilo attuale è il lower bound dell'architettura sequenziale, non un'inefficienza correggibile con refactoring locale.
 
-Da questo si ricava un'inferenza architetturale rilevante. Il collo di bottiglia non è l'interprete Python né il \gls{DAG} scheduler, ma la latenza di rete verso il target. Ottimizzare il codice Python non sposterebbe la curva in misura apprezzabile. Ciò che sposta effettivamente il wall-clock è la parallelizzazione dei test che non hanno dipendenze reciproche, traiettoria discussa nella Sezione~\ref{sec:limiti} come sviluppo futuro di Milestone~2. In assenza di parallelizzazione, il profilo attuale è il lower bound dell'architettura sequenziale, non un'inefficienza correggibile con refactoring locale.
 
 Il profilo di memoria è compatibile con l'integrazione \gls{CI/CD} su runner standard. 287--295\,MB di resident set size si collocano ampiamente entro i limiti delle configurazioni GitHub Actions e GitLab \gls{CI} di default (tipicamente 7\,GB per runner condivisi), senza richiedere runner dedicati né configurazioni di memoria particolari. Il footprint su disco è 4.5\,MB: \texttt{apiguard\_report.json} da 2.26\,MB, \texttt{assessment\_report.html} da 2.0\,MB e \texttt{evidence.json} da 254\,KB. I tre file sono autosufficienti e non richiedono dipendenze esterne per essere consultati.
 
@@ -435,8 +434,9 @@ La seconda considerazione riguarda la relazione tra topologia del \gls{DAG} e fo
 \addcontentsline{toc}{section}{Sintesi della Validazione}
 % ─────────────────────────────────────────────────────────────────────────────
 
-I quattro livelli di analisi di questo capitolo non sono autonomi: si stratificano in una gerarchia di precondizioni. Il testbed stabilisce le condizioni di osservazione. La release-readiness certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza dimostrano che i risultati prodotti sono stabili e non contaminati da effetti collaterali. Il profilo computazionale ne qualifica l'integrabilità operativa. Rimuovere uno qualsiasi di questi livelli non impoverisce la validazione: la invalida, perché ciascuno è la condizione di interpretabilità del successivo.
+I quattro livelli di analisi si stratificano in una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo. Il testbed stabilisce le condizioni di osservazione. La release-readiness certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza dimostrano che i risultati prodotti sono stabili e non contaminati da effetti collaterali. Il profilo computazionale ne qualifica l'integrabilità operativa. Rimuovere uno qualsiasi di questi livelli non impoverisce la validazione: la invalida.
 
 Il risultato aggregato è leggibile in termini precisi. Su un target reale con una specifica \gls{OpenAPI} nativa, APIGuard Assurance v0.1.0 ha eseguito 18 test distribuiti su 7 domini di sicurezza, prodotto 98 finding in 9 categorie distinte, restituito risultati byte-identici su due run indipendenti, drenato tutte le risorse transitorie senza residui, e completato l'intero assessment in circa 4 minuti e 50 secondi su hardware non dedicato. Nessuno di questi numeri è stimato: tutti tracciano a un punto di verifica nell'audit.
 
-Ciò che la validazione empirica non può fare è pronunciarsi sui limiti del paradigma che il tool implementa. Un assessment corretto su una specifica errata produce verdetti formalmente validi ma sostanzialmente privi di significato. Un tool che astrae il gateway per garantire portabilità multi-vendor accetta per costruzione di non poter accedere ai controlli vendor-specifici che non abbiano un equivalente generalizzabile. Queste non sono anomalie dell'implementazione: sono tensioni strutturali del contratto che APIGuard Assurance stringe con il proprio dominio applicativo. La loro analisi è l'oggetto del Capitolo~\ref{chap:discussion}.
+La validazione empirica misura comportamenti osservabili e non può pronunciarsi sui limiti del paradigma che il tool implementa. Un assessment corretto su una specifica errata produce verdetti formalmente validi ma sostanzialmente privi di significato. Un tool che astrae il gateway per garantire portabilità multi-vendor rinuncia, per costruzione, ai controlli vendor-specifici privi di un equivalente generalizzabile. Queste non sono anomalie dell'implementazione: sono tensioni strutturali del contratto che APIGuard Assurance stringe con il proprio dominio applicativo. La loro analisi è l'oggetto del Capitolo~\ref{chap:discussion}.
+
