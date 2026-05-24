@@ -33,7 +33,7 @@ Tutti i dati quantitativi di questo capitolo traggono origine dal Milestone~1 Pr
 \label{sec:testbed}
 % ─────────────────────────────────────────────────────────────────────────────
 
-La scelta dell'ambiente target non era vincolata a una specifica applicazione, ma a un insieme di requisiti derivati direttamente dalla matrice di copertura della suite. Serviva un'applicazione con una specifica \gls{OpenAPI} nativa, non generata a posteriori, che esponesse endpoint protetti da autenticazione reale, supportasse almeno due livelli di privilegi distinti, e producesse comportamenti osservabili e stabili sufficienti a validare i Domini D0, D1, D2, D3, D4, D6 e D7 senza che il target dovesse essere modificato tra un run e l'altro. Forgejo 14.0.3, esposto attraverso Kong 3.9 in modalità DB-less, soddisfa tutti questi requisiti e aggiunge una caratteristica rilevante per la validazione dell'agnosticismo applicativo (discusso nella Sezione~\ref{subsec:agnosticismo}): il tool non contiene nessun riferimento hardcoded a Forgejo, e il medesimo file \texttt{config.yaml} che governa questo assessment è strutturalmente identico a quello che si userebbe su qualsiasi altra \gls{API} REST documentata.
+La scelta dell'ambiente target non era vincolata a una specifica applicazione, ma a un insieme di requisiti derivati direttamente dalla matrice di copertura della suite. Serviva un'applicazione con una \gls{OAS} nativa, non generata a posteriori, che esponesse endpoint protetti da autenticazione reale, supportasse almeno due livelli di privilegi distinti, e producesse comportamenti osservabili e stabili sufficienti a validare i Domini D0, D1, D2, D3, D4, D6 e D7 senza che il target dovesse essere modificato tra un run e l'altro. Forgejo 14.0.3, esposto attraverso Kong 3.9 in modalità DB-less, soddisfa tutti questi requisiti e aggiunge una caratteristica rilevante per la validazione dell'agnosticismo applicativo (discusso nella Sezione~\ref{subsec:agnosticismo}): il tool non contiene nessun riferimento hardcoded a Forgejo, e il medesimo file \texttt{config.yaml} che governa questo assessment è strutturalmente identico a quello che si userebbe su qualsiasi altra \gls{API} REST documentata.
 
 
 \subsection{Architettura del Testbed}
@@ -59,7 +59,7 @@ Il testbed è provisioned tramite un singolo file Docker Compose su host di svil
     \addlinespace
     \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow \gls{API} discovery (test \texttt{ext.0.1}) \\
     \addlinespace
-    \texttt{nuclei-templates}   & 10.4.3                & Template pinned per riproducibilità dei scan                        \\
+    \texttt{nuclei-templates}   & 10.4.3                & Template pinned per riproducibilità delle scan                      \\
     \addlinespace
     \texttt{testssl.sh}         & 3.2.3                 & Analisi \gls{TLS} black-box (test \texttt{ext.1.5.testssl})         \\
     \addlinespace
@@ -188,7 +188,7 @@ Il secondo è la riproducibilità della build. Due esecuzioni consecutive di \te
 
 Il terzo è il cold install: in un ambiente virtuale Python pulito, senza alcuna dipendenza preinstallata, l'esecuzione di \texttt{pip~install~apiguard\_assurance-0.1.0-py3-none-any.whl} seguita da \texttt{apiguard~version} restituisce \texttt{0.1.0}. Il tool è self-contained e non dipende da pacchetti installati nell'ambiente dell'esecutore.
 
-Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto-release}, è: pronto per la difesa di tesi e per il deployment in ambiente chiuso su target con specifica \gls{OpenAPI} documentata. Gli unici due item deferiti, il file \texttt{LICENSE} e il \texttt{CHANGELOG.md}, riguardano esclusivamente la distribuzione pubblica su PyPI e non hanno impatto sul comportamento operativo del tool.
+Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto-release}, è: pronto per la difesa di tesi e per il deployment in ambiente chiuso su target con \gls{OAS} documentata. Gli unici due item deferiti, il file \texttt{LICENSE} e il \texttt{CHANGELOG.md}, riguardano esclusivamente la distribuzione pubblica su PyPI e non hanno impatto sul comportamento operativo del tool.
 
 \begin{table}[ht]
   \centering
@@ -436,7 +436,7 @@ La seconda considerazione riguarda la relazione tra topologia del \gls{DAG} e fo
 
 I quattro livelli di analisi si stratificano in una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo. Il testbed stabilisce le condizioni di osservazione. La release-readiness certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza dimostrano che i risultati prodotti sono stabili e non contaminati da effetti collaterali. Il profilo computazionale ne qualifica l'integrabilità operativa. Rimuovere uno qualsiasi di questi livelli non impoverisce la validazione: la invalida.
 
-Il risultato aggregato è leggibile in termini precisi. Su un target reale con una specifica \gls{OpenAPI} nativa, APIGuard Assurance v0.1.0 ha eseguito 18 test distribuiti su 7 domini di sicurezza, prodotto 98 finding in 9 categorie distinte, restituito risultati byte-identici su due run indipendenti, drenato tutte le risorse transitorie senza residui, e completato l'intero assessment in circa 4 minuti e 50 secondi su hardware non dedicato. Nessuno di questi numeri è stimato: tutti tracciano a un punto di verifica nell'audit.
+Il risultato aggregato è leggibile in termini precisi. Su un target reale con una \gls{OAS} nativa, APIGuard Assurance v0.1.0 ha eseguito 18 test distribuiti su 7 domini di sicurezza, prodotto 98 finding in 9 categorie distinte, restituito risultati byte-identici su due run indipendenti, drenato tutte le risorse transitorie senza residui, e completato l'intero assessment in circa 4 minuti e 50 secondi su hardware non dedicato. Nessuno di questi numeri è stimato: tutti tracciano a un punto di verifica nell'audit.
 
 La validazione empirica misura comportamenti osservabili e non può pronunciarsi sui limiti del paradigma che il tool implementa. Un assessment corretto su una specifica errata produce verdetti formalmente validi ma sostanzialmente privi di significato. Un tool che astrae il gateway per garantire portabilità multi-vendor rinuncia, per costruzione, ai controlli vendor-specifici privi di un equivalente generalizzabile. Queste non sono anomalie dell'implementazione: sono tensioni strutturali del contratto che APIGuard Assurance stringe con il proprio dominio applicativo. La loro analisi è l'oggetto del Capitolo~\ref{chap:discussion}.
 
