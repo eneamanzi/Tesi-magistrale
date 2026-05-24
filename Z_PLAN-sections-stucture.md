@@ -1,4 +1,5 @@
 # Scaletta Capitoli
+# check: il capitolo 4 ha cambito struttura inalcune sezioni
 
 - [1. Introduzione](#1-introduzione)
   - [1.1 Motivazione e Contesto](#11-motivazione-e-contesto)
