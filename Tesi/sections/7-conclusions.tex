@@ -1,11 +1,44 @@
 % !TEX root = ../main.tex
-\chapter{Conclusioni}\label{conclusione}
+\chapter{Conclusioni}\label{chap:conclusions}
 
-% PATTERN: \nameref{label} per fare cross-reference per nome, non numero.
-% Esempio: "L'obiettivo \nameref{o1: nome obiettivo} è stato raggiunto."
+Tre tensioni hanno orientato le scelte di questo lavoro: l'incapacità degli approcci tradizionali di rilevare vulnerabilità semantiche nelle \gls{API} REST, l'assenza di strumenti che combinino agnosticismo applicativo con testing guidato dal contratto formale, e la non confrontabilità dei risultati di un assessment tra esecuzioni successive. Il framework sviluppato risponde a ciascuna con meccanismi architetturali verificabili empiricamente. Questo capitolo ripercorre quella risposta, ne valuta la portata effettiva e colloca il contributo nel contesto più ampio della sicurezza come proprietà misurabile del processo di sviluppo.
 
-\section{Conclusioni}
-% TODO
 
-\section{Lavori futuri}
-% TODO
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Sintesi del Lavoro e Risoluzione del Problema Iniziale}%
+\label{sec:sintesi-risoluzione}
+% ─────────────────────────────────────────────────────────────────────────────
+
+La cecità semantica degli approcci tradizionali, analizzata nel Capitolo~\ref{chap:background} come distanza tra ciò che uno scanner osserva e ciò che una vulnerabilità logica richiede di capire, appartiene alla struttura del paradigma: questa barriera persiste indipendentemente dal volume di payload generati, perché un fuzzer che ignora il contratto \gls{API} affronta il combinatorial wall prima ancora di raggiungere la logica applicativa, con la quota di richieste che violano i tipi e i vincoli enumerati nello schema che viene respinta con \texttt{HTTP~400} dal layer di validazione. Usare la specifica OpenAPI come oracolo formale, formalizzato nella Sezione~\ref{subsec:openapi-sot}, abbatte questa barriera spostando il punto di osservazione dalla sintassi alla semantica: ogni richiesta è costruita nel rispetto dei vincoli contrattuali, ogni risposta è valutata rispetto a ciò che il contratto prevede per quella specifica operazione. Ne diventa raggiungibile la classe di vulnerabilità invisibili al fuzzing cieco: le violazioni di autorizzazione orizzontale (\gls{BOLA}), l'elusione della revoca dei token e gli abusi di endpoint che accettano \gls{URL} controllabili dal chiamante, tutte categorie che presuppongono richieste sintatticamente corrette e semanticamente illecite.
+
+L'agnosticismo applicativo, realizzato attraverso la derivazione a runtime di tutta la conoscenza del target dalla specifica OpenAPI e dal \texttt{config.yaml} come stabilito nella Sezione~\ref{subsec:agnosticismo}, estende questo approccio oltre il singolo caso specifico. Un tool che incorpora conoscenza hardcoded del target, path, strutture dati e comportamenti attesi, è applicabile a quel target e soltanto a quello: sostituita l'applicazione, va riscritto. Un tool che deriva quella conoscenza dalla specifica formale è applicabile a qualsiasi \gls{API} REST documentata senza modifiche al codice, con il vincolo che una specifica valida sia disponibile; questo vincolo, dichiarato come limite strutturale nella Sezione~\ref{sec:limiti}, appartiene al paradigma contract-driven nel suo complesso. La profondità dell'analisi si preserva perché il contratto governa la costruzione delle richieste e la valutazione delle risposte con la stessa precisione indipendentemente dal target. L'approccio ibrido risultante occupa lo spazio che i tool vendor-specific e i fuzzer generici lasciano scoperto congiuntamente: i primi sono precisi ma vincolati a un sistema specifico, i secondi sono portabili ma privi di conoscenza contrattuale.
+
+La terza tensione, la non confrontabilità tra esecuzioni successive che esclude il penetration testing tradizionale dall'integrazione come quality gate, trova risposta nella riproducibilità deterministica discussa nella Sezione~\ref{subsec:reproducibility} e validata empiricamente nella \hyperref[sec:coverage-idempotenza]{Sezione~\ref*{sec:coverage-idempotenza}}. Un framework che produce risultati identici su esecuzioni successive dello stesso target non afferma la riproducibilità come proprietà attesa: la dimostra come invariante misurabile, condizione necessaria perché un assessment automatizzato possa assumere il ruolo di quality gate in una pipeline di sviluppo continuativo.
+
+
+
+
+
+
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Contributi Scientifici e Ingegneristici}%
+\label{sec:contributi}
+% ─────────────────────────────────────────────────────────────────────────────
+
+I contributi di questo lavoro si articolano su due piani distinti che si rinforzano senza sovrapporsi: la formalizzazione metodologica, che produce strumenti analitici riutilizzabili indipendentemente dall'implementazione specifica, e la realizzazione ingegneristica, che dimostra la concreta praticabilità di quella metodologia con le garanzie di qualità richieste da un artefatto industriale.
+
+Sul piano metodologico, tre contributi si stratificano in ordine crescente di specificità implementativa. La tassonomia a otto domini di assurance, descritta nella Sezione~\ref{subsec:domini-tassonomia}, definisce cosa misurare: organizza la superficie di sicurezza di un'\gls{API} esposta tramite gateway in categorie semanticamente distinte, ciascuna con le proprie precondizioni di accesso e i propri criteri di valutazione, applicabile a qualsiasi assessment strutturato indipendentemente dagli strumenti impiegati. Il box gradient, formalizzato nella Sezione~\ref{subsec:box-gradient}, aggiunge la dimensione del privilegio e definisce come accedere alla misura: la classificazione Black/Grey/White Box viene derivata dalle precondizioni concrete che ogni garanzia impone al tester, producendo un mapping analitico tra il livello di visibilità disponibile e la classe di controlli raggiungibile. Le trentanove proprietà architetturali distribuite su sette domini, raccolte nella Tabella~\ref{tab:property-index} e trattate nei Capitoli~\ref{chap:methodology} e~\ref{chap:implementation}, definiscono come costruire il sistema che misura: un vocabolario di design che cattura le decisioni architetturali con le loro motivazioni e i costi accettati, riutilizzabile come modello per sistemi analoghi.
+
+Sul piano ingegneristico, il design di un assessment engine deterministico basato su \gls{DAG}, descritto nella Sezione~\ref{subsec:dag}, costituisce un contributo architetturale autonomo: la struttura a batch con risoluzione topologica garantisce la correttezza semantica dell'ordine di esecuzione indipendentemente dal numero e dalla natura dei test, una proprietà che uno scheduler a priorità statica non raggiunge perché non possiede la rappresentazione delle dipendenze tra test. La codebase che implementa questo design è stata validata empiricamente contro un target reale: su Forgejo~14.0.3 esposto tramite Kong~3.9 DB-less, due run indipendenti hanno prodotto risultati identici per tutti i contatori aggregati (\texttt{9~PASS\,/\,7~FAIL\,/\,2~SKIP\,/\,0~ERROR\,/\,98~finding}, delta wall-clock dello 0,32\%), come verificato nella \hyperref[sec:coverage-idempotenza]{Sezione~\ref*{sec:coverage-idempotenza}}. La qualità del codice è verificabile per analisi statica: 0~errori mypy in strict mode su 90~file sorgente, come documentato nella Sezione~\ref{subsec:dual-layer-type-safety}; un tool che si propone come strumento di assurance applica alla propria implementazione lo stesso rigore che applica ai target che valuta.
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Considerazioni Finali sull'Assurance Continuo}%
+\label{sec:assurance-continuo}
+% ─────────────────────────────────────────────────────────────────────────────
+
+La differenza tra il penetration testing tradizionale e l'automated security assurance è epistemica, non di scala. Il penetration testing produce un referto: un'osservazione puntuale condotta in un momento specifico, da un operatore con un insieme specifico di conoscenze e tecniche; rieseguire il test in condizioni nominalmente identiche produce output confrontabili solo per convenzione, perché quella variabilità è incorporata nel metodo. L'automated security assurance produce una garanzia: lo stesso assessment, rieseguito con la stessa configurazione sullo stesso target, produce risultati deterministicamente identici, verificabili da chiunque senza ricostruire il processo mentale di chi l'ha condotto. La riproducibilità dimostrata nella \hyperref[sec:coverage-idempotenza]{Sezione~\ref*{sec:coverage-idempotenza}} non è una proprietà accessoria del sistema: è la condizione che trasforma un'osservazione in un'affermazione verificabile da terzi.
+
+APIGuard Assurance è la dimostrazione che la sicurezza delle \gls{API} può essere trattata come una proprietà dell'ingegneria del software: verificabile per analisi statica e per esecuzione, tracciabile attraverso un audit trail forense, integrabile nel ciclo di sviluppo tramite exit code semantici senza richiedere intervento manuale a ogni release. Applicare alle \gls{API} lo stesso rigore che si applica al codice, dalla verifica dei tipi alla regressione automatizzata fino ai quality gate di pipeline, non è un'aspirazione teorica: è ciò che un framework deterministico e config-driven rende operativamente praticabile. Quando l'assurance è continuo, la sicurezza smette di essere un attributo certificato una volta all'anno e diventa una proprietà del processo stesso, contestata a ogni commit e confermata a ogni deploy.

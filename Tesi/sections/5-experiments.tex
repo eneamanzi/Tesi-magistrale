@@ -23,22 +23,21 @@
 \chapter{Validazione sperimentale e risultati}%
 \label{chap:experiments}
 
-I Capitoli~\ref{chap:methodology} e~\ref{chap:implementation} hanno descritto come APIGuard Assurance è stato progettato e realizzato. Questo capitolo verifica empiricamente che quelle scelte architetturali si comportino nel modo dichiarato quando il tool viene eseguito contro un target reale. La validazione si articola in quattro livelli analitici distinti: la topologia dell'ambiente di test (Sezione~\ref{sec:testbed}), la qualità ingegneristica del codebase misurata attraverso un audit di 73 verifiche (Sezione~\ref{sec:release-readiness}), la copertura funzionale e l'idempotenza dei risultati su due run indipendenti (Sezione~\ref{sec:coverage-idempotenza}), e infine il profilo di risorse computazionali in relazione alla topologia del \gls{DAG} (Sezione~\ref{sec:footprint-dag}).
+I Capitoli~\ref{chap:methodology} e~\ref{chap:implementation} hanno descritto come APIGuard Assurance è stato progettato e realizzato. Questo capitolo verifica empiricamente che quelle scelte architetturali si comportino nel modo dichiarato quando il tool viene eseguito contro un target reale. La validazione si articola in quattro livelli che formano una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo. La topologia dell'ambiente di test (Sezione~\ref{sec:testbed}) stabilisce le condizioni di osservazione. La qualità ingegneristica del codebase (Sezione~\ref{sec:release-readiness}) certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza su due run indipendenti (Sezione~\ref{sec:coverage-idempotenza}) dimostrano che i risultati sono stabili e privi di effetti collaterali. Il profilo computazionale (Sezione~\ref{sec:footprint-dag}) ne qualifica l'integrabilità operativa.
 
-Tutti i dati quantitativi di questo capitolo traggono origine dal Milestone~1 Pre-Release Audit, condotto il 2026-05-17 sulla versione \texttt{0.1.0} del tool con 73 verifiche indipendenti. Nessun risultato è stimato o interpolato: ogni numero citato ha un corrispondente punto di verifica nell'audit che lo ha prodotto. Questa tracciabilità è deliberata. Un capitolo di risultati senza riferimento alla procedura di misura che li ha generati è, dal punto di vista della riproducibilità, un capitolo di affermazioni.
-
+Tutti i dati quantitativi di questo capitolo sono il prodotto di verifiche condotte prima del rilascio della versione \texttt{0.1.0}: misurazioni di sistema, esecuzioni ripetute dell'assessment e ispezioni statiche del codebase, ciascuna con un comando o una procedura riproducibile. Nessun risultato è stimato o interpolato. Un capitolo di risultati che non esplicita come sono stati prodotti i numeri che riporta è, dal punto di vista della riproducibilità, un capitolo di affermazioni; ogni dato che segue è corredato dalla procedura che lo ha generato.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Topologia del Testbed Sperimentale}%
 \label{sec:testbed}
 % ─────────────────────────────────────────────────────────────────────────────
 
-La scelta dell'ambiente target non era vincolata a una specifica applicazione, ma a un insieme di requisiti derivati direttamente dalla matrice di copertura della suite. Serviva un'applicazione con una \gls{OAS} nativa, non generata a posteriori, che esponesse endpoint protetti da autenticazione reale, supportasse almeno due livelli di privilegi distinti, e producesse comportamenti osservabili e stabili sufficienti a validare i Domini D0, D1, D2, D3, D4, D6 e D7 senza che il target dovesse essere modificato tra un run e l'altro. Forgejo 14.0.3, esposto attraverso Kong 3.9 in modalità DB-less, soddisfa tutti questi requisiti e aggiunge una caratteristica rilevante per la validazione dell'agnosticismo applicativo (discusso nella Sezione~\ref{subsec:agnosticismo}): il tool non contiene nessun riferimento hardcoded a Forgejo, e il medesimo file \texttt{config.yaml} che governa questo assessment è strutturalmente identico a quello che si userebbe su qualsiasi altra \gls{API} REST documentata.
+La scelta dell'ambiente target non era vincolata a una specifica applicazione, ma a un insieme di requisiti derivati dalla matrice di copertura della suite: una specifica \gls{OAS} nativa non generata a posteriori, endpoint protetti da autenticazione reale, almeno due livelli di privilegi distinti, e comportamenti osservabili e stabili attraverso run successivi senza modifiche al target. Forgejo~14.0.3, esposto attraverso Kong~3.9 in modalità DB-less, soddisfa questi requisiti. La scelta conferma inoltre in modo concreto l'agnosticismo applicativo discusso nella Sezione~\ref{subsec:agnosticismo}: il file \texttt{config.yaml} usato in questo assessment è strutturalmente identico a quello che si userebbe su qualsiasi altra \gls{API} REST documentata, perché il tool non contiene nessun riferimento specifico a Forgejo.
 
 
 \subsection{Architettura del Testbed}
 
-Il testbed è provisioned tramite un singolo file Docker Compose su host di sviluppo, senza hardware dedicato né virtualizzazione separata. La topologia comprende quattro servizi nel medesimo network \texttt{lab-net}: il database di persistenza (PostgreSQL 15-alpine), l'applicazione target (Forgejo~14), il gateway (Kong~3.9 DB-less) e un container \texttt{forgejo-setup} che esegue il provisioning degli account alla prima accensione e poi termina. La Tabella~\ref{tab:versioni-testbed} riporta la matrice delle versioni fissata durante l'audit.
+Il testbed è dichiarato in un singolo file Docker Compose ed eseguito su host di sviluppo, senza hardware dedicato né virtualizzazione separata. I quattro servizi condividono il network \texttt{lab-net}: PostgreSQL~15-alpine come backend di persistenza per Forgejo, Forgejo~14 come applicazione target, Kong~3.9 DB-less come gateway che riceve tutto il traffico in ingresso, e un container \texttt{forgejo-setup} che configura gli account al primo avvio e poi termina. Kong raggiunge Forgejo attraverso un upstream dichiarato nel file di configurazione; il tool raggiunge Kong dall'host tramite le porte esposte. La Tabella~\ref{tab:versioni-testbed} riporta la matrice delle versioni fissata durante l'audit.
 
 \begin{table}[ht]
   \centering
@@ -70,12 +69,12 @@ Il testbed è provisioned tramite un singolo file Docker Compose su host di svil
   \label{tab:versioni-testbed}
 \end{table}
 
-Kong espone due porte di proxy: la~8000 in \gls{HTTP} semplice, usata esclusivamente dal test~1.5 per verificare il redirect verso \gls{HTTPS}, e la~8443 con certificato self-signed generato localmente, che costituisce l'endpoint primario del tool. L'Admin \gls{API} di Kong è accessibile sulla porta~8001 e rappresenta la sorgente dei dati per tutti i test di strategia \texttt{WHITE\_BOX} dei Domini~3, 4 e 6. La configurazione Kong è interamente dichiarativa, contenuta in un file \texttt{kong.yml} montato in sola lettura: questo è il pattern DB-less che il box gradient della Sezione~\ref{subsec:box-gradient} identifica come prerequisito per il testing a visibilità piena sul gateway.
+Kong espone due porte di proxy sull'host: la~8000 in \gls{HTTP} semplice, usata dal test~1.5 per verificare il redirect verso \gls{HTTPS}, e la~8443 con certificato self-signed generato localmente, che costituisce l'endpoint primario per tutti gli altri test. L'Admin \gls{API} è accessibile sulla porta~8001 e fornisce i dati di configurazione ai test \texttt{WHITE\_BOX} dei Domini~3, 4 e~6. La configurazione è interamente contenuta nel file \texttt{kong.yml}, montato in sola lettura nel container: Kong opera senza database, leggendo la configurazione dal file a ogni avvio. Questo è il pattern DB-less che la Sezione~\ref{subsec:box-gradient} identifica come prerequisito per il testing a visibilità piena sul piano di controllo del gateway, perché rende la configurazione ispezionabile e immutabile durante i run.
 
 
 \subsection{Configurazione Intenzionale per la Copertura dei Finding}
 
-Un aspetto metodologicamente rilevante della configurazione riguarda quali comportamenti del gateway sono stati deliberatamente non induriti al momento dei run di validazione. Un testbed completamente hardened produrrebbe una suite con tutti \texttt{PASS} e nessun \texttt{FAIL}: un risultato tautologico, non informativo. Che il tool sappia identificare le violazioni presenti in un ambiente realmente misconfigured è il dato di validazione funzionale più utile.
+Validare un tool di assessment su un ambiente completamente hardened produrrebbe una suite con tutti \texttt{PASS}: un risultato tautologico che non dimostra nulla sulla capacità del tool di rilevare violazioni reali. La configurazione del testbed prevede intenzionalmente alcune scelte non ottimali, che producono \texttt{FAIL} osservabili e attesi, e alcune configurazioni corrette, che producono \texttt{PASS} attesi. La combinazione rende il testbed un banco di prova funzionalmente completo: il tool deve saper distinguere i due casi.
 
 Di conseguenza, tre scelte di configurazione producono \texttt{FAIL} osservabili e attesi nell'assessment:
 
@@ -90,13 +89,18 @@ Di conseguenza, tre scelte di configurazione producono \texttt{FAIL} osservabili
         per non interferire con i test applicativi, e quindi rappresenta uno
         scenario realistico.
 
-  \item Forgejo espone token \gls{API} e metadati di sessione attraverso
-        alcuni endpoint documentati nella propria specifica OpenAPI senza
-        applicare restrizioni di campo sulla risposta. Il test~1.1, che sonda
-        ogni endpoint della specifica senza credenziali, registra 74 finding
-        per gli endpoint che restituiscono \texttt{2xx} in assenza di
-        autenticazione: il verdetto è \texttt{FAIL} con 74 finding nella
-        categoria \texttt{BYPASSED}.
+  \item La specifica OpenAPI di Forgejo dichiara un requisito di
+        autenticazione globale a livello di documento, ma non tutti gli
+        endpoint lo ereditano nella configurazione Kong del testbed: il
+        gateway non applica autenticazione su molti di essi. Il test~1.1
+        sonda ogni endpoint della specifica senza credenziali e registra
+        \texttt{BYPASSED} per ciascun endpoint che risponde \texttt{2xx}.
+        Il verdetto è \texttt{FAIL} con 74 finding. Questo non è un falso
+        positivo: il tool riporta correttamente la discrepanza tra ciò che
+        la specifica dichiara e ciò che il gateway applica. Un endpoint
+        marcato come autenticato nella specifica che risponde \texttt{2xx}
+        a una richiesta priva di credenziali è una violazione reale,
+        indipendentemente dall'intenzione del deployer.
 
   \item Il certificato \gls{TLS} self-signed presenta configurazioni
         non ottimali rilevabili dall'analisi statica del protocollo. I test
@@ -110,10 +114,10 @@ Al contrario, il plugin \texttt{response-transformer} è attivo e inietta gli he
 
 \subsection{Struttura RBAC e Provisioning degli Utenti}
 
-Forgejo viene provisioned con tre account tramite il container \texttt{forgejo-setup}: un amministratore (\texttt{thesis-admin}), un utente con privilegi ordinari (\texttt{user-a}), e un secondo utente senza privilegi specifici (\texttt{user-b}). Questa struttura a tre livelli è il minimo sufficiente per la matrice di test della Milestone~1. Il test~2.1 (\texttt{RBAC enforcement}, \texttt{GREY\_BOX}, P2) richiede un token di \texttt{user-a} con cui tentare endpoint amministrativi: il gate di controllo accesso del gateway deve rispondere \texttt{403}. I test~1.4 e~2.1 dipendono da un token valido ottenuto dal run del test~1.1, dipendenza espressa nel \gls{DAG} come vincolo di Phase~B (discusso nella Sezione~\ref{sec:discovery-dag} e verificato empiricamente nella Sezione~\ref{sec:footprint-dag}).
+Il container \texttt{forgejo-setup} crea tre account al primo avvio: \texttt{thesis-admin} (amministratore), \texttt{user-a} (utente con privilegi ordinari) e \texttt{user-b} (secondo utente non privilegiato). La struttura a tre livelli è il minimo necessario per la matrice di test: \texttt{thesis-admin} è il soggetto dei test di autenticazione che richiedono token con privilegi elevati; \texttt{user-a} è il soggetto del test~2.1 (\texttt{RBAC enforcement}), che tenta endpoint amministrativi con un token non-admin e attende \texttt{403}; \texttt{user-b} è necessario per i test di isolamento tra oggetti di utenti distinti, che verificano che le risorse di \texttt{user-a} non siano accessibili con il token di \texttt{user-b}. I test~1.4 e~2.1 dipendono da token validi prodotti dal test~1.1, dipendenza dichiarata nel \gls{DAG} come vincolo di Phase~B e discussa nella Sezione~\ref{sec:footprint-dag}.
 
 Il provisioning è deterministico. Il container \texttt{forgejo-setup} usa l'interfaccia \gls{CLI} di Forgejo con flag \texttt{-{}-}or-true, così da non fallire se gli account esistono già da un avvio precedente.
-Questa scelta è l'implementazione concreta della proprietà di riproducibilità discussa nella Sezione~\ref{subsec:reproducibility} (D3.P4): il testbed raggiunge lo stesso stato iniziale indipendentemente da quante volte il comando \texttt{docker compose up} viene eseguito.
+Questa scelta realizza concretamente la proprietà di riproducibilità discussa nella Sezione~\ref{subsec:reproducibility}: il testbed raggiunge lo stesso stato iniziale indipendentemente da quante volte viene avviato, condizione necessaria perché i run successivi siano comparabili.
 
 
 
@@ -123,12 +127,11 @@ Questa scelta è l'implementazione concreta della proprietà di riproducibilità
 \label{sec:release-readiness}
 % ─────────────────────────────────────────────────────────────────────────────
 
-Un tool che dichiara di essere uno strumento di assurance della sicurezza non può essere esente da quel medesimo rigore applicato alla propria implementazione. Questa considerazione non è retorica. Un codebase con errori di tipo non rilevati, dipendenze con \gls{CVE} note, o simboli pubblici privi di contratto documentato produce output il cui grado di affidabilità è difficilmente separabile dalla qualità del codice che lo genera. Prima di discutere cosa il tool ha trovato sul target, è quindi necessario stabilire su quali basi ingegneristiche poggia l'analisi.
+Un tool che produce verdetti di sicurezza deve poter dimostrare che la propria implementazione è soggetta allo stesso rigore che applica al target. Un codebase con errori di tipo non rilevati, dipendenze con \gls{CVE} note, o simboli pubblici privi di contratto documentato produce output la cui affidabilità è difficilmente separabile dalla qualità del codice che lo genera. Prima di discutere cosa il tool ha trovato sul target, questa sezione stabilisce su quali basi ingegneristiche poggia quella analisi.
 
-L'audit di Milestone~1 ha eseguito 73 verifiche distribuite in 9 categorie. Le prime due, l'analisi statica (verifiche~1--5) e l'ingegneria di produzione (verifiche~37--56), misurano la qualità del codebase indipendentemente dall'output di assessment. I risultati sono riportati come prerequisito di credibilità, non come contributo autonomo.
+Le verifiche condotte coprono quattro aree: l'analisi statica del codebase tramite una suite di strumenti automatizzati (Sezione~\ref{subsec:static-analysis}), la type safety a due strati che combina analisi statica e modelli Pydantic (Sezione~\ref{subsec:dual-layer-type-safety}), e gli indicatori di qualità dell'ingegneria di produzione che riguardano documentazione, riproducibilità della build e installabilità (Sezione~\ref{subsec:production-quality}). I risultati sono riportati come prerequisito di credibilità, non come contributo autonomo.
 
-
-\subsection{Analisi Statica del Codebase}
+\subsection{Analisi Statica del Codebase}\label{subsec:static-analysis}
 
 Su 90 file sorgente Python, la suite di analisi statica ha prodotto i seguenti esiti al momento dell'audit, riassunti nella Tabella~\ref{tab:analisi-statica}.
 
@@ -178,7 +181,7 @@ Mypy non copre però le system boundaries: il punto in cui dati esterni al codeb
 I due strati sono indipendenti e complementari: ciascuno intercetta una categoria di errori che l'altro non raggiunge. Il costo mantenuto è prossimo allo zero per chi aggiunge un test: type hints e modelli Pydantic con \texttt{frozen=True} sono già vincolati dalle Hard Rules del progetto. La safety non dipende dalla disciplina individuale di chi contribuisce.
 
 
-\subsection{Indicatori di Qualità dell'Ingegneria di Produzione}
+\subsection{Indicatori di Qualità dell'Ingegneria di Produzione}\label{subsec:production-quality}
 
 Oltre all'analisi statica, l'audit ha verificato una serie di proprietà ingegneristiche che contribuiscono alla riproducibilità e all'affidabilità operativa del tool. Tre meritano menzione esplicita per la loro rilevanza rispetto alle garanzie di assurance che il tool promette.
 

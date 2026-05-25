@@ -138,24 +138,24 @@
 ## 6. Discussione e Sviluppi Futuri
 
 ### 6.1 Analisi Critica e Limiti del Paradigma Contract-Driven
-- [ ] Completare/Revisionare `[Stato: Da fare]`
+- [ ] Completare/Revisionare `[Stato: CHECK]`
 
 ### 6.2 Applicabilità Industriale e Integrazione DevSecOps
-- [ ] Completare/Revisionare `[Stato: Da fare]`
+- [ ] Completare/Revisionare `[Stato: CHECK]`
 
 ### 6.3 Sviluppi Futuri (Prospettiva di Ricerca Dottorale)
-- [ ] Roadmap Milestone 2 — Estensioni operative `[Stato: Da fare]`
-- [ ] Traiettorie di Ricerca Avanzata `[Stato: Da fare]`
+- [ ] Roadmap Milestone 2 — Estensioni operative `[Stato: CHECK]`
+- [ ] Traiettorie di Ricerca Avanzata `[Stato: CHECK]`
 
 ---
 
 ## 7. Conclusioni
 
 ### 7.1 Sintesi del Lavoro e Risoluzione del Problema Iniziale
-- [ ] Completare/Revisionare `[Stato: Da fare]`
+- [ ] Completare/Revisionare `[Stato: CHECK]`
 
 ### 7.2 Contributi Scientifici e Ingegneristici
-- [ ] Completare/Revisionare `[Stato: Da fare]`
+- [ ] Completare/Revisionare `[Stato: CHECK]`
 
 ### 7.3 Considerazioni Finali sull'Assurance Continuo
-- [ ] Completare/Revisionare `[Stato: Da fare]`
+- [ ] Completare/Revisionare `[Stato: CHECK]`
