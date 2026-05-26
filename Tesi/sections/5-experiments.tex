@@ -23,93 +23,128 @@
 \chapter{Validazione sperimentale e risultati}%
 \label{chap:experiments}
 
-I Capitoli~\ref{chap:methodology} e~\ref{chap:implementation} hanno descritto come APIGuard Assurance è stato progettato e realizzato. La suite attiva comprende test per i domini D0, D1, D2, D3, D4, D6 e D7; il Dominio~5 (Observability) è architetturalmente predisposto ma non include test attivi in questa fase, come dichiarato nella Sezione~\ref{subsec:domini-tassonomia}. Questo capitolo verifica empiricamente che quelle scelte architetturali si comportino nel modo dichiarato quando il tool viene eseguito contro un target reale. La validazione si articola in quattro livelli che formano una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo. La topologia dell'ambiente di test (Sezione~\ref{sec:testbed}) stabilisce le condizioni di osservazione. La qualità ingegneristica del codebase (Sezione~\ref{sec:release-readiness}) certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza su due run indipendenti (Sezione~\ref{sec:coverage-idempotenza}) dimostrano che i risultati sono stabili e privi di effetti collaterali. Il profilo computazionale (Sezione~\ref{sec:footprint-dag}) ne qualifica l'integrabilità operativa.
+I Capitoli~\ref{chap:methodology} e~\ref{chap:implementation} hanno descritto come APIGuard Assurance è stato progettato e realizzato. La suite attiva comprende test per i domini D0, D1, D2, D3, D4, D6 e D7; il Dominio~5 (Observability) è architetturalmente predisposto ma non include test attivi in questa fase, come dichiarato nella Sezione~\ref{subsec:domini-tassonomia}. Questo capitolo porta quelle scelte architetturali a confronto con un target reale, verificando empiricamente che producano i comportamenti dichiarati.
 
-Tutti i dati quantitativi di questo capitolo sono il prodotto di verifiche condotte prima del rilascio della versione \texttt{0.1.0}: misurazioni di sistema, esecuzioni ripetute dell'assessment e ispezioni statiche del codebase, ciascuna con un comando o una procedura riproducibile. Nessun risultato è stimato o interpolato. Un capitolo di risultati che non esplicita come sono stati prodotti i numeri che riporta è, dal punto di vista della riproducibilità, un capitolo di affermazioni; ogni dato che segue è corredato dalla procedura che lo ha generato.
+La validazione si articola in quattro livelli con una relazione di precondizione: il testbed stabilisce le condizioni di osservazione (Sezione~\ref{sec:testbed}); la qualità ingegneristica del codebase certifica che lo strumento di misura è affidabile (Sezione~\ref{sec:release-readiness}); la copertura funzionale e l'idempotenza dimostrano che i risultati sono stabili e privi di effetti collaterali (Sezione~\ref{sec:coverage-idempotenza}); il profilo computazionale ne qualifica l'integrabilità operativa (Sezione~\ref{sec:footprint-dag}).
+
+Tutti i dati quantitativi di questo capitolo provengono da verifiche condotte sulla versione \texttt{0.1.0} del tool: misurazioni di sistema, esecuzioni ripetute dell'assessment e ispezioni statiche del codebase, ciascuna con una procedura o un comando riproducibile riportato nel testo.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Topologia del Testbed Sperimentale}%
 \label{sec:testbed}
 % ─────────────────────────────────────────────────────────────────────────────
 
-La scelta dell'ambiente target non era vincolata a una specifica applicazione, ma a un insieme di requisiti derivati dalla matrice di copertura della suite: una specifica \gls{OAS} nativa non generata a posteriori, endpoint protetti da autenticazione reale, almeno due livelli di privilegi distinti, e comportamenti osservabili e stabili attraverso run successivi senza modifiche al target. Forgejo~14.0.3, esposto attraverso Kong~3.9 in modalità DB-less, soddisfa questi requisiti. La scelta conferma inoltre in modo concreto l'agnosticismo applicativo discusso nella Sezione~\ref{subsec:agnosticismo}: il file \texttt{config.yaml} usato in questo assessment è strutturalmente identico a quello che si userebbe su qualsiasi altra \gls{API} REST documentata, perché il tool non contiene nessun riferimento specifico a Forgejo.
+La scelta dell'ambiente target è derivata dalla matrice di copertura della suite: serviva un'applicazione con \gls{OAS} nativa non generata a posteriori, con endpoint protetti da autenticazione reale, almeno due livelli di privilegi distinti, endpoint parametrici con valori di path risolvibili, e comportamenti osservabili e stabili attraverso run successivi senza modifiche al target. Forgejo~14.0.3, esposto attraverso Kong~3.9 in modalità DB-less, soddisfa tutti questi requisiti. La scelta conferma inoltre in modo concreto l'agnosticismo applicativo discusso nella Sezione~\ref{subsec:agnosticismo}: il tool non contiene nessun riferimento specifico a Forgejo: cambiare target significa aggiornare i valori nel \texttt{config.yaml} (URL del gateway, percorso della specifica, path seed, credenziali), non modificare il codice.
 
 
-\subsection{Architettura del Testbed}
+\subsection{Composizione e Connettività dell'Ambiente di Test}\label{subsec:architettura-testbed}
 
-Il testbed è dichiarato in un singolo file Docker Compose ed eseguito su host di sviluppo, senza hardware dedicato né virtualizzazione separata. I quattro servizi condividono il network \texttt{lab-net}: PostgreSQL~15-alpine come backend di persistenza per Forgejo, Forgejo~14 come applicazione target, Kong~3.9 DB-less come gateway che riceve tutto il traffico in ingresso, e un container \texttt{forgejo-setup} che configura gli account al primo avvio e poi termina. Kong raggiunge Forgejo attraverso un upstream dichiarato nel file di configurazione; il tool raggiunge Kong dall'host tramite le porte esposte. La Tabella~\ref{tab:versioni-testbed} riporta la matrice delle versioni fissata durante l'audit.
+L'ambiente di test è composto da quattro servizi che comunicano all'interno di un network Docker dedicato (\texttt{lab-net}): Forgejo\footnote{Forgejo è un servizio di hosting Git self-hosted, derivato da Gitea, con \gls{API} REST documentata tramite specifica OpenAPI nativa. Espone repository, utenti, token e webhook tramite un'interfaccia \gls{HTTP} standardizzata.}~14 come applicazione target, Kong~3.9 in modalità DB-less come gateway che riceve e instrada tutto il traffico verso Forgejo, PostgreSQL~15-alpine come backend di persistenza richiesto da Forgejo, e un container \texttt{forgejo-setup} che crea gli account al primo avvio e poi termina. Il traffico del tool parte dall'host, raggiunge Kong attraverso le porte mappate sul sistema, e Kong lo inoltrata a Forgejo attraverso un upstream dichiarato nel file di configurazione \texttt{kong.yml}. L'intero ambiente è dichiarato in un singolo file Docker Compose ed eseguito su host di sviluppo, senza hardware dedicato né virtualizzazione separata. La Tabella~\ref{tab:versioni-testbed} riporta le versioni fissate.
+
+% TODO: inserire figura con diagramma architetturale del testbed (Kong, Forgejo, PostgreSQL, tool, lab-net, porte)
 
 \begin{table}[ht]
   \centering
   \small
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
-    \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                          \\
+    \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                                                                  \\
     \midrule
-    \texttt{apiguard-assurance} & 0.1.0                 & Tool sotto validazione                                              \\
+    \texttt{apiguard-assurance} & 0.1.0                 & Tool sotto validazione                                                                                      \\
     \addlinespace
-    Python                      & 3.12.3                & Interprete del tool                                                 \\
+    Python                      & 3.12.3                & Interprete del tool                                                                                         \\
     \addlinespace
-    Forgejo                     & 14.0.3 (gitea-1.22.0) & Target applicativo: \gls{API} REST con specifica OpenAPI nativa     \\
+    Forgejo                     & 14.0.3 (gitea-1.22.0) & Target applicativo: \gls{API} REST con specifica OpenAPI nativa                                             \\
     \addlinespace
-    Kong                        & 3.9 DB-less           & \gls{API} Gateway: proxy, plugin, Admin \gls{API} su porta 8001     \\
+    PostgreSQL                  & 15-alpine             & Backend di persistenza di Forgejo (dipendenza funzionale, non componente autonomo)                          \\
     \addlinespace
-    PostgreSQL                  & 15-alpine             & Backend di persistenza Forgejo                                      \\
+    Kong                        & 3.9 DB-less           & \gls{API} Gateway: proxy \gls{HTTP}/\gls{HTTPS}, instradamento verso Forgejo, Admin \gls{API} su porta 8001 \\
     \addlinespace
-    \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow \gls{API} discovery (test \texttt{ext.0.1}) \\
+    \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow \gls{API} discovery (test \texttt{ext.0.1})                                         \\
     \addlinespace
-    \texttt{nuclei-templates}   & 10.4.3                & Template pinned per riproducibilità delle scan                      \\
+    \texttt{nuclei-templates}   & 10.4.3                & Base di template di scansione versioned: garantisce che lo stesso set di firme venga usato in ogni run      \\
     \addlinespace
-    \texttt{testssl.sh}         & 3.2.3                 & Analisi \gls{TLS} black-box (test \texttt{ext.1.5.testssl})         \\
+    \texttt{testssl.sh}         & 3.2.3                 & Analisi \gls{TLS} black-box (test \texttt{ext.1.5.testssl})                                                 \\
     \addlinespace
-    sslyze                      & (libreria Python)     & Analisi \gls{TLS} via libreria (test \texttt{ext.1.5.sslyze})       \\
+    sslyze                      & (libreria Python)     & Analisi \gls{TLS} via libreria Python (test \texttt{ext.1.5.sslyze})                                        \\
     \bottomrule
   \end{tabularx}
-  \caption{Componenti del testbed e versioni al Milestone~1.}
+  \caption{Componenti e versioni dell'ambiente di test.}
   \label{tab:versioni-testbed}
 \end{table}
 
-Kong espone due porte di proxy sull'host: la~8000 in \gls{HTTP} semplice, usata dal test~1.5 per verificare il redirect verso \gls{HTTPS}, e la~8443 con certificato self-signed generato localmente, che costituisce l'endpoint primario per tutti gli altri test. L'Admin \gls{API} è accessibile sulla porta~8001 e fornisce i dati di configurazione ai test \texttt{WHITE\_BOX} dei Domini~3, 4 e~6. La configurazione è interamente contenuta nel file \texttt{kong.yml}, montato in sola lettura nel container: Kong opera senza database, leggendo la configurazione dal file a ogni avvio. Questo è il pattern DB-less che la Sezione~\ref{subsec:box-gradient} identifica come prerequisito per il testing a visibilità piena sul piano di controllo del gateway, perché rende la configurazione ispezionabile e immutabile durante i run.
+Kong espone tre porte sull'host: la porta~8000 per il traffico \gls{HTTP} semplice, usata dal test~1.5 per verificare il redirect verso \gls{HTTPS}; la porta~8443 per il traffico \gls{HTTPS} con certificato self-signed generato localmente, che costituisce l'endpoint primario per tutti gli altri test; la porta~8001 per la Admin \gls{API}, che fornisce i dati di configurazione ai test \texttt{WHITE\_BOX} dei Domini~3, 4 e~6. La configurazione di Kong è interamente contenuta nel file \texttt{kong.yml}, montato in sola lettura nel container: Kong legge il file a ogni avvio e opera senza database. Questo pattern, detto DB-less, è rilevante per la validazione: la configurazione è interamente nel file versionato \texttt{kong.yml} e non può essere modificata a runtime tramite l'Admin \gls{API}, il che garantisce che lo stato del gateway sia identico a ogni avvio e che le verifiche \texttt{WHITE\_BOX} interroghino sempre la stessa configurazione. Kong supporta anche la modalità con database, ma in quel caso la configurazione potrebbe essere alterata tra una run e l'altra.
 
 
-\subsection{Configurazione Intenzionale per la Copertura dei Finding}
+\subsection{Configurazione del Testbed per la Validazione Funzionale}\label{subsec:configurazione-testbed}
 
-Validare un tool di assessment su un ambiente completamente hardened produrrebbe una suite con tutti \texttt{PASS}: un risultato tautologico che non dimostra nulla sulla capacità del tool di rilevare violazioni reali. La configurazione del testbed prevede intenzionalmente alcune scelte non ottimali, che producono \texttt{FAIL} osservabili e attesi, e alcune configurazioni corrette, che producono \texttt{PASS} attesi. La combinazione rende il testbed un banco di prova funzionalmente completo: il tool deve saper distinguere i due casi.
+Validare un tool di assessment su un ambiente completamente configurato in modo corretto produrrebbe una suite con tutti \texttt{PASS}: un risultato tautologico che non dimostra nulla sulla capacità del tool di rilevare violazioni reali. Il testbed è configurato perché alcuni test producano \texttt{FAIL} attesi e altri \texttt{PASS} attesi; la combinazione costituisce un banco di prova funzionalmente completo in cui il tool deve saper distinguere i due casi.
 
-Di conseguenza, tre scelte di configurazione producono \texttt{FAIL} osservabili e attesi nell'assessment:
+Le condizioni che producono \texttt{FAIL} osservabili e attesi nell'assessment sono le seguenti:
 
-\begin{enumerate}
+\begin{itemize}
 
   \item Il plugin \texttt{rate-limiting} di Kong è commentato nel file
-        \texttt{kong.yml}. Nessun limite di velocità è attivo sul servizio
-        Forgejo. Il test~4.1, che invia richieste in loop verso un endpoint
-        protetto fino a ricevere \texttt{HTTP~429}, non riceve mai quel codice
-        e registra \texttt{FAIL} con 2 finding. Si tratta di una condizione
-        comune in ambienti di staging dove il rate limiting viene disattivato
-        per non interferire con i test applicativi, e quindi rappresenta uno
-        scenario realistico.
+        \texttt{kong.yml}. Il test~4.1, che verifica la presenza di un limite
+        di velocità inviando richieste in loop fino a ricevere
+        \texttt{HTTP~429}, registra \texttt{FAIL} con 2 finding. La
+        disattivazione del rate limiting è una condizione ricorrente in
+        ambienti non produttivi dove il throttling interferirebbe con i test
+        applicativi, e costituisce perciò uno scenario realistico.
 
-  \item La specifica OpenAPI di Forgejo dichiara un requisito di
-        autenticazione globale a livello di documento, ma non tutti gli
-        endpoint lo ereditano nella configurazione Kong del testbed: il
-        gateway non applica autenticazione su molti di essi. Il test~1.1
-        sonda ogni endpoint della specifica senza credenziali e registra
-        \texttt{BYPASSED} per ciascun endpoint che risponde \texttt{2xx}.
-        Il verdetto è \texttt{FAIL} con 74 finding, classificati come \textsc{bypassed} dall'oracle a tre esiti descritto nella Sezione~\ref{subsec:probing-policy}. Questo non è un falso
-        positivo: il tool riporta correttamente la discrepanza tra ciò che
-        la specifica dichiara e ciò che il gateway applica. Un endpoint
-        marcato come autenticato nella specifica che risponde \texttt{2xx}
-        a una richiesta priva di credenziali è una violazione reale,
-        indipendentemente dall'intenzione del deployer.
+  \item La specifica OpenAPI di Forgejo dichiara a livello globale un
+        requisito di autenticazione tramite il campo \texttt{security} del
+        documento. Questo marcatore viene propagato a tutti gli endpoint
+        dall'analizzatore della specifica, che li classifica come richiedenti
+        autenticazione. Alcuni di quegli endpoint sono però genuinamente
+        pubblici: quando il test~1.1 li interroga senza credenziali e riceve
+        \texttt{2xx}, l'oracle a tre esiti della
+        Sezione~\ref{subsec:probing-policy} classifica il risultato come
+        \textsc{bypassed} e produce un finding. Il verdetto è \texttt{FAIL}
+        con 74 finding. Il comportamento del tool è corretto: la discrepanza
+        tra ciò che la specifica dichiara e ciò che il target restituisce è
+        esattamente la classe di anomalia che il contract-driven testing è
+        progettato per rilevare. Questo caso illustra in modo concreto la dipendenza dall'oracolo
+        descritta nella Sezione~\ref{subsec:openapi-sot}: quando la specifica
+        dichiara un requisito che il target non applica completamente, i finding
+        prodotti sono corretti dal punto di vista contrattuale ma richiedono
+        che l'analista valuti se la discrepanza sia una configurazione
+        intenzionale o una vulnerabilità effettiva.
 
-  \item Il certificato \gls{TLS} self-signed presenta configurazioni
-        non ottimali rilevabili dall'analisi statica del protocollo. I test
-        \texttt{ext.1.5.sslyze} e \texttt{ext.1.5.testssl} registrano
-        rispettivamente 1 e 3 finding sulla configurazione \gls{TLS}.
+  \item Il testbed usa un certificato \gls{TLS} autofirmato generato localmente
+        tramite lo script \texttt{certs/gen-certs.sh}. Questa è una scelta
+        deliberata: un certificato autofirmato presenta per costruzione
+        configurazioni al di sotto degli standard raccomandati per la produzione,
+        suite di cifratura, durata e catena di certificazione incluse, e
+        costituisce uno scenario realistico per ambienti di sviluppo e staging.
+        I test \texttt{ext.1.5.sslyze} e \texttt{ext.1.5.testssl} rilevano
+        rispettivamente 1 e 3 finding sulla configurazione del protocollo,
+        verificando che l'analisi \gls{TLS} del Dominio~1 sappia distinguere
+        le singole debolezze e produrre finding specifici per ciascuna.
 
-\end{enumerate}
+\end{itemize}
 
-Al contrario, il plugin \texttt{response-transformer} è attivo e inietta gli header di sicurezza \gls{HTTP} su tutte le risposte del servizio Forgejo: \texttt{Strict-Transport-Security}, \texttt{Content-Security-Policy}, \texttt{X-Content-Type-Options} e \texttt{X-Frame-Options}. Il test~0.1, che verifica la presenza di questi header, registra \texttt{PASS}. Il parametro \texttt{KONG\_HEADERS=off} nella configurazione Kong rimuove l'header \texttt{Server: kong/version}, producendo \texttt{PASS} anche per il test~6.2 che verifica il fingerprinting del gateway. Il servizio \texttt{http-redirect-service} produce un redirect~\texttt{301} con header \texttt{Location} corretto per qualsiasi richiesta \gls{HTTP} sulla porta~8000, consentendo al test~1.5 di verificare il redirect \gls{HTTP}$\to$\gls{HTTPS} e registrare \texttt{PASS}. La combinazione di finding attesi e \texttt{PASS} attesi rende il testbed un banco di prova funzionalmente completo: il tool deve saper rilevare il primo gruppo e non produrre falsi positivi nel secondo.
+Le configurazioni che producono invece \texttt{PASS} attesi sono:
+
+\begin{itemize}
+
+  \item Il plugin \texttt{response-transformer} inietta gli header di
+        sicurezza \gls{HTTP} su tutte le risposte: \texttt{Strict-Transport-Security},
+        \texttt{Content-Security-Policy}, \texttt{X-Content-Type-Options} e
+        \texttt{X-Frame-Options}. Il test~0.1 verifica la presenza di questi
+        header e registra \texttt{PASS}.
+
+  \item Il parametro \texttt{KONG\_HEADERS=off} rimuove l'header
+        \texttt{Server: kong/version} da tutte le risposte. Il test~6.2,
+        che verifica l'assenza di fingerprinting del gateway, registra
+        \texttt{PASS}.
+
+  \item Il servizio \texttt{http-redirect-service} produce un redirect
+        \texttt{301} con header \texttt{Location} corretto per qualsiasi
+        richiesta \gls{HTTP} sulla porta~8000. Il test~1.5, che verifica il
+        redirect \gls{HTTP}$\to$\gls{HTTPS}, registra \texttt{PASS}.
+
+\end{itemize}
 
 
 \subsection{Struttura RBAC e Provisioning degli Utenti}
@@ -123,112 +158,108 @@ Questa scelta realizza concretamente la proprietà di riproducibilità discussa 
 
 
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Release-Readiness e Integrità Architetturale}%
+\section{Qualità della Codebase come Prerequisito di Credibilità}%
 \label{sec:release-readiness}
 % ─────────────────────────────────────────────────────────────────────────────
 
-Un tool che produce verdetti di sicurezza deve poter dimostrare che la propria implementazione è soggetta allo stesso rigore che applica al target. La ragione è strutturale: un codebase con errori di tipo non rilevati può produrre verdetti formalmente corretti ma basati su dati mal classificati; dipendenze con \gls{CVE} note introducono vulnerabilità nel tool stesso che un attaccante potrebbe sfruttare per alterare i risultati dell'assessment; simboli pubblici privi di contratto documentato rendono l'estensione del tool per terze parti una fonte di errori non rilevabili staticamente. L'affidabilità dell'output non è separabile dalla qualità del codice che lo genera. Prima di discutere cosa il tool ha trovato sul target, questa sezione stabilisce su quali basi ingegneristiche poggia quella analisi.
+Un tool che produce verdetti di sicurezza deve poter dimostrare che la propria implementazione risponde agli stessi criteri di qualità che applica nell'analisi del target. Una codebase con errori di tipo non rilevati può produrre verdetti formalmente corretti ma basati su dati mal classificati; dipendenze con \gls{CVE} note espongono il tool stesso ad attacchi che potrebbero alterarne i risultati; simboli pubblici privi di contratto documentato rendono l'estensione da parte di terzi una fonte di errori non rilevabili staticamente. La credibilità dell'output dipende dalla qualità del codice che lo genera, e questa sezione la stabilisce prima di discutere cosa il tool ha trovato sul target.
 
-Le verifiche condotte coprono quattro aree: l'analisi statica del codebase tramite una suite di strumenti automatizzati (Sezione~\ref{subsec:static-analysis}), la type safety a due strati che combina analisi statica e modelli Pydantic (Sezione~\ref{subsec:dual-layer-type-safety}), e gli indicatori di qualità dell'ingegneria di produzione che riguardano documentazione, riproducibilità della build e installabilità (Sezione~\ref{subsec:production-quality}). I risultati sono riportati come prerequisito di credibilità, non come contributo autonomo.
+Le verifiche coprono tre aree: l'analisi statica della codebase tramite una suite di strumenti automatizzati (Sezione~\ref{subsec:static-analysis}), la type safety a due strati che combina analisi statica con mypy e validazione a runtime con Pydantic (Sezione~\ref{subsec:dual-layer-type-safety}), e gli indicatori di qualità che riguardano documentazione interna, riproducibilità della build e portabilità dell'installazione (Sezione~\ref{subsec:production-quality}).
 
-\subsection{Analisi Statica del Codebase}\label{subsec:static-analysis}
+\subsection{Analisi Statica della Codebase}\label{subsec:static-analysis}
 
-Su 90 file sorgente Python, la suite di analisi statica ha prodotto i seguenti esiti al momento dell'audit, riassunti nella Tabella~\ref{tab:analisi-statica}.
+La suite di analisi statica della codebase è composta da cinque strumenti con responsabilità distinte e complementari, i cui risultati sono riassunti nella Tabella~\ref{tab:analisi-statica}:
+
+\begin{itemize}
+  \item \texttt{ruff} svolge l'analisi di lint\footnote{Con \emph{lint} si intende l'analisi statica automatica del codice sorgente volta a identificare errori, violazioni di stile, pattern rischiosi e codice non conforme alle convenzioni del progetto, senza eseguire il programma.}, l'ordinamento degli import, il rilevamento di pattern insicuri e la verifica della copertura delle annotazioni di tipo.
+
+  \item \texttt{mypy} verifica la coerenza dei tipi lungo l'intera catena di dipendenze in modalità \texttt{strict}, la configurazione più restrittiva disponibile. Il suo funzionamento è discusso in dettaglio nella Sezione~\ref{subsec:dual-layer-type-safety}.
+
+  \item \texttt{bandit} analizza la codebase alla ricerca di pattern associati a vulnerabilità note. I tre finding di bassa severità rilevati in \texttt{connectors/base.py} riguardano l'invocazione di \texttt{subprocess.run()} e sono soppressi con annotazione documentata: il comando è costruito esclusivamente da \texttt{ClassVar} dichiarati nel sorgente e da valori già validati da Pydantic, senza mai includere input \gls{HTTP} grezzo dall'esterno.
+
+  \item \texttt{vulture} identifica simboli pubblici definiti ma mai invocati direttamente nel codice, con soglia di confidenza all'80\%. I metodi \texttt{execute()}, \texttt{model\_*} e \texttt{validator\_*} sono esclusi tramite whitelist: \texttt{execute()} è invocato dall'engine tramite \texttt{isinstance} check, mentre i validator Pydantic vengono attivati automaticamente dal framework al momento della costruzione di ogni oggetto, senza mai comparire come chiamate esplicite nel sorgente.
+
+  \item \texttt{pip-audit} verifica le dipendenze dichiarate contro i database pubblici di vulnerabilità note.
+\end{itemize}
+
 
 \begin{table}[ht]
   \centering
   \small
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
-    \textbf{Tool}      & \textbf{Risultato}           & \textbf{Dettaglio} \\
+    \textbf{Tool}      & \textbf{Esito}               & \textbf{Note}         \\
     \midrule
     \texttt{ruff}      & 0 errori                     &
-    Ruleset \texttt{E/W/F/I/N/UP/B/S/ANN}: lint, import order, upgrade,
-    security, annotation coverage                                          \\
+    Ruleset \texttt{E/W/F/I/N/UP/B/S/ANN}                                     \\
     \addlinespace
-    \texttt{mypy}      & 0 errori su 90 file          &
-    Modalità \texttt{strict = true}: \texttt{no-implicit-optional},
-    \texttt{disallow-untyped-defs}, \texttt{warn-return-any} e tutti i flag
-    associati                                                              \\
+    \texttt{mypy}      & 0 errori                     &
+    Modalità \texttt{strict}: \texttt{no-implicit-optional},
+    \texttt{disallow-untyped-defs}, \texttt{warn-return-any}                  \\
     \addlinespace
     \texttt{bandit}    & 0 finding severity medium$+$ &
-    3 Low (B404, S603$\times$2 in \texttt{connectors/base.py}), tutti
-    soppressi con \texttt{\#~noqa:~S603} documentati: invocazione
-    subprocess controllata per design                                      \\
+    3 Low (B404, S603$\times$2) soppressi con \texttt{\#~noqa} documentati:
+    invocazione subprocess controllata per design                             \\
     \addlinespace
     \texttt{vulture}   & 0 finding                    &
-    Confidence $\ge$80\%: nessun simbolo pubblico inutilizzato.
-    \texttt{execute}, \texttt{model\_*} e \texttt{validator\_*} esclusi
-    per dispatching dinamico                                               \\
+    Confidence $\ge$80\%; metodi a dispatching dinamico esclusi via whitelist \\
     \addlinespace
     \texttt{pip-audit} & 0 \gls{CVE}                  &
-    Nessuna vulnerabilità nota nelle dipendenze dichiarate                 \\
+    Nessuna vulnerabilità nota nelle dipendenze dichiarate                    \\
     \bottomrule
   \end{tabularx}
-  \caption{Analisi statica della codebase APIGuard Assurance v0.1.0}
+  \caption{Risultati dell'analisi statica su APIGuard Assurance v0.1.0.}
   \label{tab:analisi-statica}
 \end{table}
 
-Il sistema di type enforcement a due strati, discusso nella Sezione~\ref{subsec:dual-layer-type-safety} del presente capitolo e distinto dalla dual test hierarchy della Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation},\footnote{La Sezione~\ref{subsec:dual-hierarchy} del Capitolo~\ref{chap:implementation} tratta la dual test hierarchy (gerarchia delle classi di test); la proprietà D6.P3 di dual-layer type safety è un meccanismo distinto, il cui locus è in \texttt{pyproject.toml} e \texttt{src/core/models/}.} formalizza un sistema con copertura complementare.
+L'analisi statica con mypy verifica che i tipi dichiarati tra moduli siano consistenti: se \texttt{execute()} dichiara di restituire \texttt{TestResult} e un punto di chiamata la tratta come \texttt{str}, mypy lo intercetta prima dell'esecuzione. Ciò che mypy non copre è il confine con l'esterno: un file \texttt{config.yaml} caricato da disco o l'output grezzo di un connector esterno entrano nel sistema come strutture non ancora tipizzate, e nessuna verifica statica può garantirne la forma. Quel secondo livello è trattato nella Sezione~\ref{subsec:dual-layer-type-safety}.
 
 
 \subsection{Dual-Layer Type Safety (D6.P3)}\label{subsec:dual-layer-type-safety}
 
-Il problema che questa proprietà risolve ha una struttura precisa. Su 90 file sorgente analizzati in modalità \texttt{strict}, il type checker non ha rilevato alcuna violazione: la verifica statica con mypy garantisce che il contratto tra i moduli, espresso tramite type hints, sia consistente lungo l'intera catena di dipendenze. Nessun punto di chiamata riceve un tipo incompatibile con quello dichiarato dal callee. Gli errori di interfaccia tra moduli vengono intercettati prima che il codice venga eseguito contro un target reale.
+La type safety in un codebase Python ha due confini distinti con caratteristiche diverse. Il primo è interno: i contratti tra moduli, espressi tramite type hints, verificabili staticamente prima dell'esecuzione. Il secondo è esterno: il punto in cui dati non tipizzati provenienti dall'esterno, un file \texttt{config.yaml} caricato da disco o il raw output di un connector, entrano nel sistema. I due confini richiedono meccanismi diversi.
 
-Mypy non copre però le system boundaries: il punto in cui dati esterni al codebase, un file \texttt{config.yaml} caricato da disco o il raw output di un connector, entrano nel sistema. Quel confine è presidiato da Pydantic~v2. I \texttt{model\_validator} e i \texttt{field\_validator} dei modelli di configurazione applicano le invarianti al momento della costruzione dell'oggetto: un campo \texttt{timeout\_seconds~=~None} con \texttt{enabled~=~True} nel \texttt{config.yaml} produce un \texttt{ConfigurationError} con il path del campo violato durante la Phase~1, non un crash non gestito durante l'esecuzione dei test. La classe di bug ``typecheck verde, runtime crash'' è strutturalmente eliminata.
+mypy in modalità \texttt{strict} verifica il confine interno sull'intera cartella \texttt{src/}: controlla che ogni funzione dichiari esplicitamente i tipi di ingresso e uscita (\texttt{disallow-untyped-defs}), che nessun parametro ammetta \texttt{None} implicitamente (\texttt{no-implicit-optional}), e che nessuna funzione restituisca \texttt{Any} dove è atteso un tipo concreto (\texttt{warn-return-any}). Questo include i modelli in \texttt{src/core/models/} (\texttt{TestResult}, \texttt{Finding}, \texttt{ConnectorResult}, \texttt{AttackSurface} e gli altri), le classi base dei test e dei connector, e tutta la logica dell'engine. Se durante lo sviluppo un campo di \texttt{TestResult} venisse rinominato o rimosso, ogni punto del codebase che vi accede genererebbe un errore mypy immediatamente, prima che il codice venga mai eseguito; allo stesso modo, se un tipo di ritorno dichiarato non corrisponde a ciò che la funzione restituisce effettivamente, mypy lo segnala al momento della modifica.
 
-I due strati sono indipendenti e complementari: ciascuno intercetta una categoria di errori che l'altro non raggiunge. Il costo mantenuto è prossimo allo zero per chi aggiunge un test: type hints e modelli Pydantic con \texttt{frozen=True} sono già vincolati dalle Hard Rules del progetto. La safety non dipende dalla disciplina individuale di chi contribuisce.
+Pydantic~v2 presidia il confine esterno. Ogni struttura dati che attraversa il confine del sistema, dai campi di \texttt{config.yaml} fino agli oggetti \texttt{ConnectorResult} prodotti dai tool esterni, è modellata come classe Pydantic con validatori espliciti. I \texttt{model\_validator} e i \texttt{field\_validator} applicano le invarianti nel momento della costruzione dell'oggetto: se nel \texttt{config.yaml} un tool esterno è marcato \texttt{enabled~=~True} ma il campo \texttt{timeout\_seconds} è assente, la Phase~1 solleva un \texttt{ConfigurationError} con il percorso esatto del campo mancante e l'assessment non inizia. Se un connector produce un \texttt{ConnectorResult} con un campo obbligatorio mancante, Pydantic solleva un errore di validazione al momento della costruzione dell'oggetto, indicando il campo violato, prima che il dato raggiunga la logica di assessment.
+
+I due strati hanno copertura complementare: mypy intercetta gli errori di interfaccia tra moduli prima dell'esecuzione, Pydantic intercetta i dati malformati al confine con l'esterno al momento della costruzione. Un difetto che sfugge al primo viene catturato dal secondo; la copertura combinata riduce lo spazio degli errori che possono propagarsi in silenzio verso la logica di assessment. Per chi aggiunge un test o un connector, entrambi i meccanismi sono già attivi per costruzione: i modelli Pydantic di configurazione e di risultato sono già frozen e tipizzati, e la conformità ai type hints è verificabile con \texttt{mypy src/} senza configurazione aggiuntiva.
 
 
 \subsection{Indicatori di Qualità dell'Ingegneria di Produzione}\label{subsec:production-quality}
 
-Oltre all'analisi statica, l'audit ha verificato una serie di proprietà ingegneristiche che contribuiscono alla riproducibilità e all'affidabilità operativa del tool. Tre meritano menzione esplicita per la loro rilevanza rispetto alle garanzie di assurance che il tool promette.
+Tre verifiche ulteriori riguardano la riproducibilità e la portabilità del tool come artefatto distribuibile, indipendentemente dall'output dell'assessment.
 
-Il primo è la copertura della documentazione interna: 292 simboli pubblici su 292 analizzati tramite ispezione automatica dell'\gls{AST} del codebase presentano una docstring di modulo o di classe (100\%). In un tool estensibile per design, la documentazione dei contratti pubblici è il meccanismo attraverso cui un nuovo test può determinare cosa può chiamare e con quali aspettative di comportamento: in assenza di essa, l'estensibilità dichiarata dall'architettura non è praticabile senza leggere il codice sorgente.
+La prima è la copertura della documentazione interna: tutti i 292 simboli pubblici della codebase presentano una docstring, verificato tramite ispezione dell'\gls{AST}\footnote{L'\emph{Abstract Syntax Tree} è la rappresentazione strutturata del codice sorgente usata dai compilatori e dagli analizzatori statici. Ispezionare l'AST permette di estrarre i simboli pubblici definiti e verificare la presenza della docstring associata senza eseguire il programma.}. In un tool progettato per essere esteso, la documentazione dei contratti pubblici è il meccanismo che permette a chi aggiunge un test di determinare cosa può chiamare e con quali aspettative di comportamento.
 
-Il secondo è la riproducibilità della build: due esecuzioni consecutive di \texttt{hatch~build~-{}-target~wheel} producono un artefatto con SHA-256 identico (451\,261~byte). Una wheel non deterministica introdurrebbe variabilità tra versioni nominalmente identiche, rendendo impossibile la verifica che il deployment in produzione corrisponda esattamente all'artefatto testato.
+La seconda è la riproducibilità della build: due esecuzioni consecutive di \texttt{hatch~build~-{}-target~wheel}\footnote{\texttt{hatch} è il build backend del progetto. Il comando produce un file \texttt{.whl} (\emph{wheel}), il formato standard di distribuzione per i package Python: installabile con \texttt{pip} senza compilazione, non dipende dalla piattaforma e non richiede estensioni native. Il tag \texttt{py3-none-any} nel nome lo conferma.} producono un artefatto con hash SHA-256 identico (451\,261~byte). Una build non deterministica introdurrebbe variabilità tra versioni nominalmente identiche, rendendo impossibile garantire che il tool in produzione corrisponda esattamente all'artefatto verificato.
 
-Il terzo è la portabilità dell'installazione: in un ambiente virtuale Python pulito, senza dipendenze preinstallate, \texttt{pip~install~apiguard\_assurance-0.1.0-py3-none-any.whl} seguito da \texttt{apiguard~version} restituisce \texttt{0.1.0}. La verifica che il tool sia self-contained garantisce che il suo comportamento non dipenda dallo stato dell'ambiente dell'esecutore, condizione necessaria per l'integrazione in pipeline \gls{CI/CD} con runner eterogenei.
-
-Le verifiche condotte, sintetizzate nella Tabella~\ref{tab:verdetto-release}, mostrano che il tool soddisfa i requisiti di qualità per il deployment in ambiente chiuso su target con \gls{OAS} documentata. I due item non completati, il file \texttt{LICENSE} e il \texttt{CHANGELOG.md}, riguardano esclusivamente la distribuzione pubblica su PyPI e non hanno impatto sul comportamento operativo.
+La terza riguarda l'installabilità in ambienti puliti. Il pacchetto generato dalla build può essere installato in un ambiente virtuale Python privo di dipendenze preinstallate con \texttt{pip~install}; al termine, \texttt{apiguard~version} restituisce \texttt{0.1.0} e il tool è operativo. La verifica conferma che l'installazione non richiede dipendenze di sistema non dichiarate e che il comportamento del tool non dipende da pacchetti preinstallati nell'ambiente dell'esecutore, condizione descritta nella Sezione~\ref{subsec:zero-state}.
 
 \begin{table}[ht]
   \centering
   \small
   \begin{tabularx}{\textwidth}{l l X}
     \toprule
-    \textbf{Aspetto}          & \textbf{Stato} & \textbf{Riferimento} \\
+    \textbf{Aspetto}            & \textbf{Stato} & \textbf{Dettaglio}                                                  \\
     \midrule
-    Correttezza funzionale    & \checkmark     &
-    Analisi statica 100\% verde su 90 file (verifiche~1--5)           \\
+    Analisi statica             & \checkmark     &
+    0 errori su tutti e cinque gli strumenti (Sezione~\ref{subsec:static-analysis})                                    \\
     \addlinespace
-    Integrità architetturale  & \checkmark     &
-    18 \texttt{test\_id} unici; \gls{DAG} aciclico; gerarchia eccezioni
-    11 classi; dipendenze monodirezionali (verifiche~19--23)          \\
+    Type safety                 & \checkmark     &
+    0 errori mypy strict; validazione Pydantic attiva su tutti i confini (Sezione~\ref{subsec:dual-layer-type-safety}) \\
     \addlinespace
-    Copertura documentazione  & \checkmark     &
-    100\% docstring su 292 simboli pubblici; 265/265 Pydantic
-    \texttt{Field} description (verifica~65)                          \\
+    Documentazione interna      & \checkmark     &
+    292/292 simboli pubblici con docstring (100\%)                                                                     \\
     \addlinespace
-    Packaging e distribuzione & \checkmark     &
-    Wheel 451\,261~byte, SHA-256 identico su 2 build consecutive
-    (verifica~67)                                                     \\
+    Riproducibilità della build & \checkmark     &
+    SHA-256 identico su due build consecutive (451\,261~byte)                                                          \\
     \addlinespace
-    Cold install              & \checkmark     &
-    \texttt{pip install wheel} in fresh venv $\to$
-    \texttt{apiguard version} $\to$ \texttt{0.1.0} (verifica~64)      \\
-    \addlinespace
-    Resilienza di produzione  & \checkmark     &
-    Signal handling garantisce teardown Phase~6 su
-    \texttt{KeyboardInterrupt} (verifica~47)                          \\
-    \addlinespace
-    Item deferiti             & 2              &
-    \texttt{LICENSE} e \texttt{CHANGELOG.md}: solo per distribuzione
-    PyPI pubblica, nessun impatto operativo                           \\
+    Portabilità                 & \checkmark     &
+    Cold install in ambiente pulito: \texttt{apiguard version} $\to$ \texttt{0.1.0}                                    \\
     \bottomrule
   \end{tabularx}
-  \caption{Indicatori di release-readiness del tool.}
+  \caption{Sintesi delle verifiche di qualità sulla codebase.}
   \label{tab:verdetto-release}
 \end{table}
 
@@ -244,9 +275,9 @@ Le verifiche condotte, sintetizzate nella Tabella~\ref{tab:verdetto-release}, mo
 \label{sec:coverage-idempotenza}
 % ─────────────────────────────────────────────────────────────────────────────
 
-L'idempotenza è una proprietà delicata che richiede di essere attestata empiricamente. Test che creano risorse sul target, le interrogano, e poi le eliminano introducono dipendenze di stato che, se mal gestite, producono risultati diversi al secondo run: la prima esecuzione modifica il target, la seconda trova uno stato diverso. Che il sistema produca risultati identici su due run indipendenti è la dimostrazione empirica che la pipeline non lascia effetti collaterali osservabili, non un'affermazione di principio.
+I test che creano risorse sul target, le interrogano e poi le eliminano introducono dipendenze di stato che, se mal gestite, producono risultati diversi tra un'esecuzione e la successiva: la prima modifica il target, la seconda trova uno stato alterato. Dimostrare empiricamente che due esecuzioni successive producono risultati identici è il modo concreto per verificare che la pipeline non lasci effetti collaterali osservabili e che le proprietà di teardown e riproducibilità, discusse nelle Sezioni~\ref{subsec:teardown} e~\ref{subsec:reproducibility}, si comportino nel modo dichiarato su un target reale.
 
-I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso testbed, senza alcun intervento manuale tra l'uno e l'altro. La Tabella~\ref{tab:idempotenza-kpi} riporta i \gls{KPI} aggregati; la Tabella~\ref{tab:risultati-per-test} dettaglia lo status e il conteggio dei finding per ciascuno dei 18 test attivi.
+Le due esecuzioni sono state condotte in sequenza nella stessa giornata contro lo stesso testbed, senza alcun intervento manuale tra l'una e l'altra. Questa sezione analizza i risultati per dominio (Sezione~\ref{subsec:analisi-domini}) e verifica la stabilità dell'esecuzione e il corretto cleanup delle risorse (Sezione~\ref{subsec:idempotenza-teardown}).
 
 \begin{table}[ht]
   \centering
@@ -261,7 +292,7 @@ I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso t
     \addlinespace
     \texttt{pass\_rate\_pct}               & 56.2\%            & 56.2\%            & identico          \\
     \addlinespace
-    \texttt{assessment\_duration\_seconds} & 286.04\,s         & 286.96\,s         & $+$0.32\%         \\
+    \texttt{assessment\_duration\_seconds} & 290.14\,s         & 290.81\,s         & $+$0.23\%         \\
     \addlinespace
     Exit code / label                      & 1 / \texttt{FAIL} & 1 / \texttt{FAIL} & identico          \\
     \bottomrule
@@ -311,39 +342,22 @@ I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso t
 \end{table}
 
 
-\subsection{Analisi dei Risultati per Dominio}
+\subsection{Analisi dei Risultati per Dominio}\label{subsec:analisi-domini}
 
-La distribuzione dei finding non è uniforme. Il test~1.1, che sonda ogni endpoint della specifica OpenAPI di Forgejo in assenza di autenticazione, produce da solo 74 dei 98 finding totali: il 75.5\% dell'intero conteggio. Questo non è un artefatto di un test mal calibrato. Forgejo espone una superficie documentata di oltre cento endpoint, e la configurazione Kong del testbed non applica autenticazione a molti di essi per design sperimentale (come discusso nella Sezione~\ref{sec:testbed}).
-Ciascun endpoint che risponde \texttt{2xx} a una richiesta non autenticata è un finding distinto nell'oracle a tre esiti della Safe HTTP Probing Policy (Sezione~\ref{subsec:probing-policy}, D4.P7): la cardinalità riflette la superficie reale del target, non un'amplificazione artificiale del contatore.
+L'assessment ha prodotto 98 finding distribuiti su 7 \texttt{FAIL}, 9 \texttt{PASS} e 2 \texttt{SKIP}, riportati per test nella Tabella~\ref{tab:risultati-per-test}. Prima di analizzare i risultati per dominio, è utile presentare una lettura trasversale dei tre esiti.
 
-I due \texttt{SKIP} meritano una lettura separata. Il test~0.3 verifica che gli endpoint marcati \texttt{deprecated:~true} nella specifica restituiscano \texttt{410~Gone} o portino un header \texttt{Sunset} valido (RFC~8594). La specifica OpenAPI di Forgejo~14.0.3 non dichiara nessun endpoint con questo marcatore: lo scope è legittimamente vuoto, e il test restituisce \texttt{SKIP} con motivo documentato. Il test~1.6 verifica la configurazione del session store tramite l'Admin \gls{API} di Kong; nella configurazione del testbed, Kong non espone un session store gestito esternamente, e la condizione di applicabilità non è soddisfatta. In entrambi i casi, \texttt{SKIP} non è un fallimento silenzioso: è la risposta semanticamente corretta all'assenza di condizioni di applicabilità, distinta dall'\texttt{ERROR} che indicherebbe un malfunzionamento della pipeline stessa.
+I 7 \texttt{FAIL}, con il dettaglio dei finding per test nella Tabella~\ref{tab:risultati-per-test}, corrispondono alle condizioni configurate nel testbed descritte nella Sezione~\ref{subsec:configurazione-testbed}. Il test~1.1 da solo produce 74 dei 98 finding totali (75.5\%): quegli endpoint di Forgejo che il campo \texttt{security} della specifica marca come autenticati, ma che rispondono \texttt{2xx} a richieste prive di credenziali, sono finding corretti dal punto di vista del contratto tra specifica e comportamento osservato, come discusso nella Sezione~\ref{subsec:configurazione-testbed}. I restanti 24 finding sono distribuiti su test~0.1 (16), test~0.2 (1), test~4.1 (2), test~7.2 (1), \texttt{ext.1.5.sslyze} (1) e \texttt{ext.1.5.testssl} (3).
 
-I tre \texttt{FAIL} del Dominio~1 prodotti dai tool esterni riguardano la configurazione \gls{TLS}. Il certificato self-signed del testbed presenta configurazioni subottimali rilevabili dall'analisi statica del protocollo: \texttt{ext.1.5.sslyze} rileva 1 finding, \texttt{ext.1.5.testssl} ne rileva 3. Questi risultati sono attesi e coerenti con l'uso di un certificato generato localmente per ambiente di laboratorio.
+I 2 \texttt{SKIP} illustrano il comportamento del sistema in assenza di condizioni di applicabilità. Il contratto di \texttt{execute()}, descritto nella Sezione~\ref{sec:basetest}, stabilisce che ogni test produce sempre un \texttt{TestResult}: quando lo scope applicabile è vuoto o un prerequisito non è soddisfatto, il risultato è \texttt{SKIP} con motivazione esplicita, non un errore silenzioso. Il test~0.3 verifica che gli endpoint marcati \texttt{deprecated:~true} nella specifica restituiscano \texttt{410~Gone} o portino un header \texttt{Sunset} (RFC~8594); la specifica OpenAPI di Forgejo~14.0.3 non dichiara nessun endpoint deprecato, e il test restituisce \texttt{SKIP} con motivo documentato. Il test~1.6 verifica la configurazione del session store tramite la Admin \gls{API} di Kong; nella configurazione del testbed Kong non gestisce un session store esterno, e la condizione non è soddisfatta. In entrambi i casi uno \texttt{SKIP} con motivazione esplicita è la risposta semanticamente corretta, distinta da un \texttt{ERROR} che indicherebbe un malfunzionamento della pipeline.
+
+I 9 \texttt{PASS} coprono le configurazioni correttamente applicate nel testbed: l'assenza di fingerprinting del gateway (test~6.2), il redirect \gls{HTTP}$\to$\gls{HTTPS} (test~1.5), la revoca corretta del token (test~1.4), l'enforcement dell'autenticazione sui test \texttt{GREY\_BOX} (test~2.1), la configurazione degli upstream Kong (test~6.4), i controlli di integrità dei dati e disponibilità (test~3.3, 4.2, 4.3), e il tool esterno \texttt{ext.0.1.nuclei} che non ha rilevato Shadow \gls{API}, confermando che la superficie documentata dalla specifica corrisponde a quella effettivamente esposta.
 
 
-\subsection{Idempotenza e Validazione del Teardown}
+\subsection{Idempotenza e Validazione del Teardown}\label{subsec:idempotenza-teardown}
 
-Il delta sul wall-clock tra i due run è di 0.92~secondi su una durata media di circa 286~secondi, pari allo 0.32\% della durata totale. Questo margine rientra interamente nel rumore delle latenze di rete \gls{HTTP} verso il target e non è distinguibile dalla variabilità attesa di un sistema operativo in esecuzione su hardware condiviso. I contatori di finding, gli status per-test, il codice di uscita e il \texttt{pass\_rate\_pct} sono invece byte-identici: non vi è alcuna variazione nella parte deterministica del risultato.
+La Tabella~\ref{tab:idempotenza-kpi} riporta i \gls{KPI} aggregati delle due esecuzioni. I contatori di finding, gli status per-test, il codice di uscita e il \texttt{pass\_rate\_pct} sono byte-identici tra i due run: la parte deterministica del risultato non mostra alcuna variazione. Il delta sul wall-clock è di 0.67~secondi su una durata di circa 290~secondi, pari allo 0.23\% della durata totale; questa variazione rientra nella fluttuazione attesa delle latenze di rete \gls{HTTP} verso il target e non è attribuibile a comportamento non deterministico della pipeline.
 
-L'idempotenza ha una precondizione concreta: il teardown deve restituire il target allo stato iniziale dopo ogni run, senza lasciare risorse residue che alterino i risultati dell'esecuzione successiva. La verifica live condotta dopo ciascuno dei due run ha confermato che la Phase~6 ha drenato il registro \gls{LIFO} con 4 risorse transitorie e 0 fallimenti su entrambe le esecuzioni. La Tabella~\ref{tab:teardown-verifica} riporta lo stato delle risorse osservabili sul target prima del primo run e dopo ciascuno dei due.
-
-\begin{table}[ht]
-  \centering
-  \small
-  \begin{tabularx}{\textwidth}{X C C C C}
-    \toprule
-    \textbf{Risorsa sul target}                                         & \textbf{Prima run~1} & \textbf{Dopo run~1} & \textbf{Dopo run~2} & \textbf{Verdetto} \\
-    \midrule
-    Token Forgejo \texttt{thesis-admin} contenenti \texttt{"apiguard"}  & 0                    & 0                   & 0                   & \checkmark        \\
-    \addlinespace
-    Repository Forgejo \texttt{user-a} con prefisso \texttt{"apiguard"} & 0                    & 0                   & 0                   & \checkmark        \\
-    \bottomrule
-  \end{tabularx}
-  \caption{Verifica live del teardown post-run.}
-  \label{tab:teardown-verifica}
-\end{table}
-
-Zero risorse leakate su due run è la dimostrazione empirica che le proprietà discusse nella Sezione~\ref{subsec:teardown} (Best-Effort Teardown \gls{LIFO}, D4.P6) e nella Sezione~\ref{subsec:reproducibility} (Riproducibilità, D3.P4) si comportano nel modo dichiarato in presenza di stato reale. La correttezza teorica della logica di teardown trova il proprio banco di prova nello stato osservabile che produce: zero risorse residue è la misura diretta. Queste tabelle sono quella verifica.
+Il teardown, descritto nella Sezione~\ref{subsec:teardown}, costituisce la precondizione dell'idempotenza: senza un cleanup completo delle risorse create durante la prima esecuzione, la seconda troverebbe uno stato alterato e produrrebbe risultati diversi. La verifica condotta dopo ciascuna delle due esecuzioni ha confermato che la Phase~6 ha drenato il registro \gls{LIFO} senza lasciare risorse residue: nessun token con prefisso \texttt{"apiguard"} sull'account \texttt{thesis-admin} e nessuna repository con prefisso \texttt{"apiguard"} sull'account \texttt{user-a} erano presenti al termine di ciascuna esecuzione. Zero risorse residue su due esecuzioni indipendenti è la conferma empirica che la pipeline si comporta nel modo dichiarato in presenza di stato reale.
 
 
 
@@ -355,30 +369,24 @@ Zero risorse leakate su due run è la dimostrazione empirica che le proprietà d
 \label{sec:footprint-dag}
 % ─────────────────────────────────────────────────────────────────────────────
 
-Il profilo di risorse di un tool di assessment è un criterio operativo primario. Un tool che satura la CPU, esaurisce la memoria o produce un output non ingestibile non è integrabile in una pipeline \gls{CI/CD} senza hardware dedicato. I dati di questa sezione rispondono a una domanda precisa: su quale classe di macchina e in quale regime di esecuzione APIGuard Assurance è operativamente sostenibile?
+L'integrabilità di un tool di assessment in una pipeline \gls{CI/CD} dipende anche dal suo profilo di risorse: durata dell'esecuzione, consumo di memoria e dimensione degli output determinano su quale classe di infrastruttura il tool è operativamente sostenibile. Questa sezione riporta le misurazioni ottenute su due run di validazione.
 
-La Tabella~\ref{tab:performance-baseline} riporta le metriche di sistema misurate sui due run dell'audit, ottenute tramite \texttt{/usr/bin/time -v} applicato al processo \texttt{apiguard run}.
+Le metriche di sistema riportate nella Tabella~\ref{tab:performance-baseline} sono state ottenute tramite \texttt{/usr/bin/time -v} applicato al processo \texttt{apiguard run}. Il \emph{wall-clock time} è il tempo reale trascorso dall'avvio alla terminazione, comprensivo di attese di rete, I/O e scheduling del sistema operativo. Lo \emph{user time} e il \emph{system time} misurano il tempo CPU consumato rispettivamente in user space (codice Python e librerie) e in kernel space (system call, gestione dei processi figli): entrambi sono prodotti da \texttt{/usr/bin/time -v} e la loro somma dà il tempo CPU totale effettivo.
 
 \begin{table}[ht]
   \centering
   \small
   \begin{tabularx}{\textwidth}{l C C}
     \toprule
-    \textbf{Metrica}             & \textbf{Run~1}      & \textbf{Run~2}      \\
+    \textbf{Metrica}       & \textbf{Run~1}      & \textbf{Run~2}      \\
     \midrule
-    Wall-clock elapsed           & 290.14\,s (4:50.14) & 290.81\,s (4:50.81) \\
+    Wall-clock elapsed     & 290.14\,s (4:50.14) & 290.81\,s (4:50.81) \\
     \addlinespace
-    User time                    & 35.09\,s            & 34.67\,s            \\
+    User time              & 35.09\,s            & 34.67\,s            \\
     \addlinespace
-    System time                  & 41.51\,s            & 41.62\,s            \\
+    System time            & 41.51\,s            & 41.62\,s            \\
     \addlinespace
-    CPU utilization (media)      & 26\%                & (simile)            \\
-    \addlinespace
-    Peak resident set size       & 287\,MB             & 295\,MB             \\
-    \addlinespace
-    Voluntary context switches   & 145.356             & (simile)            \\
-    \addlinespace
-    Involuntary context switches & 20.685              & (simile)            \\
+    Peak resident set size & 287\,MB             & 295\,MB             \\
     \bottomrule
   \end{tabularx}
   \caption{Metriche di sistema sui due run.}
@@ -386,21 +394,21 @@ La Tabella~\ref{tab:performance-baseline} riporta le metriche di sistema misurat
 \end{table}
 
 
-\subsection{Regime di Esecuzione: IO-Bound, non CPU-Bound}
+\subsection{Regime di Esecuzione: Dominato dalla Latenza di Rete}
 
-Il dato più informativo nella tabella non è il wall-clock. È la relazione tra user time, system time e tempo totale. Su 290\,s di esecuzione reale, il processo ha consumato circa 35\,s di tempo CPU in user space e 41\,s in kernel space: la somma è 76\,s, il 26\% del wall-clock. I restanti 214\,s, il 74\% del tempo totale, il processo li ha trascorsi in attesa: attesa delle risposte \gls{HTTP} dal target, attesa del completamento dei processi esterni (nuclei, testssl.sh), attesa dell'I/O su disco per la scrittura dell'evidence store. Ne emerge un'inferenza architetturale diretta: il collo di bottiglia è la latenza di rete verso il target, non l'interprete Python né il \gls{DAG} scheduler. Qualsiasi refactoring del codice Python lascerebbe il wall-clock sostanzialmente invariato. Ciò che sposta effettivamente il wall-clock è la parallelizzazione dei test che non hanno dipendenze reciproche, traiettoria discussa nella Sezione~\ref{sec:limiti} come sviluppo futuro di Milestone~2. In assenza di parallelizzazione, il profilo attuale è il lower bound dell'architettura sequenziale, non un'inefficienza correggibile con refactoring locale.
-
-
-Il profilo di memoria è compatibile con l'integrazione \gls{CI/CD} su runner standard. 287--295\,MB di resident set size si collocano ampiamente entro i limiti delle configurazioni GitHub Actions e GitLab \gls{CI} di default (tipicamente 7\,GB per runner condivisi), senza richiedere runner dedicati né configurazioni di memoria particolari. Il footprint su disco è 4.5\,MB: \texttt{apiguard\_report.json} da 2.26\,MB, \texttt{assessment\_report.html} da 2.0\,MB e \texttt{evidence.json} da 254\,KB. I tre file sono autosufficienti e non richiedono dipendenze esterne per essere consultati.
+La relazione tra user time, system time e wall-clock rivela il regime di esecuzione. Su 290\,s di wall-clock, il processo ha consumato circa 35\,s di tempo CPU in user space e 41\,s in kernel space: la somma è 76\,s, il 26\% del totale. I restanti 214\,s il processo li ha trascorsi in attesa delle risposte \gls{HTTP} dal target, del completamento dei processi esterni (nuclei, testssl.sh) e dell'I/O su disco per la scrittura dell'evidence store. Il collo di bottiglia è la latenza di rete verso il target; ottimizzazioni al codice Python avrebbero un impatto marginale sul wall-clock totale. La riduzione più significativa del tempo di esecuzione verrebbe dalla parallelizzazione dei test privi di dipendenze reciproche, direzione discussa come sviluppo futuro nella Sezione~\ref{subsec:roadmap-operativa}. Con l'architettura sequenziale attuale, il profilo misurato rappresenta il tempo di esecuzione caratteristico per un assessment di questa dimensione.
 
 
-\subsection{Topologia del DAG e Implicazioni sull'Ordinamento dell'Esecuzione}
+Il picco di memoria di 287--295\,MB e il footprint su disco di 4.5\,MB (\texttt{apiguard\_report.json} 2.26\,MB, \texttt{assessment\_report.html} 2.0\,MB, \texttt{evidence.json} 254\,KB) sono compatibili con le limitazioni tipiche dei sistemi di \gls{CI/CD}, che operano generalmente su macchine con vincoli di memoria nell'ordine dei gigabyte. La relazione tra topologia del \gls{DAG} e footprint è discussa nella Sezione~\ref{subsec:topologia-dag}.
 
-L'esecuzione sequenziale di 18 test in due fasi non è la struttura più semplice realizzabile. Sarebbe stato possibile eseguire tutti i test in un singolo batch senza \gls{DAG}: meno codice, zero overhead di scheduling. Il problema che questa scelta avrebbe lasciato aperto è la correttezza dei risultati in presenza di dipendenze tra test.
 
-Il test~1.4 (revoca del token) richiede un token valido prodotto da un login \gls{HTTP} riuscito. Il test~2.1 (\gls{RBAC} enforcement) richiede lo stesso token per tentare endpoint amministrativi con credenziali di utente ordinario. Entrambi dipendono dal fatto che il test~1.1 abbia già interrogato la superficie di attacco e che l'autenticazione abbia prodotto un token nel \texttt{TestContext}. Eseguire~1.4 o~2.1 in assenza di questo prerequisito non produce un \texttt{ERROR} in fase di bootstrap: produce risultati non deterministici, ovvero output che dipendono dall'ordine di esecuzione e non dall'effettivo comportamento del target.
+\subsection{Topologia del DAG e Implicazioni sull'Ordinamento dell'Esecuzione}\label{subsec:topologia-dag}
 
-La topologia del \gls{DAG} nell'assessment di validazione, riportata nella Tabella~\ref{tab:dag-topology}, risolve il problema alla radice: 16 test senza dipendenze formano la Phase~A ed eseguono per primi; 1.4 e~2.1, che dichiarano \texttt{depends\_on~=~["1.1"]}, vengono schedulati in Phase~B e non possono mai essere avviati prima che il test~1.1 abbia prodotto un risultato.
+Eseguire tutti i test in un singolo batch senza \gls{DAG} sarebbe la struttura più semplice: meno codice, nessun overhead di scheduling. Il problema è la correttezza dei risultati in presenza di dipendenze tra test.
+
+Alcuni test richiedono che altri test abbiano già prodotto un certo stato nel \texttt{TestContext} prima di poter essere eseguiti. Nell'assessment di validazione, i test~1.4 (revoca del token) e~2.1 (enforcement \gls{RBAC}) dipendono entrambi da un token valido prodotto dal test~1.1: senza quel prerequisito, i due test produrrebbero risultati che dipendono dall'ordine di esecuzione e non dal comportamento effettivo del target. Il \gls{DAG} risolve questa dipendenza per costruzione: i test con \texttt{depends\_on} dichiarato vengono schedulati in una fase successiva, e non possono mai essere avviati prima che il predecessore abbia prodotto un risultato.
+
+La Tabella~\ref{tab:dag-topology} riporta la topologia risultante: 16 test senza dipendenze formano la Phase~A; 1.4 e~2.1 vengono schedulati in Phase~B e non possono mai essere avviati prima che il test~1.1 abbia prodotto un risultato.
 
 \begin{table}[ht]
   \centering
@@ -420,9 +428,9 @@ La topologia del \gls{DAG} nell'assessment di validazione, riportata nella Tabel
   \label{tab:dag-topology}
 \end{table}
 
-Due considerazioni emergono da questa topologia. La prima è che il \gls{DAG} è sparso: su 18 nodi, solo 2 hanno dipendenze dichiarate, e queste convergono su un unico predecessore. L'overhead di scheduling introdotto dal \texttt{DAGScheduler} è quindi trascurabile rispetto al tempo di esecuzione dei test; la complessità del componente si giustifica non sul carico attuale ma sulla scalabilità futura, quando dipendenze tra domini distinti renderanno il grafo più denso.
+Il \gls{DAG} di validazione è sparso: su 18 nodi, solo 2 hanno dipendenze dichiarate, entrambe convergenti sullo stesso predecessore. Con questo grado di connessione il calcolo dell'ordinamento topologico è istantaneo; la giustificazione del componente non è la complessità del caso attuale, ma la scalabilità: quando la suite crescerà a coprire più domini con dipendenze incrociate tra test di aree diverse, il grafo diventerà più denso e garantire la correttezza dell'ordinamento senza un meccanismo formale diventerà progressivamente più difficile. La validazione condotta non dimostra solo che le due dipendenze dichiarate sono gestite correttamente, ma che l'infrastruttura di scheduling è funzionante e pronta per accogliere grafi più complessi, come descritto tra gli sviluppi futuri nella Sezione~\ref{subsec:roadmap-operativa}, senza modifiche architetturali al core.
 
-La seconda considerazione riguarda la relazione tra topologia del \gls{DAG} e footprint di memoria. Con 16 test in esecuzione sequenziale nella Phase~A, il \texttt{EvidenceStore} mantiene aperto un file \texttt{.jsonl} per volta: il picco di memoria non è determinato dal numero di test paralleli ma dalla dimensione del singolo audit trail. I 287--295\,MB misurati rappresentano il profilo reale di questa esecuzione, non una stima conservativa. La transizione verso l'esecuzione parallela dei test all'interno della stessa fase, discussa come sviluppo futuro nella Sezione~\ref{subsec:roadmap-operativa}, richiederà una rivalutazione di questo profilo: più file \texttt{.jsonl} aperti concorrentemente comportano un footprint proporzionalmente maggiore, da misurare prima di fissare i requisiti di memoria per deployment \gls{CI/CD}.
+La topologia ha una relazione diretta con il footprint di memoria. Con 16 test in esecuzione sequenziale nella Phase~A, il \texttt{EvidenceStore} mantiene aperto un file \texttt{.jsonl} per volta: il picco di memoria non è determinato dal numero di test paralleli ma dalla dimensione del singolo audit trail. I 287--295\,MB misurati sono il profilo effettivo di questa esecuzione. La transizione verso l'esecuzione parallela dei test all'interno della stessa fase, discussa come sviluppo futuro nella Sezione~\ref{subsec:roadmap-operativa}, richiederà una rivalutazione di questo profilo: più file \texttt{.jsonl} aperti concorrentemente comportano un footprint proporzionalmente maggiore, da misurare prima di fissare i requisiti di memoria per deployment \gls{CI/CD}.
 
 
 
@@ -437,9 +445,7 @@ La seconda considerazione riguarda la relazione tra topologia del \gls{DAG} e fo
 \addcontentsline{toc}{section}{Sintesi della Validazione}
 % ─────────────────────────────────────────────────────────────────────────────
 
-I quattro livelli di analisi si stratificano in una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo. Il testbed stabilisce le condizioni di osservazione. La release-readiness certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza dimostrano che i risultati prodotti sono stabili e non contaminati da effetti collaterali. Il profilo computazionale ne qualifica l'integrabilità operativa. Rimuovere uno qualsiasi di questi livelli non impoverisce la validazione: la invalida.
+Su un target reale con specifica \gls{OAS} nativa, APIGuard Assurance v0.1.0 ha eseguito 18 test distribuiti su 7 domini di sicurezza, prodotto 98 finding, restituito risultati byte-identici su due run indipendenti, drenato tutte le risorse transitorie senza residui, e completato l'assessment in circa 4 minuti e 50 secondi. I quattro livelli di analisi di questo capitolo formano una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo, dal testbed che stabilisce le condizioni di osservazione fino al profilo computazionale che ne qualifica l'integrabilità operativa.
 
-Il risultato aggregato è leggibile in termini precisi. Su un target reale con una \gls{OAS} nativa, APIGuard Assurance v0.1.0 ha eseguito 18 test distribuiti su 7 domini di sicurezza, prodotto 98 finding in 9 categorie distinte, restituito risultati byte-identici su due run indipendenti, drenato tutte le risorse transitorie senza residui, e completato l'intero assessment in circa 4 minuti e 50 secondi su hardware non dedicato. Nessuno di questi numeri è stimato: tutti tracciano a un punto di verifica nell'audit.
-
-La validazione empirica misura comportamenti osservabili e non può pronunciarsi sui limiti del paradigma che il tool implementa. Un assessment corretto su una specifica errata produce verdetti formalmente validi ma sostanzialmente privi di significato. Un tool che astrae il gateway per garantire portabilità multi-vendor rinuncia, per costruzione, ai controlli vendor-specifici privi di un equivalente generalizzabile. Queste non sono anomalie dell'implementazione: sono tensioni strutturali del contratto che APIGuard Assurance stringe con il proprio dominio applicativo. La loro analisi è l'oggetto del Capitolo~\ref{chap:discussion}.
+La validazione empirica misura comportamenti osservabili su un target reale; i limiti strutturali del paradigma adottato e le tensioni architetturali che ne derivano sono l'oggetto del Capitolo~\ref{chap:discussion}.
 
