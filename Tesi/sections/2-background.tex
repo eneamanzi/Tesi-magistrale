@@ -1,5 +1,4 @@
 % !TEX root = ../main.tex
-\chapter{Background e Stato dell'Arte}\label{chap:background}
 
 % PATTERN DISPONIBILI IN QUESTO CAPITOLO:
 % - figure[ht]: \begin{figure}[ht]\centering\includegraphics[width=0.8\textwidth]{...}\caption{...}\label{...}\end{figure}
@@ -40,7 +39,7 @@ I servizi autonomi comunicano attraverso stili architetturali con proprietà tec
 
 WebSocket e \gls{SSE} condividono la proprietà di stabilire connessioni persistenti che sopravvivono al singolo ciclo request-response. Il rate limiting applicato sull'handshake \gls{HTTP} iniziale non si estende ai frame successivi, e i meccanismi di ispezione del gateway operano esclusivamente sul traffico di upgrade, lasciando il canale post-handshake fuori dal perimetro di enforcement.
 
-Questa tesi si focalizza su \gls{API} \gls{REST} documentate tramite specifica OpenAPI, per le ragioni discusse nella Sezione~\ref{sec:gap-ricerca}: è lo stile architetturale più adottato nelle architetture a microservizi cloud-native e quello per cui esiste una specifica formale sfruttabile come oracolo di assessment.
+Questa tesi si focalizza su \gls{API} \gls{REST} documentate tramite specifica OpenAPI: è lo stile architetturale più adottato nelle architetture a microservizi cloud-native e quello per cui esiste una specifica formale sfruttabile come oracolo di assessment.
 
 
 \subsection{Il Fenomeno dell'API Sprawl}\label{subsec:api-sprawl}
@@ -154,4 +153,5 @@ il primo fuzzer stateful per \gls{API} REST presentato all'ICSE 2019, analizza l
 
 RESTler dimostra la praticabilità tecnica del paradigma contract-driven, ma il suo obiettivo primario è la generazione di sequenze di test per trovare crash e comportamenti inattesi, non la verifica sistematica di garanzie di sicurezza specifiche. La specifica OpenAPI viene utilizzata per costruire le richieste, ma le risposte sono valutate rispetto a euristiche di anomalia generali, non rispetto a ciò che il contratto prevede per quella combinazione di operazione, risorsa e identità del chiamante. Ne deriva che RESTler è efficace nell'identificare difetti di robustezza e nell'esplorare lo spazio degli stati raggiungibili, ma non è progettato per verificare se una risposta \texttt{200} contenga campi che il contratto non prevede, se un token revocato venga ancora accettato, o se un endpoint di configurazione del gateway esponga credenziali non cifrate.
 
-Il gap che rimane aperto è precisamente quello che questa tesi intende colmare: un framework che utilizzi la specifica OpenAPI non solo per costruire richieste valide ma come oracolo formale per valutare la correttezza semantica delle risposte, che operi in modo agnostico rispetto al target applicativo specifico, e che garantisca la riproducibilità deterministica dei risultati come requisito verificabile empiricamente. Il Capitolo~\ref{chap:methodology} presenta l'architettura che realizza questi tre obiettivi, a partire dai principi fondamentali che li rendono possibili congiuntamente.
+Nella stessa direzione si colloca Schemathesis~\cite{MISSING:schemathesis:2022}, % TODO: add to Zotero — Hatfield-Dodds, A., et al. (2022). Deriving Semantics-Aware Fuzzers from Web API Schemas. ICSE 2022. DOI: 10.1145/3510003.3510152
+uno strumento di property-based testing che usa la specifica OpenAPI per generare casi di test con riduzione automatica dei controesempi. Rispetto a RESTler, Schemathesis introduce una semantica di valutazione più ricca, ma rimane orientato alla generazione statistica di richieste piuttosto che alla verifica sistematica di garanzie di sicurezza specifiche: i verdetti dipendono dalle proprietà definite dall'utente, non da un oracolo derivato dal contratto dell'endpoint. Il gap che rimane aperto è precisamente quello che questa tesi intende colmare: un framework che utilizzi la specifica OpenAPI non solo per costruire richieste valide ma come oracolo formale per valutare la correttezza semantica delle risposte rispetto a garanzie di sicurezza predefinite e prioritizzate, che operi in modo agnostico rispetto al target applicativo specifico, e che garantisca la riproducibilità deterministica dei risultati come requisito verificabile empiricamente. Il Capitolo~\ref{chap:methodology} presenta l'architettura che realizza questi tre obiettivi, a partire dai principi fondamentali che li rendono possibili congiuntamente.

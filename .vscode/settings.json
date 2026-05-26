@@ -472,6 +472,9 @@
             "wrapper"
         ]
     },
+    "[latex]": {
+        "editor.formatOnSave": true
+    },
     "cSpell.language": "en,it",
     "cSpell.enabledFileTypes": {
         "latex": false,

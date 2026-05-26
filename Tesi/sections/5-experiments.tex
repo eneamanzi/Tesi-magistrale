@@ -23,7 +23,7 @@
 \chapter{Validazione sperimentale e risultati}%
 \label{chap:experiments}
 
-I Capitoli~\ref{chap:methodology} e~\ref{chap:implementation} hanno descritto come APIGuard Assurance è stato progettato e realizzato. Questo capitolo verifica empiricamente che quelle scelte architetturali si comportino nel modo dichiarato quando il tool viene eseguito contro un target reale. La validazione si articola in quattro livelli che formano una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo. La topologia dell'ambiente di test (Sezione~\ref{sec:testbed}) stabilisce le condizioni di osservazione. La qualità ingegneristica del codebase (Sezione~\ref{sec:release-readiness}) certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza su due run indipendenti (Sezione~\ref{sec:coverage-idempotenza}) dimostrano che i risultati sono stabili e privi di effetti collaterali. Il profilo computazionale (Sezione~\ref{sec:footprint-dag}) ne qualifica l'integrabilità operativa.
+I Capitoli~\ref{chap:methodology} e~\ref{chap:implementation} hanno descritto come APIGuard Assurance è stato progettato e realizzato. La suite attiva comprende test per i domini D0, D1, D2, D3, D4, D6 e D7; il Dominio~5 (Observability) è architetturalmente predisposto ma non include test attivi in questa fase, come dichiarato nella Sezione~\ref{subsec:domini-tassonomia}. Questo capitolo verifica empiricamente che quelle scelte architetturali si comportino nel modo dichiarato quando il tool viene eseguito contro un target reale. La validazione si articola in quattro livelli che formano una gerarchia di precondizioni: ciascuno è condizione di interpretabilità del successivo. La topologia dell'ambiente di test (Sezione~\ref{sec:testbed}) stabilisce le condizioni di osservazione. La qualità ingegneristica del codebase (Sezione~\ref{sec:release-readiness}) certifica che lo strumento di misura è affidabile. La copertura funzionale e l'idempotenza su due run indipendenti (Sezione~\ref{sec:coverage-idempotenza}) dimostrano che i risultati sono stabili e privi di effetti collaterali. Il profilo computazionale (Sezione~\ref{sec:footprint-dag}) ne qualifica l'integrabilità operativa.
 
 Tutti i dati quantitativi di questo capitolo sono il prodotto di verifiche condotte prima del rilascio della versione \texttt{0.1.0}: misurazioni di sistema, esecuzioni ripetute dell'assessment e ispezioni statiche del codebase, ciascuna con un comando o una procedura riproducibile. Nessun risultato è stimato o interpolato. Un capitolo di risultati che non esplicita come sono stati prodotti i numeri che riporta è, dal punto di vista della riproducibilità, un capitolo di affermazioni; ogni dato che segue è corredato dalla procedura che lo ha generato.
 
@@ -95,7 +95,7 @@ Di conseguenza, tre scelte di configurazione producono \texttt{FAIL} osservabili
         gateway non applica autenticazione su molti di essi. Il test~1.1
         sonda ogni endpoint della specifica senza credenziali e registra
         \texttt{BYPASSED} per ciascun endpoint che risponde \texttt{2xx}.
-        Il verdetto è \texttt{FAIL} con 74 finding. Questo non è un falso
+        Il verdetto è \texttt{FAIL} con 74 finding, classificati come \textsc{bypassed} dall'oracle a tre esiti descritto nella Sezione~\ref{subsec:probing-policy}. Questo non è un falso
         positivo: il tool riporta correttamente la discrepanza tra ciò che
         la specifica dichiara e ciò che il gateway applica. Un endpoint
         marcato come autenticato nella specifica che risponde \texttt{2xx}
@@ -127,7 +127,7 @@ Questa scelta realizza concretamente la proprietà di riproducibilità discussa 
 \label{sec:release-readiness}
 % ─────────────────────────────────────────────────────────────────────────────
 
-Un tool che produce verdetti di sicurezza deve poter dimostrare che la propria implementazione è soggetta allo stesso rigore che applica al target. Un codebase con errori di tipo non rilevati, dipendenze con \gls{CVE} note, o simboli pubblici privi di contratto documentato produce output la cui affidabilità è difficilmente separabile dalla qualità del codice che lo genera. Prima di discutere cosa il tool ha trovato sul target, questa sezione stabilisce su quali basi ingegneristiche poggia quella analisi.
+Un tool che produce verdetti di sicurezza deve poter dimostrare che la propria implementazione è soggetta allo stesso rigore che applica al target. La ragione è strutturale: un codebase con errori di tipo non rilevati può produrre verdetti formalmente corretti ma basati su dati mal classificati; dipendenze con \gls{CVE} note introducono vulnerabilità nel tool stesso che un attaccante potrebbe sfruttare per alterare i risultati dell'assessment; simboli pubblici privi di contratto documentato rendono l'estensione del tool per terze parti una fonte di errori non rilevabili staticamente. L'affidabilità dell'output non è separabile dalla qualità del codice che lo genera. Prima di discutere cosa il tool ha trovato sul target, questa sezione stabilisce su quali basi ingegneristiche poggia quella analisi.
 
 Le verifiche condotte coprono quattro aree: l'analisi statica del codebase tramite una suite di strumenti automatizzati (Sezione~\ref{subsec:static-analysis}), la type safety a due strati che combina analisi statica e modelli Pydantic (Sezione~\ref{subsec:dual-layer-type-safety}), e gli indicatori di qualità dell'ingegneria di produzione che riguardano documentazione, riproducibilità della build e installabilità (Sezione~\ref{subsec:production-quality}). I risultati sono riportati come prerequisito di credibilità, non come contributo autonomo.
 
@@ -185,13 +185,13 @@ I due strati sono indipendenti e complementari: ciascuno intercetta una categori
 
 Oltre all'analisi statica, l'audit ha verificato una serie di proprietà ingegneristiche che contribuiscono alla riproducibilità e all'affidabilità operativa del tool. Tre meritano menzione esplicita per la loro rilevanza rispetto alle garanzie di assurance che il tool promette.
 
-Il primo è la copertura della documentazione interna: 292 simboli pubblici su 292 analizzati tramite scansione \gls{AST} presentano una docstring di modulo o di classe (100\%). In un tool estensibile per design, la documentazione dei contratti pubblici non è decorativa: è il meccanismo attraverso cui un nuovo test può capire cosa può chiamare e con quali aspettative di comportamento.
+Il primo è la copertura della documentazione interna: 292 simboli pubblici su 292 analizzati tramite ispezione automatica dell'\gls{AST} del codebase presentano una docstring di modulo o di classe (100\%). In un tool estensibile per design, la documentazione dei contratti pubblici è il meccanismo attraverso cui un nuovo test può determinare cosa può chiamare e con quali aspettative di comportamento: in assenza di essa, l'estensibilità dichiarata dall'architettura non è praticabile senza leggere il codice sorgente.
 
-Il secondo è la riproducibilità della build. Due esecuzioni consecutive di \texttt{hatch~build~-{}-target~wheel} producono un artefatto con SHA-256 identico (451\,261~byte). Una wheel non deterministica introduce una categoria di variabilità nel deployment che è metodologicamente inaccettabile per un tool che promette idempotenza sui propri risultati.
+Il secondo è la riproducibilità della build: due esecuzioni consecutive di \texttt{hatch~build~-{}-target~wheel} producono un artefatto con SHA-256 identico (451\,261~byte). Una wheel non deterministica introdurrebbe variabilità tra versioni nominalmente identiche, rendendo impossibile la verifica che il deployment in produzione corrisponda esattamente all'artefatto testato.
 
-Il terzo è il cold install: in un ambiente virtuale Python pulito, senza alcuna dipendenza preinstallata, l'esecuzione di \texttt{pip~install~apiguard\_assurance-0.1.0-py3-none-any.whl} seguita da \texttt{apiguard~version} restituisce \texttt{0.1.0}. Il tool è self-contained e non dipende da pacchetti installati nell'ambiente dell'esecutore.
+Il terzo è la portabilità dell'installazione: in un ambiente virtuale Python pulito, senza dipendenze preinstallate, \texttt{pip~install~apiguard\_assurance-0.1.0-py3-none-any.whl} seguito da \texttt{apiguard~version} restituisce \texttt{0.1.0}. La verifica che il tool sia self-contained garantisce che il suo comportamento non dipenda dallo stato dell'ambiente dell'esecutore, condizione necessaria per l'integrazione in pipeline \gls{CI/CD} con runner eterogenei.
 
-Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto-release}, è: pronto per la difesa di tesi e per il deployment in ambiente chiuso su target con \gls{OAS} documentata. Gli unici due item deferiti, il file \texttt{LICENSE} e il \texttt{CHANGELOG.md}, riguardano esclusivamente la distribuzione pubblica su PyPI e non hanno impatto sul comportamento operativo del tool.
+Le verifiche condotte, sintetizzate nella Tabella~\ref{tab:verdetto-release}, mostrano che il tool soddisfa i requisiti di qualità per il deployment in ambiente chiuso su target con \gls{OAS} documentata. I due item non completati, il file \texttt{LICENSE} e il \texttt{CHANGELOG.md}, riguardano esclusivamente la distribuzione pubblica su PyPI e non hanno impatto sul comportamento operativo.
 
 \begin{table}[ht]
   \centering
@@ -228,7 +228,7 @@ Il verdetto complessivo dell'audit, sintetizzato nella Tabella~\ref{tab:verdetto
     PyPI pubblica, nessun impatto operativo                           \\
     \bottomrule
   \end{tabularx}
-  \caption{Verdetto release-readiness al Milestone~1.}
+  \caption{Indicatori di release-readiness del tool.}
   \label{tab:verdetto-release}
 \end{table}
 
@@ -275,35 +275,35 @@ I due run sono stati eseguiti in sequenza nello stesso giorno contro lo stesso t
   \small
   \begin{tabularx}{\textwidth}{l l l C C}
     \toprule
-    \textbf{Test ID}         & \textbf{Dominio}    & \textbf{Tipo} & \textbf{Status} & \textbf{Finding} \\
+    \textbf{Test ID}         & \textbf{Dominio}   & \textbf{Tipo} & \textbf{Status} & \textbf{Finding} \\
     \midrule
-    \texttt{0.1}             & D0 — Discovery      & Nativo        & \texttt{FAIL}   & 16               \\
-    \texttt{0.2}             & D0 — Discovery      & Nativo        & \texttt{FAIL}   & 1                \\
-    \texttt{0.3}             & D0 — Discovery      & Nativo        & \texttt{SKIP}   & 0                \\
+    \texttt{0.1}             & D0: Discovery      & Nativo        & \texttt{FAIL}   & 16               \\
+    \texttt{0.2}             & D0: Discovery      & Nativo        & \texttt{FAIL}   & 1                \\
+    \texttt{0.3}             & D0: Discovery      & Nativo        & \texttt{SKIP}   & 0                \\
     \addlinespace
-    \texttt{1.1}             & D1 — Auth           & Nativo        & \texttt{FAIL}   & 74               \\
-    \texttt{1.4}             & D1 — Auth           & Nativo        & \texttt{PASS}   & 0                \\
-    \texttt{1.5}             & D1 — Auth           & Nativo        & \texttt{PASS}   & 0                \\
-    \texttt{1.6}             & D1 — Auth           & Nativo        & \texttt{SKIP}   & 0                \\
+    \texttt{1.1}             & D1: Auth           & Nativo        & \texttt{FAIL}   & 74               \\
+    \texttt{1.4}             & D1: Auth           & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{1.5}             & D1: Auth           & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{1.6}             & D1: Auth           & Nativo        & \texttt{SKIP}   & 0                \\
     \addlinespace
-    \texttt{2.1}             & D2 — Authorization  & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{2.1}             & D2: Authorization  & Nativo        & \texttt{PASS}   & 0                \\
     \addlinespace
-    \texttt{3.3}             & D3 — Data Integrity & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{3.3}             & D3: Data Integrity & Nativo        & \texttt{PASS}   & 0                \\
     \addlinespace
-    \texttt{4.1}             & D4 — Availability   & Nativo        & \texttt{FAIL}   & 2                \\
-    \texttt{4.2}             & D4 — Availability   & Nativo        & \texttt{PASS}   & 0                \\
-    \texttt{4.3}             & D4 — Availability   & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{4.1}             & D4: Availability   & Nativo        & \texttt{FAIL}   & 2                \\
+    \texttt{4.2}             & D4: Availability   & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{4.3}             & D4: Availability   & Nativo        & \texttt{PASS}   & 0                \\
     \addlinespace
-    \texttt{6.2}             & D6 — Hardening      & Nativo        & \texttt{PASS}   & 0                \\
-    \texttt{6.4}             & D6 — Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{6.2}             & D6: Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{6.4}             & D6: Hardening      & Nativo        & \texttt{PASS}   & 0                \\
     \addlinespace
-    \texttt{7.2}             & D7 — Business Logic & Nativo        & \texttt{FAIL}   & 1                \\
+    \texttt{7.2}             & D7: Business Logic & Nativo        & \texttt{FAIL}   & 1                \\
     \addlinespace
-    \texttt{ext.0.1.nuclei}  & D0 — Discovery      & Esterno       & \texttt{PASS}   & 0                \\
-    \texttt{ext.1.5.sslyze}  & D1 — Auth           & Esterno       & \texttt{FAIL}   & 1                \\
-    \texttt{ext.1.5.testssl} & D1 — Auth           & Esterno       & \texttt{FAIL}   & 3                \\
+    \texttt{ext.0.1.nuclei}  & D0: Discovery      & Esterno       & \texttt{PASS}   & 0                \\
+    \texttt{ext.1.5.sslyze}  & D1: Auth           & Esterno       & \texttt{FAIL}   & 1                \\
+    \texttt{ext.1.5.testssl} & D1: Auth           & Esterno       & \texttt{FAIL}   & 3                \\
     \midrule
-    \textbf{Totale}          &                     &               &                 & \textbf{98}      \\
+    \textbf{Totale}          &                    &               &                 & \textbf{98}      \\
     \bottomrule
   \end{tabularx}
   \caption{Status e finding count per test.}
@@ -400,7 +400,7 @@ L'esecuzione sequenziale di 18 test in due fasi non è la struttura più semplic
 
 Il test~1.4 (revoca del token) richiede un token valido prodotto da un login \gls{HTTP} riuscito. Il test~2.1 (\gls{RBAC} enforcement) richiede lo stesso token per tentare endpoint amministrativi con credenziali di utente ordinario. Entrambi dipendono dal fatto che il test~1.1 abbia già interrogato la superficie di attacco e che l'autenticazione abbia prodotto un token nel \texttt{TestContext}. Eseguire~1.4 o~2.1 in assenza di questo prerequisito non produce un \texttt{ERROR} in fase di bootstrap: produce risultati non deterministici, ovvero output che dipendono dall'ordine di esecuzione e non dall'effettivo comportamento del target.
 
-La topologia del \gls{DAG} all'audit di Milestone~1, riportata nella Figura concettuale della Tabella~\ref{tab:dag-topology}, risolve il problema alla radice: 16 test senza dipendenze formano la Phase~A ed eseguono per primi; 1.4 e~2.1, che dichiarano \texttt{depends\_on~=~["1.1"]}, vengono schedulati in Phase~B e non possono mai essere avviati prima che il test~1.1 abbia prodotto un risultato.
+La topologia del \gls{DAG} nell'assessment di validazione, riportata nella Tabella~\ref{tab:dag-topology}, risolve il problema alla radice: 16 test senza dipendenze formano la Phase~A ed eseguono per primi; 1.4 e~2.1, che dichiarano \texttt{depends\_on~=~["1.1"]}, vengono schedulati in Phase~B e non possono mai essere avviati prima che il test~1.1 abbia prodotto un risultato.
 
 \begin{table}[ht]
   \centering
@@ -416,13 +416,13 @@ La topologia del \gls{DAG} all'audit di Milestone~1, riportata nella Figura conc
     \texttt{1.4}, \texttt{2.1}                                                                                                                                                                                                                                       \\
     \bottomrule
   \end{tabularx}
-  \caption{Topologia del \gls{DAG} a Milestone~1.}
+  \caption{Topologia del \gls{DAG} nell'assessment di validazione.}
   \label{tab:dag-topology}
 \end{table}
 
 Due considerazioni emergono da questa topologia. La prima è che il \gls{DAG} è sparso: su 18 nodi, solo 2 hanno dipendenze dichiarate, e queste convergono su un unico predecessore. L'overhead di scheduling introdotto dal \texttt{DAGScheduler} è quindi trascurabile rispetto al tempo di esecuzione dei test; la complessità del componente si giustifica non sul carico attuale ma sulla scalabilità futura, quando dipendenze tra domini distinti renderanno il grafo più denso.
 
-La seconda considerazione riguarda la relazione tra topologia del \gls{DAG} e footprint di memoria. Con 16 test in esecuzione sequenziale nella Phase~A, il \texttt{EvidenceStore} mantiene aperto un file \texttt{.jsonl} per volta: il picco di memoria non è determinato dal numero di test paralleli ma dalla dimensione del singolo audit trail. I 287--295\,MB misurati rappresentano il profilo reale di questa esecuzione, non una stima conservativa. La transizione verso l'esecuzione parallela dei test all'interno della stessa fase, prevista in Milestone~2, richiederà una rivalutazione di questo profilo: più file \texttt{.jsonl} aperti concorrentemente comportano un footprint proporzionalmente maggiore, da misurare prima di fissare i requisiti di memoria per deployment \gls{CI/CD}.
+La seconda considerazione riguarda la relazione tra topologia del \gls{DAG} e footprint di memoria. Con 16 test in esecuzione sequenziale nella Phase~A, il \texttt{EvidenceStore} mantiene aperto un file \texttt{.jsonl} per volta: il picco di memoria non è determinato dal numero di test paralleli ma dalla dimensione del singolo audit trail. I 287--295\,MB misurati rappresentano il profilo reale di questa esecuzione, non una stima conservativa. La transizione verso l'esecuzione parallela dei test all'interno della stessa fase, discussa come sviluppo futuro nella Sezione~\ref{subsec:roadmap-operativa}, richiederà una rivalutazione di questo profilo: più file \texttt{.jsonl} aperti concorrentemente comportano un footprint proporzionalmente maggiore, da misurare prima di fissare i requisiti di memoria per deployment \gls{CI/CD}.
 
 
 
