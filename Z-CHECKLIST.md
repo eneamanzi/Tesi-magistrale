@@ -98,36 +98,36 @@
 
 ## 5. Validazione Sperimentale e Risultati
 ### 5.1 Topologia del Testbed Sperimentale
-- [ ] 5.1.1 Architettura del Testbed `[Stato: CHECK]`
-- [ ] 5.1.2 Configurazione Intenzionale per la Copertura dei Finding `[Stato: CHECK]`
-- [ ] 5.1.3 Struttura RBAC e Provisioning degli Utenti `[Stato: CHECK]`
+- [ ] 5.1.1 Architettura del Testbed `[Stato: POST-CHECK]`
+- [ ] 5.1.2 Configurazione Intenzionale per la Copertura dei Finding `[Stato: POST-CHECK]`
+- [ ] 5.1.3 Struttura RBAC e Provisioning degli Utenti `[Stato: POST-CHECK]`
 ### 5.2 Release-Readiness e Integrità Architetturale
-- [ ] 5.2.1 Analisi Statica del Codebase `[Stato: CHECK]`
-- [ ] 5.2.2 Dual-Layer Type Safety (D6.P3) `[Stato: CHECK]`
-- [ ] 5.2.3 Indicatori di Qualità dell'Ingegneria di Produzione `[Stato: CHECK]`
+- [ ] 5.2.1 Analisi Statica del Codebase `[Stato: POST-CHECK]`
+- [ ] 5.2.2 Dual-Layer Type Safety (D6.P3) `[Stato: POST-CHECK]`
+- [ ] 5.2.3 Indicatori di Qualità dell'Ingegneria di Produzione `[Stato: POST-CHECK]`
 ### 5.3 Copertura Funzionale e Idempotenza dell'Assessment
-- [ ] 5.3.1 Analisi dei Risultati per Dominio `[Stato: CHECK]`
-- [ ] 5.3.2 Idempotenza e Validazione del Teardown `[Stato: CHECK]`
+- [ ] 5.3.1 Analisi dei Risultati per Dominio `[Stato: POST-CHECK]`
+- [ ] 5.3.2 Idempotenza e Validazione del Teardown `[Stato: POST-CHECK]`
 ### 5.4 Footprint Computazionale e Benchmarking del DAG
-- [ ] 5.4.1 Regime di Esecuzione: IO-Bound, non CPU-Bound `[Stato: CHECK]`
-- [ ] 5.4.2 Topologia del DAG e Implicazioni sull'Ordinamento dell'Esecuzione `[Stato: CHECK]`
+- [ ] 5.4.1 Regime di Esecuzione: IO-Bound, non CPU-Bound `[Stato: POST-CHECK]`
+- [ ] 5.4.2 Topologia del DAG e Implicazioni sull'Ordinamento dell'Esecuzione `[Stato: POST-CHECK]`
 ### Sintesi della Validazione
-- [ ] `[Stato: CHECK]`
+- [ ] `[Stato: POST-CHECK]`
 
 ---
 
 ## 6. Discussione e Sviluppi Futuri
 ### 6.1 Analisi Critica e Limiti del Paradigma Contract-Driven
-- [ ] 6.1.1 Il Paradosso del Ground Truth (D3.P2) `[Stato: CHECK]`
-- [ ] 6.1.2 La Tensione dell'Astrazione (D1.P6) `[Stato: CHECK]`
-- [ ] 6.1.3 La Dipendenza dall'Admin API (D4.P5) `[Stato: CHECK]`
+- [ ] 6.1.1 Il Paradosso del Ground Truth (D3.P2) `[Stato: POST-CHECK]`
+- [ ] 6.1.2 La Tensione dell'Astrazione (D1.P6) `[Stato: POST-CHECK]`
+- [ ] 6.1.3 La Dipendenza dall'Admin API (D4.P5) `[Stato: POST-CHECK]`
 ### 6.2 Applicabilità Industriale e Integrazione DevSecOps
-- [ ] 6.2.1 Semantic Exit Codes come Canale di Comunicazione con la Pipeline (D6.P1) `[Stato: CHECK]`
-- [ ] 6.2.2 Quality Gate a Due Velocità: Fail-Fast e Assessment Completo (D4.P8) `[Stato: CHECK]`
-- [ ] 6.2.3 Variabilità di Privilegio nei Deployment Industriali `[Stato: CHECK]`
+- [ ] 6.2.1 Semantic Exit Codes come Canale di Comunicazione con la Pipeline (D6.P1) `[Stato: POST-CHECK]`
+- [ ] 6.2.2 Quality Gate a Due Velocità: Fail-Fast e Assessment Completo (D4.P8) `[Stato: POST-CHECK]`
+- [ ] 6.2.3 Variabilità di Privilegio nei Deployment Industriali `[Stato: POST-CHECK]`
 ### 6.3 Sviluppi Futuri
-- [ ] 6.3.1 Estensioni Operative `[Stato: CHECK]`
-- [ ] 6.3.2 Traiettorie di Ricerca Aperta `[Stato: CHECK]`
+- [ ] 6.3.1 Estensioni Operative `[Stato: POST-CHECK]`
+- [ ] 6.3.2 Traiettorie di Ricerca Aperta `[Stato: POST-CHECK]`
 
 ---
 
