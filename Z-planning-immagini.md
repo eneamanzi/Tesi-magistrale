@@ -1,99 +1,174 @@
-Ho ri-analizzato byte per byte l'intero corpus dei tuoi file LaTeX (`1-introduction.tex`, `2-background.tex`, `3-methodology.tex`, `4-implementation.tex`, `5-experiments.tex`, `6-discussion.tex`).
-
-Confermo l'assoluta solidità della tua tesi. Per portarla a un livello di eccellenza tale da poterci estrarre un paper (dove lo spazio è limitato e la sintesi visiva è tutto), la strategia deve essere chirurgica: **nessuna immagine decorativa, solo diagrammi che formalizzano concetti o riducono il carico cognitivo del lettore**.
-
-Ecco la roadmap definitiva e aggiornata, strutturata per capitoli, con **conferme**, **modifiche di tiro** e **nuovi inserimenti** emersi dalla rilettura profonda.
+Capito. Cerco direttamente nella knowledge base i file `.tex` dalla repo corretta.Ottimo. Ho trovato contenuto reale dei file `.tex`. Ora recupero tutti i capitoli sistematicamente.Ho ora una visione estremamente precisa di tutti i capitoli. Procedo con l'analisi finale.
 
 ---
 
-### Capitolo 2: Background e Stato dell'Arte
+Sulla base della lettura integrale di tutti i file `.tex` della tesi, ecco la mia analisi autonoma e indipendente, che valuta le proposte di Gemini, le conferma, le corregge dove necessario, e aggiunge osservazioni derivate dalla lettura diretta del testo.
 
-* **[NUOVO] Tabella: Tassonomia OWASP API Security e Semantic Gap**
-* **Dove:** Sezione 2.3.1 (*Il Semantic Gap...*).
-* **Cosa:** Una tabella che elenca le top vulnerabilità citate (BOLA API1, BFLA API5, Mass Assignment API3, SSRF API7). Colonne: *Vulnerabilità OWASP*, *Natura* (Sintattica/Semantica), *Visibilità WAF/DAST Tradizionale* (Cieco / Rilevabile).
-* **Perché:** Il testo spiega benissimo perché il WAF non vede il BOLA, ma una tabella fissa il concetto per tutto il resto della tesi.
+---
 
+## Inventario di figure e tabelle già presenti
 
-* **[CONFERMA] Figura: Il "Combinatorial Wall" e il Contract-Driven**
-* **Dove:** Sezione 2.4.1.
-* **Cosa:** Diagramma a due vie. Via A: Fuzzer Sintattico $\rightarrow$ Payload Invalidi $\rightarrow$ Rifiuto 400 Bad Request. Via B: Fuzzer OpenAPI $\rightarrow$ Payload Validi $\rightarrow$ Logica di Business Applicativa.
+Prima di valutare cosa aggiungere, è essenziale sapere cosa c'è già.
 
+**Tabelle esistenti (confermate nel LaTeX):**
+- `tab:property-index` (Cap. 3): mappa di navigazione delle 39 proprietà verso le sezioni. Già presente.
+- `tab:pipeline-fasi` (Cap. 4): tabella pipeline 7 fasi con moduli. Già presente.
+- `tab:risultati-per-test` (Cap. 5): risultati per test con status e finding count. Già presente.
+- `tab:idempotenza-kpi` (Cap. 5): KPI comparativi Run 1 vs Run 2. Già presente.
+- `tab:performance-baseline` (Cap. 5): metriche di sistema (wall-clock, memoria). Già presente.
 
-* **[MODIFICA] Tabella: Confronto tra i paradigmi di testing**
-* **Dove:** Fine della Sezione 2.4.3.
-* **Rispetto a prima:** Includi esplicitamente le colonne *Dipendenza dall'Oracolo* e *Riproducibilità*, che sono i due cardini su cui costruirai il Capitolo 3. Compara SAST, DAST (ZAP), Fuzzer OpenAPI (RESTler/Schemathesis) e APIGuard.
+**Figure esistenti (confermate nel LaTeX):**
+- `fig:src-layout` (Cap. 4): albero `dirtree` della struttura `src/` con mapping alle fasi. Già presente.
 
+**Conclusione:** la tesi è attualmente molto densa di testo e tabelle numeriche, ma povera di figure. Non vi è **nessun diagramma architetturale**, nessun grafico di dati, nessuna figura nei Capitoli 1, 2, 3, 6 e 7.
 
+---
 
-### Capitolo 3: Metodologia, Architettura e Principi di Design
+## Analisi per capitolo: cosa aggiungere e perché
 
-* **[CONFERMA ASSOLUTA] Figura: Architettura di APIGuard Assurance**
-* **Dove:** Inizio Sezione 3.2 (*Principi Fondamentali*) o subito prima.
-* **Cosa:** Diagramma a blocchi. A sinistra gli input (`config.yaml`, `openapi.yaml`). Al centro l'Engine. A destra il target (Kong + Forgejo). In basso l'Evidence Store.
-* **Dettaglio cruciale aggiunto:** Il blocco centrale DEVE mostrare visivamente lo *Split State* (D1.P3): un box con un lucchetto per il `TargetContext` (immutabile) e un box per il `TestContext` (mutabile, con i canali Token, Teardown e Shared Data).
+### Capitolo 1 — Introduzione
 
+**Nessuna figura o tabella necessaria.** Il capitolo introduce tre gap (G1, G2, G3) e tre obiettivi (O1, O2, O3): la struttura narrativa è chiara e non guadagna nulla da un supporto visivo. Le figure architetturali appartengono ai Capitoli 3 e 4. Inserire qui qualcosa sarebbe riempitivo.
 
-* **[CONFERMA] Figura: Il Grafo Aciclico Diretto (DAG)**
-* **Dove:** Sezione 3.2.2 (*Scheduling Basato su DAG...*).
-* **Cosa:** Un grafo orientato. Mostra i nodi (es. `Test 1.1`, `Test 0.1`) raggruppati in un grande box chiamato "Batch/Phase A". Frecce che da `Test 1.1` puntano a `Test 1.4` e `Test 2.1` nel box "Batch/Phase B".
-* **Perché:** Rende istantaneamente comprensibile il concetto di risoluzione topologica descritto nel testo.
+Valutazione delle proposte di Gemini: nessuna proposta per questo capitolo. Concordo.
 
+---
 
+### Capitolo 2 — Background e Stato dell'Arte
 
-### Capitolo 4: Implementazione
+**Proposta A — Tabella: Semantic Gap e visibilità degli strumenti**
+`\label{tab:semantic-gap}` in §2.3.1
 
-* **[NUOVO] UML Sequence Diagram: Il ciclo di vita di un'esecuzione (Fase 5)**
-* **Dove:** Sezione 4.1 (*La Pipeline...*) o 4.2 (*Fail-Safe Error Isolation*).
-* **Cosa:** Diagramma di sequenza UML. Attori: `Engine`, `BaseTest`, `SecurityClient`, `Target`. Mostra l'Engine che chiama `execute()`, il blocco `try/catch` interno al test che cattura un'eccezione imprevista e restituisce il `TestResult(ERROR)` all'Engine, dimostrando che l'Engine non si ferma mai.
-* **Perché:** Le proprietà di Error Isolation (D4.P3) sono spiegate a testo, ma un Sequence Diagram è il formalismo accademico per eccellenza per dimostrare questo tipo di contratti tra classi.
+Il testo spiega con precisione perché BOLA, BFLA, Mass Assignment e SSRF sfuggono ai WAF tradizionali. Il concetto è il cardine dell'intera motivazione della tesi. Una tabella lo fissa in forma sintetica e diventa riferimento per tutto il resto. Gemini propone quattro colonne: Vulnerabilità OWASP, Natura (Sintattica/Semantica), Visibilità WAF/DAST, Rilevabilità APIGuard. Aggiungo una quinta colonna **Prerequisito informativo** (nessuno / token autenticato / Admin API) che anticipa il Box Gradient del Cap. 3 e motiva quella scelta metodologica in anticipo.
 
+**Priorità: alta. Valore aggiunto: alto.**
 
-* **[CONFERMA] UML Class Diagram: Gerarchia Duale e Connector**
-* **Dove:** Tra la Sezione 4.3.1 e 4.4.1.
-* **Cosa:** Albero di ereditarietà. Da una parte i test nativi, dall'altra `ExternalToolTest` che compone `BaseConnector`, che a sua volta si divide in Library e Subprocess.
+**Proposta B — Figura: Il combinatorial wall (fuzzer sintattico vs. contract-driven)**
+`\label{fig:combinatorial-wall}` in §2.4.1
 
+Il testo descrive verbalmente i due percorsi. Un diagramma a due corsie (Fuzzer Sintattico → 400 Bad Request / Fuzzer OpenAPI → Logica applicativa) rende immediatamente leggibile la distinzione tra approcci. La figura è già standard nella letteratura sul property-based testing. **Realizzabile in TikZ puro, nessun file esterno.**
 
-* **[CONFERMA] Flowchart: La Sanitizzazione a Imbuto (D4.P2)**
-* **Dove:** Sezione 4.6.2.
-* **Cosa:** Un diagramma di flusso che mostra il "Raw Output" attraversare in sequenza 1. Key-pattern matching, 2. JWT detection, 3. Header prefix. E parallelo a questo, il validatore Pydantic per le transazioni native.
+**Priorità: alta. Valore aggiunto: alto.**
 
+**Proposta C — Tabella: Confronto paradigmi di testing**
+`\label{tab:testing-comparison}` in §2.4.3
 
+Gemini propone una tabella comparativa tra SAST, DAST, Fuzzer OpenAPI e APIGuard. La lettura del testo conferma che §2.4.3 conclude con la transizione verso il contract-driven ma non cristallizza mai i confronti in forma tabulare. La tabella è giustificata. Le colonne più importanti, verificate rispetto al contenuto effettivo del testo, sono: **Paradigma**, **Conoscenza del contratto**, **Dipendenza dall'oracolo**, **Riproducibilità**, **Copertura semantica**. Le ultime due sono esattamente le proprietà su cui si costruisce il Cap. 3, quindi questa tabella funziona da ponte metodologico.
 
-### Capitolo 5: Esperimenti
+**Priorità: alta. Valore aggiunto: alto.**
 
-* **[CONFERMA ASSOLUTA] Figura: Topologia di Rete dell'Ambiente di Test**
-* **Dove:** Sezione 5.1.1 (dove hai lasciato il commento `% TODO`).
-* **Cosa:** Diagramma infrastrutturale. `apiguard-assurance` (host) $\rightarrow$ `Kong` (porte 8443, 8000, 8001) $\rightarrow$ `Forgejo` $\leftrightarrow$ `PostgreSQL`.
-* **Perché:** Senza questa figura, un paper accademico viene rimbalzato perché manca la documentazione visiva dell'Experimental Setup.
+---
 
+### Capitolo 3 — Metodologia
 
-* **[NUOVO] Grafico: Distribuzione dei Finding per Test/Dominio**
-* **Dove:** Sezione 5.3.1 (*Analisi dei Risultati per Dominio*).
-* **Cosa:** Un grafico a barre o un pie-chart (generato preferibilmente in PGFPlots o matplotlib esportato in PDF) che mostri visivamente la mole dei 98 finding. Spicca visivamente l'enorme blocco del Test 1.1 (74 finding) rispetto agli altri.
-* **Perché:** Le tabelle con i numeri ci sono già (Tabella 5.3), ma un grafico dà la proporzione immediata di *dove* si concentrano le vulnerabilità in un ambiente reale (Auth vs Hardening vs Disponibilità).
+**Proposta D — Figura: Architettura di APIGuard Assurance (diagramma a blocchi)**
+`\label{fig:architettura-apiguard}` in §3.2 (inizio, prima di §3.2.1)
 
+Questo è il contributo visivo più importante dell'intera tesi. Il testo di §3.2 introduce in sequenza: flusso monodirezionale (D1.P2), DAG (D2.P2), Split State (D1.P3), Gateway Adapter (D1.P6), Evidence Store (D4.P1). Il lettore che legge queste sezioni senza una figura deve costruire mentalmente la topologia del sistema da zero. Un diagramma a blocchi che mostri: input a sinistra (`config.yaml`, `openapi.yaml`), Engine al centro con il blocco Split State visivamente differenziato (TargetContext con lucchetto + TestContext mutabile), target a destra (Kong → Forgejo), Evidence Store in basso, è indispensabile. **Realizzabile in TikZ con gli stili già definiti in `Presentazione/main.tex`.**
 
+**Priorità: massima. Assenza accademica inammissibile per una tesi di architettura software.**
 
-### Capitolo 6: Discussione e Sviluppi Futuri
+**Proposta E — Figura: Il DAG di dipendenza (grafo orientato con batch)**
+`\label{fig:dag-topology}` in §3.2.2
 
-* **[CONFERMA] Diagramma Decisionale (Decision Tree): Integrazione CI/CD**
-* **Dove:** Sezione 6.2.1 (*Semantic Exit Codes...*).
-* **Cosa:** Diagramma di un nodo di pipeline. Runner CI/CD $\rightarrow$ Esegue `apiguard run`. Switch a 4 vie per gli exit codes (0, 1, 2, 10) e relative azioni di automazione (es. blocco merge, alert Slack).
+Il testo descrive la topologia a tre fasi (Phase A, B, C) con batch sequenziali. Il grafo con i nodi reali (`0.1`, `1.1`, `1.4`, `2.1`, `ext.1.5`) raggruppati in batch è una figura che serve concretamente al lettore per capire come lo scheduling topologico si traduce in ordine di esecuzione. La tabella `tab:risultati-per-test` del Cap. 5 ha senso pieno solo se il lettore ha già visto questo grafo. **Realizzabile in TikZ.**
 
+**Priorità: alta.**
 
-* **[NUOVO] Figura Concettuale: Evoluzione a Piattaforma Modulare**
-* **Dove:** Sezione 6.3.2 (*Traiettorie di Ricerca Aperta -> APIGuard come piattaforma modulare*).
-* **Cosa:** Un diagramma "Core + Plugins". Al centro l'infrastruttura immutabile (Engine, DAG, Store), attorno i moduli intercambiabili (REST/OAS, GraphQL, gRPC).
-* **Perché:** I paper finiscono spesso illustrando le "Future Works" con uno schema architetturale di come il sistema evolverà per accogliere i nuovi protocolli.
+**Proposta F — Tabella: Tassonomia degli 8 domini con Box Gradient**
+`\label{tab:domini-box-gradient}` in §3.3
 
+La `tab:property-index` esiste già per le 39 proprietà. Non esiste però una tabella che mappi esplicitamente i domini di sicurezza con la loro strategia di testing (BLACK/GREY/WHITE Box), la priorità (P0-P3) e l'implementazione in M1. Il testo di §3.3 introduce questa mappatura narrativamente. Una tabella la cristallizza come riferimento per tutta la tesi successiva. Colonne: Dominio, Descrizione sintetica, Strategia, Priorità, Stato M1.
 
+**Priorità: alta. Questa tabella viene citata nei Cap. 4 e 5.**
 
-### Sintesi finale
+---
 
-Le priorità assolute, se hai tempo limitato per disegnare, sono:
+### Capitolo 4 — Implementazione
 
-1. **L'architettura del sistema (Cap. 3)**.
-2. **Il Class Diagram delle interfacce (Cap. 4)**.
-3. **La topologia del testbed (Cap. 5)**.
+**Proposta G — UML Sequence Diagram: ciclo di vita Fase 5 (Error Isolation)**
+`\label{fig:sequence-error-isolation}` in §4.1
 
-Il resto aggiunge grandissimo pregio accademico, ma questi tre sono i pilastri visivi che trasformeranno una tesi "solo testo" in un lavoro pronto per la pubblicazione scientifica.
+La proprietà D4.P3 (Fail-Safe Error Isolation) è descritta con precisione: il contratto `execute()` non propaga eccezioni verso l'engine. Un sequence diagram con attori `Engine`, `BaseTest`, `SecurityClient` che mostra il flusso normale e il percorso con eccezione (che produce `TestResult(ERROR)` senza bloccare la pipeline) è il formalismo accademico per eccellenza per questa classe di garanzie. Il testo lo dice, il diagramma lo dimostra. **Realizzabile in TikZ o come figura drawio.**
+
+**Priorità: alta.**
+
+**Proposta H — UML Class Diagram: Gerarchia duale BaseTest / ExternalToolTest + Connector**
+`\label{fig:class-hierarchy}` tra §4.3 e §4.4
+
+Il testo descrive la gerarchia duale ma il lettore che non conosce il codice fa fatica a costruire la struttura mentale. Il diagramma mostra: `BaseTest` (astratta) ← test nativi D0-D7 / `ExternalToolTest` (astratta) + composizione con `BaseConnector` ← `BaseLibraryConnector` + `BaseSubprocessConnector`. Questo è il contributo architetturale chiave del Cap. 4 e merita un formalismo UML. **Realizzabile in TikZ.**
+
+**Priorità: alta.**
+
+**Proposta I — Flowchart: Sanitizzazione a imbuto (D4.P2)**
+`\label{fig:sanitization-funnel}` in §4.6
+
+Il testo descrive la tripla copertura: key-pattern regex, JWT heuristic, header prefix. Un flowchart a imbuto che mostra il raw output attraversare i tre filtri in sequenza prima di essere scritto nell'EvidenceStore è didatticamente potente in una tesi sulla sicurezza delle API. La centralizzazione è il contributo, e il diagramma la rende autoevidente.
+
+**Priorità: media.** Il testo lo spiega già bene; il diagramma aggiunge valore ma non è indispensabile come le proposte precedenti.
+
+---
+
+### Capitolo 5 — Esperimenti
+
+**Proposta J — Figura: Topologia di rete del testbed**
+`\label{fig:testbed-topology}` in §5.1.1
+
+Il testo descrive il testbed (host → Kong porte 8443/8000/8001 → Forgejo ↔ PostgreSQL, tre account RBAC) ma non c'è nessuna figura. In ogni paper di sicurezza che descrive un experimental setup, la topologia di rete è sempre visualizzata. La sua assenza è la lacuna più grave della tesi dal punto di vista della pubblicabilità. Un revisore che riceve questo lavoro senza la figura chiede esplicitamente di aggiungerla.
+
+**Priorità: massima.**
+
+**Proposta K — Grafico a barre: Distribuzione dei finding per test**
+`\label{fig:finding-distribution}` in §5.3.1
+
+La `tab:risultati-per-test` esiste già con tutti i numeri. Ma il fatto che il test 1.1 da solo produca 74 dei 98 finding (75.5%) è un'informazione che deve essere visibile a colpo d'occhio. Un grafico a barre orizzontale dove ogni test è una barra proporzionale al suo finding count rende immediatamente evidente la concentrazione nell'autenticazione perimetrale. La tabella e il grafico non si duplicano: la tabella dà i numeri esatti, il grafico dà la proporzione. **Realizzabile in PGFPlots, tutti i dati sono già nella tesi.**
+
+**Priorità: alta.**
+
+---
+
+### Capitolo 6 — Discussione
+
+**Proposta L — Flowchart: Decision tree degli exit code nella pipeline CI/CD**
+`\label{fig:cicd-exit-codes}` in §6.2.1
+
+Il testo di §6.2.1 descrive i quattro exit code con precisione. La sezione è già ottima in prosa. Un diagramma a nodo di pipeline (runner CI/CD → `apiguard run` → switch a 4 vie: 0 CLEAN, 1 FAIL, 2 ERROR, 10 INFRA → azioni conseguenti) aggiunge il valore operativo concreto che rende la sezione citabile in contesti industriali. La figura non illustra il testo, lo completa con il routing automatico.
+
+**Priorità: alta.**
+
+**Proposta M — Figura concettuale: Evoluzione a piattaforma modulare**
+`\label{fig:modular-platform}` in §6.3.2
+
+Un diagramma Core + Plugin (Engine/DAG/Store immutabili al centro, moduli REST/OAS, GraphQL, gRPC intercambiabili attorno) illustra la traiettoria di ricerca aperta. Le tesi che finiscono con uno schema architetturale delle future work ottengono maggiore credibilità sulle traiettorie indicate. Realizzabile in TikZ.
+
+**Priorità: media.** Aggiunge pregio ma è l'ultima da fare se il tempo è limitato.
+
+---
+
+### Capitolo 7 — Conclusioni
+
+**Nessuna figura o tabella necessaria.** Le conclusioni sintetizzano senza introdurre nuovi dati. Qualsiasi figura qui sarebbe una ripetizione di quanto già presentato.
+
+---
+
+## Riepilogo prioritizzato
+
+| Priorità | ID | Capitolo | Sezione | Tipo | Descrizione sintetica |
+|---|---|---|---|---|---|
+| **Massima** | D | Cap. 3 | §3.2 | Figura TikZ | Architettura APIGuard (blocchi + Split State) |
+| **Massima** | J | Cap. 5 | §5.1.1 | Figura TikZ | Topologia di rete del testbed |
+| **Alta** | A | Cap. 2 | §2.3.1 | Tabella | Semantic Gap e visibilità strumenti (+ col. prerequisito) |
+| **Alta** | B | Cap. 2 | §2.4.1 | Figura TikZ | Combinatorial wall (due vie) |
+| **Alta** | C | Cap. 2 | §2.4.3 | Tabella | Confronto paradigmi di testing |
+| **Alta** | E | Cap. 3 | §3.2.2 | Figura TikZ | DAG con batch reali |
+| **Alta** | F | Cap. 3 | §3.3 | Tabella | 8 domini con Box Gradient, priorità, stato M1 |
+| **Alta** | G | Cap. 4 | §4.1 | Figura TikZ | UML Sequence: Error Isolation (D4.P3) |
+| **Alta** | H | Cap. 4 | §4.3-4.4 | Figura TikZ | UML Class: gerarchia duale + Connector |
+| **Alta** | K | Cap. 5 | §5.3.1 | Grafico PGFPlots | Distribuzione finding per test (barre) |
+| **Alta** | L | Cap. 6 | §6.2.1 | Figura TikZ | Decision tree exit code CI/CD |
+| **Media** | I | Cap. 4 | §4.6 | Flowchart TikZ | Sanitizzazione a imbuto (D4.P2) |
+| **Media** | M | Cap. 6 | §6.3.2 | Figura TikZ | Piattaforma modulare (future work) |
+
+---
+
+**Come vuoi procedere?** Posso iniziare a generare il LaTeX per qualsiasi di queste figure o tabelle, nell'ordine che preferisci. La raccomandazione è iniziare dalla **Proposta D** (architettura) e dalla **Proposta J** (testbed), perché sono i due pilastri visivi su cui poggia l'intera comprensione del lavoro.
