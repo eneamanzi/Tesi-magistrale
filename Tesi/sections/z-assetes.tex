@@ -1,25 +1,12 @@
 % !TEX root = ../main.tex
 %
-% ═══════════════════════════════════════════════════════════════════════════
 % ASSETS.TEX -- Capitolo di collaudo per figure e tabelle
-% Prima dell'integrazione definitiva nei capitoli, ogni elemento è testabile
-% qui in isolamento. Ogni figura e tabella è seguita da una mini-guida che
-% indica file, etichetta di sezione e stringa Ctrl+F per il posizionamento.
-%
-% PREREQUISITI -- aggiungere nel preambolo di Tesi/main.tex,
-% dopo la riga \usepackage{wrapfig}:
-%
-% \usepackage{tikz}
-% \usetikzlibrary{arrows.meta, backgrounds, calc, fit,
-% positioning, shapes.geometric}
-% \usepackage{pgfplots}
-% \pgfplotsset{compat=1.18}
-%
-% Tutte le tabelle usano tabularx, booktabs, multirow, \cmark, \xmark
-% già definiti in main.tex -- nessuna aggiunta necessaria per le tabelle.
-% ═══════════════════════════════════════════════════════════════════════════
+% PREREQUISITI preambolo main.tex:
+%   \usepackage{tikz}
+%   \usetikzlibrary{arrows.meta, backgrounds, calc, fit, positioning, shapes.geometric}
+%   \usepackage{pgfplots}
+%   \pgfplotsset{compat=1.18}
 
-% ─── Stili TikZ condivisi (validi per tutto il capitolo) ────────────────────
 \tikzset{
 ag/.style = {draw, rectangle, rounded corners=2pt, minimum height=22pt, inner sep=6pt, align=center, font=\small},
 ag-gray/.style   = {ag, fill=gray!10,   draw=gray!50},
@@ -39,24 +26,15 @@ ag-terminal/.style = {draw, ellipse, fill=gray!15, draw=gray!60, minimum height=
 uml-inherit/.style = {-{Triangle[open]}, semithick},
 uml-compose/.style = {-{Diamond}, semithick},
 }
-% ─────────────────────────────────────────────────────────────────────────────
 
-
-\chapter*{Assets: Collaudo Visivo di Figure e Tabelle}
-\addcontentsline{toc}{chapter}{Assets}
+\chapter{Assets: Collaudo Visivo di Figure e Tabelle}
 \label{chap:assets}
 
-\noindent Questo capitolo raccoglie le figure e le tabelle prodotte per la tesi prima della loro integrazione definitiva nei rispettivi punti del testo. Ogni elemento è seguito da una mini-guida che indica il file di destinazione, la sezione di inserimento e una stringa utilizzabile con Ctrl+F per localizzare il punto esatto all'interno del file \texttt{.tex}.
+\noindent Questo capitolo raccoglie le figure e le tabelle prodotte per la tesi prima della loro integrazione definitiva nei rispettivi punti del testo. Ogni elemento è seguito da una mini-guida che indica il label di sezione e una stringa verificata con Ctrl+F per il posizionamento esatto.
 
-% ═══════════════════════════════════════════════════════════════════════════
 \section*{A: Tabelle}
-% ═══════════════════════════════════════════════════════════════════════════
 
-
-% ───────────────────────────────────────────────────────────────────────────
-% TABELLA A -- Semantic Gap e visibilità degli strumenti (Cap. 2, §2.3.1)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── TABELLA A ───────────────────────────────────────────────────────────────
 \begin{table}[ht]
   \centering \small
   \begin{tabularx}{\textwidth}{@{} l l C C L @{}}
@@ -76,19 +54,14 @@ uml-compose/.style = {-{Diamond}, semithick},
   \end{tabularx}
   \caption{Tassonomia OWASP API Security Top~10 (2023): natura, visibilità WAF/DAST e prerequisito informativo per la rilevazione.}
   \label{tab:semantic-gap}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Tabella~\ref{tab:semantic-gap}.}\\
-    \texttt{File:} \texttt{Tesi/sections/2-background.tex}\\ \texttt{Sezione:} \verb|\subsection{Il Semantic Gap...}|\\ \texttt{Ctrl+F:} \texttt{``Le architetture a microservizi hanno spostato il baricentro degli attacchi''}\\ \texttt{Azione:} inserire \emph{dopo} il secondo paragrafo di quella sottosezione (quello che inizia con ``Il framework OWASP API Security Top~10''), prima del paragrafo conclusivo che introduce il concetto di oracolo formale. }
+  {\small \noindent\textbf{Mini-guida: Tabella~\ref{tab:semantic-gap}.}\\
+    \texttt{Label:} \verb|\label{subsec:semantic-gap}| \quad
+    \texttt{Ctrl+F:} \texttt{La transizione verso architetture a microservizi ha spostato il baricentro delle vulnerabilità}\\
+    \texttt{Azione:} inserire dopo il primo paragrafo di \S2.3.1, prima della citazione OWASP. }
 \end{table}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% TABELLA C -- Confronto tra i paradigmi di security testing (Cap. 2, §2.4.3)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── TABELLA C ───────────────────────────────────────────────────────────────
 \begin{table}[ht]
   \centering \small
   \begin{tabularx}{\textwidth}{@{} l C C C C @{}}
@@ -101,625 +74,595 @@ uml-compose/.style = {-{Diamond}, semithick},
     \addlinespace
     Fuzzer OAS (RESTler/Schemathesis) & Spec OAS                      & Parziale                & Media                    & Media                        \\
     \addlinespace
-    \textbf{APIGuard Assurance}
-                                      & \textbf{Spec OAS + config}
-                                      & \textbf{OAS formale}
-                                      & \textbf{Alta}
-                                      & \textbf{Alta}                                                                                                     \\
+    \textbf{APIGuard Assurance}       & \textbf{Spec OAS + config}    & \textbf{OAS formale}    & \textbf{Alta}            & \textbf{Alta}                \\
     \bottomrule
   \end{tabularx}
   \caption{Confronto tra paradigmi di security testing per \gls{API} REST: oracle, riproducibilità e copertura semantica.}
   \label{tab:testing-comparison}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Tabella~\ref{tab:testing-comparison}.}\\
-    \texttt{File:} \texttt{Tesi/sections/2-background.tex}\\ \texttt{Sezione:} \verb|\subsection{Contract-Driven Security e Approcci Ibridi}|\\ \texttt{Ctrl+F:} \texttt{``L'impiego delle specifiche formali (OpenAPI/Swagger) come''}\\ \texttt{Azione:} inserire alla \emph{fine} di quella sottosezione, come tabella riassuntiva che chiude il capitolo di background e introduce il ponte verso la metodologia. }
+  {\small \noindent\textbf{Mini-guida: Tabella~\ref{tab:testing-comparison}.}\\
+    \texttt{Label:} \verb|\label{sec:testing-evolution}| (\S2.4, sottosezione \S2.4.3)\\
+    \texttt{Azione:} inserire alla fine della sottosezione \S2.4.3 (Contract-Driven Security e Approcci Ibridi). }
 \end{table}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% TABELLA F -- Tassonomia degli 8 Domini con Box Gradient (Cap. 3, §3.3)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── TABELLA F ───────────────────────────────────────────────────────────────
 \begin{table}[ht]
   \centering \small
   \begin{tabularx}{\textwidth}{@{} l L C C C @{}}
     \toprule
-    \textbf{Dominio}   & \textbf{Oggetto di verifica}          & \textbf{Strategia} & \textbf{Priorità} & \textbf{Stato M1} \\
+    \textbf{Dominio}   & \textbf{Oggetto di verifica}          & \textbf{Strategia} & \textbf{Priorità} & \textbf{Implementato}  \\
     \midrule
-    D0: Discovery      & Inventario endpoint, Shadow \gls{API}
-                       & BLACK/GREY                            & P0--P1             & \cmark                                \\
+    D0: Discovery      & Inventario endpoint, Shadow \gls{API} & BLACK/GREY         & P0--P1            & \cmark                 \\
     \addlinespace
-    D1: Authentication & Autenticazione, lifecycle token       & BLACK/GREY         & P0--P1            & \cmark            \\
+    D1: Authentication & Autenticazione, lifecycle token       & BLACK/GREY         & P0--P1            & \cmark                 \\
     \addlinespace
-    D2: Authorization  & \gls{RBAC}, \gls{BOLA}, \gls{BFLA}
-                       & GREY                                  & P1--P2             & \cmark                                \\
+    D2: Authorization  & \gls{RBAC}, \gls{BOLA}, \gls{BFLA}    & GREY               & P1--P2            & \cmark                 \\
     \addlinespace
-    D3: Data Integrity & Schema, Mass Assignment               & GREY               & P2                & \cmark            \\
+    D3: Data Integrity & Schema, Mass Assignment               & GREY               & P2                & \cmark                 \\
     \addlinespace
-    D4: Availability   & Rate limiting, circuit breaking       & GREY/WHITE         & P1--P2            & \cmark            \\
+    D4: Availability   & Rate limiting, circuit breaking       & GREY/WHITE         & P1--P2            & \cmark                 \\
     \addlinespace
-    D5: Observability  & Log, tracing, audit trail             & WHITE              & P3                & \xmark{} (M2)     \\
+    D5: Observability  & Log, tracing, audit trail             & WHITE              & P3                & \xmark{} (pianificato) \\
     \addlinespace
-    D6: Hardening      & Security headers, config. gateway     & WHITE              & P2--P3            & \cmark            \\
+    D6: Hardening      & Security headers, config. gateway     & WHITE              & P2--P3            & \cmark                 \\
     \addlinespace
-    D7: Business Logic & Flussi sensibili, \gls{SSRF}
-                       & GREY                                  & P2                 & \cmark                                \\
+    D7: Business Logic & Flussi sensibili, \gls{SSRF}          & GREY               & P2                & \cmark                 \\
     \bottomrule
   \end{tabularx}
-  \caption{Tassonomia degli otto domini di assurance: strategia di testing (Box Gradient D3.P3), priorità e stato Milestone~1.}
+  \caption{Tassonomia degli otto domini di assurance: strategia di testing (Box Gradient D3.P3), priorità e stato implementativo nella versione corrente.}
   \label{tab:domini-box-gradient}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Tabella~\ref{tab:domini-box-gradient}.}\\
-    \texttt{File:} \texttt{Tesi/sections/3-methodology.tex}\\ \texttt{Sezione:} \verb|\subsection{Tassonomia degli Otto Domini di Assurance}|\\ \texttt{Ctrl+F:} \texttt{``Domain-0 (API Discovery), Domain-1 (Identity \& Authentication)''}\\ \texttt{Azione:} inserire \emph{dopo} l'elenco narrativo dei domini, come tabella di riferimento compatta per tutta la tesi successiva (viene citata da Cap.~4 e Cap.~5 per orientare la lettura dei risultati per dominio). }
+  {\small \noindent\textbf{Mini-guida: Tabella~\ref{tab:domini-box-gradient}.}\\
+    \texttt{Label:} \verb|\label{subsec:domini-tassonomia}| \quad
+    \texttt{Ctrl+F:} \texttt{La sequenza dei primi tre domini rispecchia una catena logica di precondizioni}\\
+    \texttt{Azione:} inserire dopo la tabella \texttt{tab:domini} già presente nel testo, come tabella complementare con strategia e stato. }
 \end{table}
 
-
-
-% ═══════════════════════════════════════════════════════════════════════════
 \section*{B: Figure}
-% ═══════════════════════════════════════════════════════════════════════════
 
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA B -- Il Combinatorial Wall (Cap. 2, §2.4.1)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA B (8.1) -- Il Combinatorial Wall ─────────────────────────────────
 \begin{figure}[ht]
   \centering
   \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[node distance=0.6cm and 1.6cm]
-
-      %% ---- Via A: Fuzzer sintattico (riga superiore) ----
+      %% Via A: Fuzzer sintattico (riga superiore)
       \node[ag-red] (a1) {Fuzzer\\sintattico};
       \node[ag-red, right=of a1] (a2) {Payload casuali\\malformati};
       \node[ag-red, right=of a2] (a3) {\texttt{400 Bad Request}};
       \node[ag-gray, right=5em of a3, draw=gray!40, dashed] (a4) {Logica applicativa\\{\scriptsize [invisibile]}};
-
       \draw[ag-arr, red!60] (a1) -- (a2);
       \draw[ag-arr, red!60] (a2) -- (a3);
-      \draw[ag-darr, gray!60](a3) -- (a4) node[midway, above, ag-note, align=center, yshift=+1pt] {muro\\combinatorio};
-
-      %% ---- Via B: Engine contract-driven (riga inferiore) ----
+      \draw[ag-darr, gray!60] (a3) -- (a4) node[midway, above, ag-note, align=center] {muro\\combinatorio};
+      %% Via B: Engine contract-driven (riga inferiore)
       \node[ag-green, below=2.2cm of a1] (b1) {Engine\\contract-driven};
       \node[ag-green, right=of b1] (b2) {Payload validi\\dalla spec OAS};
       \node[ag-green, right=of b2] (b3) {\texttt{2xx} / \texttt{4xx}\\semantici};
       \node[ag-green, right=of b3] (b4) {Logica applicativa\\{\scriptsize [visibile]}};
-
       \draw[ag-arr, green!55!black] (b1) -- (b2);
       \draw[ag-arr, green!55!black] (b2) -- (b3);
       \draw[ag-arr, green!55!black] (b3) -- (b4);
-
-      %% ---- Etichette di corsia ----
+      %% Etichette di corsia
       \node[ag-lane, red!70, left=0.5cm of a1] {Via~A};
       \node[ag-lane, green!55!black, left=0.5cm of b1] {Via~B};
-
-      %% ---- Linea separatrice tra le due corsie ----
+      %% Separatore
       \draw[gray!40, dashed] ([yshift=-1.1cm]a1.south west) -- ([yshift=-1.1cm]a4.south east);
-
     \end{tikzpicture}
-  }% fine resizebox
+  }%
   \caption{Il \emph{combinatorial wall}: fuzzer sintattico (Via~A) vs.\ approccio contract-driven \gls{OAS} (Via~B).}
   \label{fig:combinatorial-wall}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:combinatorial-wall}.}\\
-    \texttt{File:} \texttt{Tesi/sections/2-background.tex}\\ \texttt{Sezione:} \verb|\subsection{Paradigmi Tradizionali e i Limiti del DAST/SAST}|\\ \texttt{Ctrl+F:} \texttt{``Spiegazione del ``combinatorial wall'' e dell'elevato tasso di rigetto''}\\ \texttt{Azione:} inserire \emph{dopo} il paragrafo che introduce il muro combinatorio, prima della transizione verso il Box Gradient. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:combinatorial-wall}.}\\
+    \texttt{Label:} \verb|\label{subsec:asimmetria-box-gradient}| (\S2.4.2) oppure inizio \S2.4.1\\
+    \texttt{Azione:} inserire nella sottosezione \S2.4.1, dopo il paragrafo che introduce il muro combinatorio. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA D -- Architettura di APIGuard Assurance (Cap. 3, §3.2 apertura)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA D (8.2) -- Architettura APIGuard ─────────────────────────────────
 \begin{figure}[ht]
   \centering
   \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[node distance=0.65cm and 1.5cm]
+    \begin{tikzpicture}[
+        node distance=1.5ex and 4em,
+        % Variabili locali per la simmetria
+        col-in/.style={minimum width=13em},
+        col-mid/.style={minimum width=15em},
+        col-out/.style={minimum width=9em}
+      ]
 
-      %% ---- Input (colonna sinistra) ----
-      \node[ag-gray] (cfg) {\texttt{config.yaml}\\{\scriptsize credenziali, URL, parametri}};
-      \node[ag-gray, below=0.5cm of cfg] (oas) {\texttt{openapi.yaml}\\{\scriptsize spec formale del target}};
+      %% Input (colonna sinistra)
+      \node[ag-gray, col-in] (cfg) {\texttt{config.yaml}\\{\scriptsize credenziali, URL, parametri}};
+      \node[ag-gray, col-in, below=of cfg] (oas) {\texttt{openapi.yaml}\\{\scriptsize spec formale del target}};
 
-      %% ---- TargetContext (immutabile) ----
-      \node[ag-blue, right=2.2cm of cfg, minimum width=5.2cm, minimum height=30pt] (tc) {\textbf{\texttt{TargetContext}} \quad {\small[frozen]}\\ {\scriptsize base\_url \textbar{} attack\_surface \textbar{} credentials}};
+      %% TargetContext (immutabile)
+      \node[ag-blue, col-mid, right=5em of cfg, minimum height=3em] (tc) {\textbf{\texttt{TargetContext}} \quad {\small[frozen]}\\ {\scriptsize base\_url \textbar{} attack\_surface \textbar{} credentials}};
 
-      %% ---- TestContext (mutabile) ----
-      \node[ag-green, below=0.5cm of tc, minimum width=5.2cm, minimum height=30pt] (tx) {\textbf{\texttt{TestContext}} \quad {\small[mutable]}\\ {\scriptsize token \textbar{} teardown\_queue \textbar{} shared\_data}};
+      %% TestContext (mutabile)
+      \node[ag-green, col-mid, below=of tc, minimum height=3em] (tx) {\textbf{\texttt{TestContext}} \quad {\small[mutable]}\\ {\scriptsize token \textbar{} teardown\_queue \textbar{} shared\_data}};
 
-      %% ---- DAG Scheduler ----
-      \node[ag-gold, below=0.5cm of tx, minimum width=5.2cm, minimum height=24pt] (dag) {\textbf{DAG Scheduler}\\ {\scriptsize ordinamento topologico, batch sequenziali}};
+      %% DAG Scheduler
+      \node[ag-gold, col-mid, below=of tx, minimum height=2.5em] (dag) {\textbf{DAG Scheduler}\\ {\scriptsize ordinamento topologico, batch sequenziali}};
 
-      %% ---- Box Engine (sfondo, contenitore) ----
+      %% Box Engine
       \begin{scope}[on background layer]
-        \node[ag-group, fit=(tc)(tx)(dag), label={[font=\small\bfseries, blue!60!black] above:Assessment Engine}] (engine) {};
+        \node[ag-group, fit=(tc)(tx)(dag), label={[font=\small\bfseries, blue!60!black]above:Assessment Engine}] (engine) {};
       \end{scope}
 
-      %% ---- Target (colonna destra) ----
-      \node[ag-gray, right=2.4cm of tc, minimum width=3.2cm] (kong) {Kong Gateway\\{\scriptsize :8000 / :8443 / :8001}};
-      \node[ag-gray, below=0.5cm of kong, minimum width=3.2cm] (forgejo) {Forgejo\\{\scriptsize target applicativo}};
+      %% Target (colonna destra)
+      \node[ag-gray, col-out, right=7.5em of tc] (kong) {Kong Gateway\\{\scriptsize :8000 / :8443 / :8001}};
+      \node[ag-gray, col-out, below=of kong] (forgejo) {Forgejo\\{\scriptsize target applicativo}};
 
-      %% ---- Evidence Store (riga inferiore) ----
-      \node[ag-violet, below=1.4cm of dag, minimum width=5.2cm, minimum height=28pt] (ev) {\textbf{EvidenceStore} \quad {\small[JSONL streaming]}\\ {\scriptsize \texttt{evidence.json} \textbar{} \texttt{assessment\_report.html}}};
+      %% EvidenceStore
+      \node[ag-violet, col-mid, below=3ex of dag, minimum height=3em] (ev) {\textbf{EvidenceStore} \quad {\small[JSONL streaming]}\\ {\scriptsize \texttt{evidence.json} \textbar{} \texttt{assessment\_report.html}}};
 
-      %% ---- Frecce ----
-      % Input -> TargetContext
+      %% -----------------------------------------------------------
+      %% FRECCE
+      %% -----------------------------------------------------------
+
+      %% Frecce input -> engine
       \draw[ag-arr] (cfg.east) -- (tc.west);
-      \draw[ag-arr] (oas.east) -- (tc.south west);
-      % Engine -> Target (probe HTTP)
-      \draw[ag-arr] (tc.east) -- (kong.west) node[midway, above, ag-note] {probe \gls{HTTP}};
-      \draw[ag-barr] (kong.south) -- (forgejo.north);
-      % DAG -> TestContext (scheduling)
-      \draw[ag-arr] (dag.north) -- (tx.south);
-      % DAG -> EvidenceStore (risultati)
-      \draw[ag-arr] (dag.south) -- (ev.north);
-      % Admin API (freccia tratteggiata verso Kong :8001)
-      \draw[ag-darr] (engine.east) to[out=0, in=270] (kong.south) node[pos=0.6, right, ag-note, align=center, xshift=4pt] {Admin \gls{API}\\{\tiny WHITE\_BOX}};
+      \draw[ag-arr] (oas.east) -- ++(2.5em, 0) |- ([yshift=-1ex]tc.west);
 
+      %% Probe HTTP: tc -> kong
+      \draw[ag-arr] ([yshift=1.5ex]tc.east) -- ([yshift=1.5ex]kong.west) node[midway, above, ag-note] {probe \gls{HTTP}};
+      \draw[ag-barr] (kong.south) -- (forgejo.north);
+
+      %% DAG -> TestContext e EvidenceStore
+      \draw[ag-arr] (dag.north) -- (tx.south);
+      \draw[ag-arr] (dag.south) -- (ev.north);
+
+      %% Admin API
+      \draw[ag-darr] ([yshift=-3.5ex]engine.east) -- ++(5em,0)
+      node[midway, above, ag-note, align=center] {Admin \gls{API}\\{\tiny WHITE\_BOX}}
+      |- ([yshift=-1.5ex]kong.west);
     \end{tikzpicture}
-  }% fine resizebox
+  }%
   \caption{Architettura di alto livello di APIGuard Assurance: input, Engine con Split State (D1.P3), DAG Scheduler (D2.P2) ed EvidenceStore (D4.P1).}
   \label{fig:architettura-apiguard}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:architettura-apiguard}.}\\
-    \texttt{File:} \texttt{Tesi/sections/3-methodology.tex}\\ \texttt{Sezione:} \verb|\section{Architettura dell'Assessment Engine}| (\verb|\label{sec:architettura}|)\\ \texttt{Ctrl+F:} \texttt{``Le proprietà discusse nella sezione precedente costituiscono la base del sistema.''}\\ \texttt{Azione:} inserire \emph{immediatamente dopo} quella frase d'apertura della sezione, prima della prima sottosezione. È la figura portante dell'intera tesi: deve apparire prima che il lettore incontri le descrizioni dei singoli componenti. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:architettura-apiguard}.}\\
+    \texttt{Label:} \verb|\label{sec:architettura}| \quad
+    \texttt{Ctrl+F:} \texttt{Le proprietà discusse nella sezione precedente costituiscono la base del sistema.}\\
+    \texttt{Azione:} inserire immediatamente dopo quella frase, prima della prima sottosezione. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA E -- Il Grafo Aciclico Diretto (DAG) (Cap. 3, §3.2.2)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA E (8.3) -- DAG ───────────────────────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \begin{tikzpicture}[node distance=0.45cm and 1.0cm]
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        node distance=1.5ex and 0.8em,
+        % Variabili locali per la simmetria (Principio DRY)
+        test-node/.style={minimum width=5em},
+        ext-node/.style={minimum width=7.5em},
+        phB-node/.style={minimum width=6em}
+      ]
 
-    %% ---- BATCH / PHASE A ----
-    \node[ag-gold, minimum width=2.0cm] (a01) {\texttt{0.1}};
-    \node[ag-gold, below=of a01, minimum width=2.0cm] (a02) {\texttt{0.2}};
-    \node[ag-gold, below=of a02, minimum width=2.0cm] (a03) {\texttt{0.3}};
-    \node[ag-gold, below=of a03, minimum width=2.0cm] (a11) {\texttt{1.1}};
-    \node[ag-gold, below=of a11, minimum width=2.0cm] (a41) {\texttt{4.1}};
-    \node[ag-gold, below=of a41, minimum width=2.0cm] (a62) {\texttt{6.2}};
-    \node[ag-gold, below=of a62, minimum width=2.0cm] (a72) {\texttt{7.2}};
-    \node[ag-gold, below=of a72, minimum width=2.0cm] (aext) {\texttt{ext.0.1}};
+      %% Phase A: 16 test organizzati per dominio, una riga per dominio
+      %% D0: 0.1, 0.2, 0.3
+      \node[ag-gold, test-node] (d0a) {\texttt{0.1}};
+      \node[ag-gold, test-node, right=of d0a] (d0b) {\texttt{0.2}};
+      \node[ag-gold, test-node, right=of d0b] (d0c) {\texttt{0.3}};
 
-    \begin{scope}[on background layer]
-      \node[ag-group, draw=orange!50, fill=yellow!6, fit=(a01)(a02)(a03)(a11)(a41)(a62)(a72)(aext), label={[font=\small\bfseries, orange!70!black]above:Phase A (no deps)}] (phaseA) {};
-    \end{scope}
+      %% D1: 1.5, 1.6, poi 1.1 al bordo destro
+      \node[ag-gold, test-node, below=of d0a] (d1a) {\texttt{1.5}};
+      \node[ag-gold, test-node, right=of d1a] (d1b) {\texttt{1.6}};
+      \node[ag-gold, draw=orange!70, fill=yellow!35, test-node, right=of d1b] (a11) {\textbf{\texttt{1.1}}};
 
-    %% ---- BATCH / PHASE B ----
-    \node[ag-blue, right=3.2cm of a01, minimum width=2.0cm] (b14) {\texttt{1.4}};
-    \node[ag-blue, below=of b14, minimum width=2.0cm] (b15) {\texttt{1.5}};
-    \node[ag-blue, below=of b15, minimum width=2.0cm] (b16) {\texttt{1.6}};
-    \node[ag-blue, below=of b16, minimum width=2.0cm] (b21) {\texttt{2.1}};
-    \node[ag-blue, below=of b21, minimum width=2.0cm] (b33) {\texttt{3.3}};
-    \node[ag-blue, below=of b33, minimum width=2.0cm] (b42) {\texttt{4.2}};
-    \node[ag-blue, below=of b42, minimum width=2.0cm] (b43) {\texttt{4.3}};
-    \node[ag-blue, below=of b43, minimum width=2.0cm] (b64) {\texttt{6.4}};
-    \node[ag-blue, below=of b64, minimum width=2.0cm] (bssl) {\texttt{ext.1.5.sslyze}};
-    \node[ag-blue, below=of bssl, minimum width=2.0cm] (btsl) {\texttt{ext.1.5.testssl}};
+      %% D3: 3.3
+      \node[ag-gold, test-node, below=of d1a] (d3a) {\texttt{3.3}};
 
-    \begin{scope}[on background layer]
-      \node[ag-group, draw=blue!40, fill=blue!4, fit=(b14)(b15)(b16)(b21)(b33)(b42)(b43)(b64)(bssl)(btsl), label={[font=\small\bfseries, blue!60!black]above:Phase B (requires 1.1)}] (phaseB) {};
-    \end{scope}
+      %% D4: 4.1, 4.2, 4.3
+      \node[ag-gold, test-node, below=of d3a] (d4a) {\texttt{4.1}};
+      \node[ag-gold, test-node, right=of d4a] (d4b) {\texttt{4.2}};
+      \node[ag-gold, test-node, right=of d4b] (d4c) {\texttt{4.3}};
 
-    %% ---- BATCH / PHASE C (M2, tratteggiato) ----
-    \node[ag-gray, right=3.2cm of b14, minimum width=2.2cm, dashed, draw=gray!40] (c) {\textit{Phase~C}\\{\scriptsize (Milestone~2)}};
+      %% D6: 6.2, 6.4
+      \node[ag-gold, test-node, below=of d4a] (d6a) {\texttt{6.2}};
+      \node[ag-gold, test-node, right=of d6a] (d6b) {\texttt{6.4}};
 
-    %% ---- Frecce di dipendenza ----
-    % 1.1 -> tutti i nodi Phase B
-    \foreach \dst in {b14,b15,b16,b21,b33,b42,b43,b64,bssl,btsl}{
-        \draw[ag-arr, blue!50] (a11.east) to[bend left=5] (\dst.west);
-      }
-    % Phase B -> Phase C (tratteggiato)
-    \draw[ag-darr, gray!50] (phaseB.east) -- (c.west) node[midway, above, ag-note] {\texttt{ext.1.2}};
+      %% D7: 7.2
+      \node[ag-gold, test-node, below=of d6a] (d7a) {\texttt{7.2}};
 
-    %% ---- Legenda ----
-    \node[ag-gold, below=1.4cm of phaseB.south, minimum width=1.6cm, xshift=-3.5cm] (leg-a) {};
-    \node[right=0.15cm of leg-a, font=\scriptsize] {Batch A: nessuna dipendenza};
-    \node[ag-blue, below=0.3cm of leg-a, minimum width=1.6cm] (leg-b) {};
-    \node[right=0.15cm of leg-b, font=\scriptsize] {Batch B: dipende da \texttt{1.1}};
-    \node[ag-gray, below=0.3cm of leg-b, minimum width=1.6cm, draw=gray!40, dashed] (leg-c) {};
-    \node[right=0.15cm of leg-c, font=\scriptsize] {Batch C: Milestone~2};
+      %% External tests
+      %% Allineamento a sinistra: agganciamo il bordo sx di ex0 al bordo sx di d7a
+      \node[ag-gold, ext-node, below=of d7a.south west, anchor=north west] (ex0) {\texttt{ext.0.1.nuclei}};
+      \node[ag-gold, ext-node, right=of ex0] (ex1) {\texttt{ext.1.5.sslyze}};
+      \node[ag-gold, ext-node, right=of ex1] (ex2) {\texttt{ext.1.5.testssl}};
 
-  \end{tikzpicture}
-  \caption{Topologia del \gls{DAG} di dipendenza in Milestone~1: Phase~A (no deps), Phase~B (requires \texttt{1.1}) e Phase~C pianificata (Milestone~2).}
+      %% Box Phase A
+      \begin{scope}[on background layer]
+        \node[ag-group, draw=orange!50, fill=yellow!6,
+          fit=(d0a)(d0b)(d0c)(d1a)(d1b)(a11)(d3a)(d4a)(d4b)(d4c)(d6a)(d6b)(d7a)(ex0)(ex1)(ex2),
+          label={[font=\small\bfseries, orange!70!black]above:Phase~A (16 test, nessuna dipendenza)}]
+        (phaseA) {};
+      \end{scope}
+
+      %% Phase B: solo 1.4 e 2.1 
+      %% Distanziata di 13em per far passare agevolmente la scatola Phase A che si è allargata a destra
+      \node[ag-blue, phB-node, right=13em of a11] (b14) {\texttt{1.4}};
+      \node[ag-blue, phB-node, below=of b14] (b21) {\texttt{2.1}};
+      \begin{scope}[on background layer]
+        \node[ag-group, draw=blue!40, fill=blue!4,
+        fit=(b14)(b21),
+        label={[font=\small\bfseries, blue!60!black]above:Phase~B (\texttt{depends\_on=["1.1"]})}]
+        (phaseB) {};
+      \end{scope}
+
+      %% Phase C: pianificata
+      \node[ag-gray, minimum width=8em, right=4em of phaseB, draw=gray!40, dashed] (c) {\textit{Phase~C}\\{\scriptsize (pianificata)}};
+
+      %% Frecce e biforcazioni (coordinate dinamiche calcolate per uscire dal box giallo)
+      \coordinate (jA) at ([xshift=10em]a11.east);
+      \draw[ag-arr, blue!50] (a11.east) -- node[pos=0.6, above, ag-note] {\texttt{1.1} $\rightarrow$} (jA) |- (b14.west);
+      \draw[ag-arr, blue!50] (jA) |- (b21.west);
+
+      \draw[ag-darr, gray!50] (phaseB.east) -- (c.west) node[midway, above, ag-note] {\texttt{ext.1.2}};
+    \end{tikzpicture}
+  }%
+  \caption{Topologia del \gls{DAG} nel ciclo di assessment corrente: Phase~A (nessuna dipendenza), Phase~B (\texttt{depends\_on=["1.1"]}) e Phase~C (pianificata).}
   \label{fig:dag-topology}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:dag-topology}.}\\
-    \texttt{File:} \texttt{Tesi/sections/3-methodology.tex}\\ \texttt{Sezione:} \verb|\subsection{Scheduling Basato su DAG...}|\\ \texttt{Ctrl+F:} \texttt{``Lo scheduler include due proprietà di correttezza strutturale:''}\\ \texttt{Azione:} inserire \emph{dopo} il paragrafo che descrive le due proprietà di correttezza (rilevazione cicli e salvaguardia contro lo stallo), prima del paragrafo sul tie-breaking lessicografico. La figura mostra la topologia concreta con i nomi reali dei test attivi in M1. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:dag-topology}.}\\
+    \texttt{Label:} \verb|\label{subsec:dag}| \quad
+    \texttt{Ctrl+F:} \texttt{Lo scheduler include due proprietà di correttezza strutturale:}\\
+    \texttt{Azione:} inserire dopo il paragrafo che elenca le due proprietà, prima del paragrafo sul tie-breaking lessicografico. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA G -- UML Sequence Diagram: Error Isolation D4.P3 (Cap. 4, §4.1)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA G (8.4) -- UML Sequence Diagram ──────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \begin{tikzpicture}[
-      actor/.style={ag-blue, minimum width=2.0cm, minimum height=24pt}, lifeline/.style={draw=gray!50, dashed, very thin}, msg/.style={ag-arr, black!70}, msg-return/.style={ag-darr, black!50}, box-act/.style={draw, fill=blue!10, rectangle, minimum width=0.25cm, rounded corners=1pt}, note-box/.style={draw=orange!50, fill=yellow!12, rounded corners=2pt, inner sep=4pt, font=\scriptsize}, ]
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Dieta orizzontale: 8em per farci stare il testo, ma senza allargare troppo
+        actor/.style={ag-blue, minimum width=8em, minimum height=2.5em, align=center},
+        lifeline/.style={draw=gray!50, dashed, very thin},
+        msg/.style={ag-arr, black!70},
+        msg-return/.style={ag-darr, black!50},
+        note-box/.style={draw=orange!50, fill=yellow!12, rounded corners=2pt, inner sep=4pt, font=\scriptsize},
+      ]
 
-    %% ---- Attori (intestazioni) ----
-    \node[actor] (Eng) {\texttt{Engine}};
-    \node[actor, right=2.8cm of Eng] (BT) {\texttt{BaseTest}};
-    \node[actor, right=2.8cm of BT] (SC) {\texttt{SecurityClient}};
-    \node[actor, right=2.8cm of SC] (TGT) {Target\\(Kong)};
+      %% Attori (corridoi stretti a 2em per mantenere la scala 1:1)
+      \node[actor] (Eng) {\texttt{Engine}};
+      \node[actor, right=2em of Eng] (BT) {\texttt{BaseTest}};
+      \node[actor, right=2em of BT] (SC) {\texttt{SecurityClient}};
+      \node[actor, right=2em of SC] (TGT) {Target (Kong)};
 
-    %% ---- Lifelines ----
-    \draw[lifeline] (Eng.south) -- ++(0,-8.5cm);
-    \draw[lifeline] (BT.south) -- ++(0,-8.5cm);
-    \draw[lifeline] (SC.south) -- ++(0,-8.5cm);
-    \draw[lifeline] (TGT.south) -- ++(0,-8.5cm);
+      %% Lifelines (Asse del tempo scalabile)
+      \draw[lifeline] (Eng.south) -- ++(0,-52ex);
+      \draw[lifeline] (BT.south) -- ++(0,-52ex);
+      \draw[lifeline] (SC.south) -- ++(0,-52ex);
+      \draw[lifeline] (TGT.south) -- ++(0,-52ex);
 
-    %% ---- Scenario normale (1/2 superiore) ----
-    % Eng -> BT: execute()
-    \draw[msg] ([yshift=-0.8cm]Eng.south) -- ([yshift=-0.8cm]BT.south) node[midway, above, font=\scriptsize] {\texttt{execute(target, ctx)}};
-    % BT -> SC: request()
-    \draw[msg] ([yshift=-1.6cm]BT.south) -- ([yshift=-1.6cm]SC.south) node[midway, above, font=\scriptsize] {\texttt{request(method, url, ...)}};
-    % SC -> TGT: HTTP
-    \draw[msg] ([yshift=-2.4cm]SC.south) -- ([yshift=-2.4cm]TGT.south) node[midway, above, font=\scriptsize] {\gls{HTTP} request};
-    % TGT -> SC: response
-    \draw[msg-return] ([yshift=-3.2cm]TGT.south) -- ([yshift=-3.2cm]SC.south) node[midway, above, font=\scriptsize] {\gls{HTTP} response};
-    % SC -> BT: response
-    \draw[msg-return] ([yshift=-4.0cm]SC.south) -- ([yshift=-4.0cm]BT.south) node[midway, above, font=\scriptsize] {\texttt{Response}};
-    % BT -> Eng: TestResult(PASS/FAIL)
-    \draw[msg-return] ([yshift=-4.8cm]BT.south) -- ([yshift=-4.8cm]Eng.south) node[midway, above, font=\scriptsize] {\texttt{TestResult(PASS | FAIL)}};
+      %% Scenario normale (Step regolari di -4ex)
+      \draw[msg] ([yshift=-4ex]Eng.south) -- ([yshift=-4ex]BT.south) node[midway, above, font=\scriptsize] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-8ex]BT.south) -- ([yshift=-8ex]SC.south) node[midway, above, font=\scriptsize] {\texttt{request(method, url, ...)}};
+      \draw[msg] ([yshift=-12ex]SC.south) -- ([yshift=-12ex]TGT.south) node[midway, above, font=\scriptsize] {\gls{HTTP} request};
+      \draw[msg-return] ([yshift=-16ex]TGT.south) -- ([yshift=-16ex]SC.south) node[midway, above, font=\scriptsize] {\gls{HTTP} response};
+      \draw[msg-return] ([yshift=-20ex]SC.south) -- ([yshift=-20ex]BT.south) node[midway, above, font=\scriptsize] {\texttt{Response}};
+      \draw[msg-return] ([yshift=-24ex]BT.south) -- ([yshift=-24ex]Eng.south) node[midway, above, font=\scriptsize] {\texttt{TestResult(PASS | FAIL)}};
 
-    %% ---- Separatore scenario ----
-    \draw[gray!40, densely dotted, thick] ([yshift=-5.4cm]Eng.south) -- ([yshift=-5.4cm]TGT.south) node[midway, above, font=\scriptsize\itshape, gray] {scenario alternativo: eccezione imprevista};
+      %% Separatore scenari: riga spessa con box etichetta
+      \draw[gray!60, very thick] ([yshift=-28ex]Eng.south) -- ([yshift=-28ex]TGT.south);
+      \node[fill=gray!15, draw=gray!60, rounded corners=2pt, inner sep=3pt, font=\scriptsize\itshape]
+      at ($([yshift=-28ex]Eng.south)!0.5!([yshift=-28ex]TGT.south)$)
+      {scenario alternativo: eccezione imprevista};
 
-    %% ---- Scenario eccezione (1/2 inferiore) ----
-    % Eng -> BT: execute()
-    \draw[msg] ([yshift=-5.9cm]Eng.south) -- ([yshift=-5.9cm]BT.south) node[midway, above, font=\scriptsize] {\texttt{execute(target, ctx)}};
-    % BT -> SC: request()
-    \draw[msg] ([yshift=-6.7cm]BT.south) -- ([yshift=-6.7cm]SC.south) node[midway, above, font=\scriptsize] {\texttt{request(method, url, ...)}};
-    % SC: eccezione
-    \node[note-box, right=0.2cm of SC, yshift=-7.3cm] (exc) {\texttt{Exception} imprevista};
-    \draw[ag-arr, orange!70] ([yshift=-7.0cm]SC.south) -- (exc.west);
-    % BT cattura internamente
-    \draw[ag-arr, orange!70] (exc.north) to[bend right=20] ([yshift=-7.5cm]BT.south) node[midway, right, font=\scriptsize\itshape, align=center, xshift=4pt] {catturata\\internamente};
-    % BT -> Eng: TestResult(ERROR)
-    \draw[msg-return, red!60] ([yshift=-8.2cm]BT.south) -- ([yshift=-8.2cm]Eng.south) node[midway, above, font=\scriptsize, red!70] {\texttt{TestResult(ERROR)}: pipeline prosegue};
+      %% Scenario eccezione
+      \draw[msg] ([yshift=-32ex]Eng.south) -- ([yshift=-32ex]BT.south) node[midway, above, font=\scriptsize] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-36ex]BT.south) -- ([yshift=-36ex]SC.south) node[midway, above, font=\scriptsize] {\texttt{request(method, url, ...)}};
 
-  \end{tikzpicture}
+      %% --- CORREZIONE POSIZIONAMENTO E GRIGLIA VERTICALE (-40, -44, -48) ---
+
+      %% Punto di partenza a -40ex (esattamente 4ex dopo l'ultima freccia)
+      \coordinate (err_start) at ([yshift=-40ex]SC.south);
+
+      %% Il box posizionato al 70% della distanza verso Kong per adattarsi al corridoio da 2em
+      \node[note-box] (exc) at ($([yshift=-40ex]SC.south)!0.7!([yshift=-40ex]TGT.south)$) {\texttt{Exception} imprevista};
+
+      \draw[ag-arr, orange!70] (err_start) -- (exc.west);
+
+      %% Freccia cattura: scende esattamente a -44ex (step di 4ex) e torna indietro a BaseTest
+      \draw[ag-arr, orange!70] (exc.south) |- ([yshift=-44ex]BT.south)
+      node[pos=0.75, above, ag-note, align=center] {catturata\\internamente};
+
+      %% TestResult(ERROR): Ritorno finale all'Engine esattamente a -48ex (step di 4ex)
+      \draw[msg-return, red!60] ([yshift=-48ex]BT.south) -- ([yshift=-48ex]Eng.south)
+      node[midway, above, font=\scriptsize, red!70] {\texttt{TestResult(ERROR)}: pipeline prosegue};
+
+    \end{tikzpicture}
+  }%
   \caption{Ciclo di vita di un test in Fase~5: scenario normale e scenario di eccezione con error isolation (D4.P3).}
   \label{fig:sequence-error-isolation}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:sequence-error-isolation}.}\\
-    \texttt{File:} \texttt{Tesi/sections/4-implementation.tex}\\ \texttt{Sezione:} \verb|\section{La Pipeline di Esecuzione a Sette Fasi}| (\verb|\label{sec:pipeline}|)\\ \texttt{Ctrl+F:} \texttt{``L'assenza di \textbackslash texttt\{try/except\}
-      attorno a \textbackslash texttt\{test.execute()\} in \textbackslash texttt\{engine.py\}''}\\ \texttt{Azione:} inserire immediatamente dopo il paragrafo che introduce D4.P3 (Fail-Safe Error Isolation), prima dei dettagli sulla gerarchia delle eccezioni. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:sequence-error-isolation}.}\\
+    \texttt{Label:} \verb|\label{sec:pipeline}| (\S4.1) \quad
+    \texttt{Ctrl+F:} cerca \texttt{D4.P3} o \texttt{Fail-Safe Error Isolation} in \S4.1\\
+    \texttt{Azione:} inserire dopo il paragrafo che introduce D4.P3, prima dei dettagli sulla gerarchia delle eccezioni. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA H -- UML Class Diagram: Gerarchia duale + Connector (Cap. 4, §4.3-4.4)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA H (8.5) -- UML Class Diagram ─────────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \begin{tikzpicture}[
-      cls/.style={draw, rectangle, rounded corners=1pt, minimum width=2.6cm, minimum height=22pt, inner sep=5pt, align=center, font=\small}, abs/.style={cls, fill=blue!7, draw=blue!40, font=\small\itshape}, conc/.style={cls, fill=gray!8, draw=gray!50}, ext-abs/.style={cls, fill=green!7, draw=green!45, font=\small\itshape}, ext-conc/.style={cls, fill=gray!8, draw=gray!50}, conn-abs/.style={cls, fill=violet!7, draw=violet!40, font=\small\itshape}, conn-conc/.style={cls, fill=gray!8, draw=gray!50}, node distance=0.45cm and 1.4cm, ]
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        cls/.style={draw, rectangle, rounded corners=1pt, minimum width=2.8cm, minimum height=22pt, inner sep=5pt, align=center, font=\small},
+        abs/.style={cls, fill=blue!7, draw=blue!40, font=\small\itshape},
+        conc/.style={cls, fill=gray!8, draw=gray!50},
+        ext-abs/.style={cls, fill=green!7, draw=green!45, font=\small\itshape},
+        ext-conc/.style={cls, fill=gray!8, draw=gray!50},
+        conn-abs/.style={cls, fill=violet!7, draw=violet!40, font=\small\itshape},
+        conn-conc/.style={cls, fill=gray!8, draw=gray!50},
+        node distance=0.38cm and 2.8cm,
+      ]
+      %% ── Gerarchia nativa (BaseTest sopra, subclasses sotto a sinistra) ─────
+      \node[abs] (BT) {\texttt{BaseTest}\\{\scriptsize (abstract)}};
+      %% Subclasses impilate a sinistra di BT, allineate al bordo sinistro
+      \node[conc, below=1.2cm of BT, xshift=-2.4cm] (T01) {\texttt{test\_0\_1}};
+      \node[conc, below=of T01] (T11) {\texttt{test\_1\_1}};
+      \node[conc, below=of T11] (T21) {\texttt{test\_2\_1}};
+      \node[conc, below=of T21] (Tdot) {\texttt{...\ D0--D7}};
+      %% Bus verticale: ogni subclass -> orizzontale -> bus -> su -> BT
+      \coordinate (busNat) at (BT.south);
+      \draw[gray!60, semithick] (busNat) -- (busNat |- Tdot.south);
+      \draw[ag-arr, gray!70] (T01.east) -- (T01.east -| busNat);
+      \draw[ag-arr, gray!70] (T11.east) -- (T11.east -| busNat);
+      \draw[ag-arr, gray!70] (T21.east) -- (T21.east -| busNat);
+      \draw[ag-arr, gray!70] (Tdot.east) -- (Tdot.east -| busNat);
+      \draw[uml-inherit] (busNat) -- (BT.south);
 
-    %% ---- Gerarchia nativa (sinistra) ----
-    \node[abs] (BT) {\texttt{BaseTest}\\{\scriptsize (abstract)}};
+      %% ── Gerarchia esterna (ETT sopra, subclasses sotto) ──────────────────
+      \node[ext-abs, right=of BT] (ETT) {\texttt{ExternalToolTest}\\{\scriptsize (abstract)}};
+      \node[ext-conc, below=1.2cm of ETT, xshift=-2.0cm] (E01) {\texttt{ext\_0\_1\_nuclei}};
+      \node[ext-conc, below=of E01] (E15s) {\texttt{ext\_1\_5\_sslyze}};
+      \node[ext-conc, below=of E15s] (E15t) {\texttt{ext\_1\_5\_testssl}};
+      %% Bus esterno
+      \coordinate (busExt) at (ETT.south);
+      \draw[gray!60, semithick] (busExt) -- (busExt |- E15t.south);
+      \draw[ag-arr, gray!70] (E01.east) -- (E01.east -| busExt);
+      \draw[ag-arr, gray!70] (E15s.east) -- (E15s.east -| busExt);
+      \draw[ag-arr, gray!70] (E15t.east) -- (E15t.east -| busExt);
+      \draw[uml-inherit] (busExt) -- (ETT.south);
 
-    \node[conc, below left=0.8cm and -0.4cm of BT] (T01) {\texttt{test\_0\_1}};
-    \node[conc, below=of T01] (T11) {\texttt{test\_1\_1}};
-    \node[conc, below=of T11] (T21) {\texttt{test\_2\_1}};
-    \node[conc, below=of T21] (Tdot){\texttt{...\ D0--D7}};
+      %% ── Gerarchia Connector (destra) ──────────────────────────────────────
+      \node[conn-abs, right=of ETT] (BC) {\texttt{BaseConnector}\\{\scriptsize (abstract)}};
+      \node[conn-abs, below=1.2cm of BC, xshift=-1.5cm] (BLC) {\texttt{BaseLibrary}\\\texttt{Connector}\\{\scriptsize (abstract)}};
+      \node[conn-abs, below=1.2cm of BC, xshift=+1.5cm] (BSC) {\texttt{BaseSub}\\\texttt{processConnector}\\{\scriptsize (abstract)}};
+      \node[conn-conc, below=of BLC] (SSL) {\texttt{SslyzeConnector}};
+      \node[conn-conc, below=of BSC, xshift=-0.6cm] (NUC) {\texttt{NucleiConnector}};
+      \node[conn-conc, below=of BSC, xshift=+0.6cm] (TSL) {\texttt{TestsslConnector}};
+      \draw[uml-inherit] (BLC) -- (BC.south);
+      \draw[uml-inherit] (BSC) -- (BC.south);
+      \draw[uml-inherit] (SSL) -- (BLC);
+      \draw[uml-inherit] (NUC) -- (BSC);
+      \draw[uml-inherit] (TSL) -- (BSC);
 
-    \draw[uml-inherit] (T01) -- (BT);
-    \draw[uml-inherit] (T11) -- (BT);
-    \draw[uml-inherit] (T21) -- (BT);
-    \draw[uml-inherit] (Tdot) -- (BT);
+      %% Relazione composizione ETT -> BC
+      \draw[uml-compose, dashed, gray!60] (ETT.east) -- (BC.west) node[midway, above, font=\scriptsize\itshape, gray!70] {usa};
 
-    %% ---- Gerarchia esterna (centro) ----
-    \node[ext-abs, right=1.8cm of BT] (ETT) {\texttt{ExternalToolTest}\\{\scriptsize (abstract)}};
-
-    \node[ext-conc, below left=0.8cm and -0.4cm of ETT] (E01) {\texttt{ext\_0\_1\_nuclei}};
-    \node[ext-conc, below=of E01] (E15s) {\texttt{ext\_1\_5\_sslyze}};
-    \node[ext-conc, below=of E15s] (E15t) {\texttt{ext\_1\_5\_testssl}};
-
-    \draw[uml-inherit] (E01) -- (ETT);
-    \draw[uml-inherit] (E15s) -- (ETT);
-    \draw[uml-inherit] (E15t) -- (ETT);
-
-    %% ---- Gerarchia Connector (destra) ----
-    \node[conn-abs, right=1.8cm of ETT] (BC) {\texttt{BaseConnector}\\{\scriptsize (abstract)}};
-
-    \node[conn-abs, below left=1.0cm and -0.3cm of BC] (BLC) {\texttt{BaseLibraryConnector}\\{\scriptsize (abstract)}};
-    \node[conn-abs, below right=1.0cm and -0.3cm of BC] (BSC) {\texttt{BaseSubprocessConnector}\\{\scriptsize (abstract)}};
-
-    \node[conn-conc, below=of BLC] (SSL) {\texttt{SslyzeConnector}};
-    \node[conn-conc, below left=0.5cm and -0.4cm of BSC] (NUC) {\texttt{NucleiConnector}};
-    \node[conn-conc, below right=0.5cm and -0.4cm of BSC] (TSL) {\texttt{TestsslConnector}};
-
-    \draw[uml-inherit] (BLC) -- (BC);
-    \draw[uml-inherit] (BSC) -- (BC);
-    \draw[uml-inherit] (SSL) -- (BLC);
-    \draw[uml-inherit] (NUC) -- (BSC);
-    \draw[uml-inherit] (TSL) -- (BSC);
-
-    %% ---- Relazione composizione ExternalToolTest -> Connector ----
-    \draw[uml-compose, dashed, gray!60] (ETT.east) -- (BC.west) node[midway, above, font=\scriptsize\itshape, gray!70] {usa};
-
-    %% ---- Etichette di gruppo ----
-    \node[font=\small\bfseries, blue!60!black, above=0.3cm of BT] {Test nativi (D0--D7)};
-    \node[font=\small\bfseries, green!55!black, above=0.3cm of ETT] {Test esterni};
-    \node[font=\small\bfseries, violet!60!black, above=0.3cm of BC] {Connettori};
-
-  \end{tikzpicture}
+      %% Etichette di gruppo
+      \node[font=\small\bfseries, blue!60!black, above=0.3cm of BT] {Test nativi (D0--D7)};
+      \node[font=\small\bfseries, green!55!black, above=0.3cm of ETT] {Test esterni};
+      \node[font=\small\bfseries, violet!60!black, above=0.3cm of BC] {Connettori};
+    \end{tikzpicture}
+  }%
   \caption{Gerarchia duale \texttt{BaseTest}/\texttt{ExternalToolTest} (D1.P4) e gerarchia dei connettori Library/Subprocess (D1.P5).}
   \label{fig:class-hierarchy}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:class-hierarchy}.}\\
-    \texttt{File:} \texttt{Tesi/sections/4-implementation.tex}\\ \texttt{Sezione:} tra \verb|\subsection{...BaseTest...}| e \verb|\subsection{...Connettori...}|\\ \texttt{Ctrl+F:} \texttt{``La separazione dei contratti \textbackslash texttt\{BaseTest\}
-      e \textbackslash texttt\{ExternalToolTest\} previene''}\\ \texttt{Azione:} inserire dopo la frase che motiva la gerarchia duale (quella sulla prevenzione di errori per costruzione), prima del paragrafo sull'Auth Abstraction Layer. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:class-hierarchy}.}\\
+    \texttt{Label:} \S4.3 e \S4.4 (Architettura Test Nativi, Gerarchia Connettori)\\
+    \texttt{Ctrl+F:} cerca \texttt{BaseTest} o \texttt{ExternalToolTest} in \S4.3\\
+    \texttt{Azione:} inserire tra \S4.3 e \S4.4, dopo la spiegazione della gerarchia duale. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA I -- Sanitizzazione a imbuto D4.P2 (Cap. 4, §4.6)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA I (8.6) -- Sanitizzazione a imbuto ───────────────────────────────
 \begin{figure}[ht]
   \centering
   \begin{tikzpicture}[
-      node distance=0.5cm and 2.4cm, stage/.style={ag-blue, minimum width=4.0cm, minimum height=24pt}, redact/.style={ag-red, minimum width=2.4cm, minimum height=22pt}, pass/.style={ag-green, minimum width=2.4cm, minimum height=22pt}, decision/.style={ag-diamond, minimum width=3.2cm}, ]
-
-    %% ---- Input ----
-    \node[ag-gray, minimum width=4.0cm] (inp) {Record grezzo (\texttt{dict})\\{\scriptsize output connector / transazione HTTP}};
-
-    %% ---- Stage 1 ----
-    \node[stage, below=0.6cm of inp] (s1) {Stadio~1: Key-pattern regex\\{\scriptsize 11 pattern: password, token, api\_key, ...}};
+      node distance=0.5cm and 2.6cm,
+      stage/.style={ag-blue, minimum width=4.2cm, minimum height=24pt},
+      redact/.style={ag-red, minimum width=2.4cm, minimum height=22pt},
+      pass/.style={ag-green, minimum width=2.4cm, minimum height=22pt},
+      decision/.style={ag-diamond, minimum width=3.2cm},
+    ]
+    %% Input
+    \node[ag-gray, minimum width=4.2cm] (inp) {Record grezzo (\texttt{dict})\\{\scriptsize output connector / transazione HTTP}};
+    %% Stadio 1
+    \node[stage, below=0.7cm of inp] (s1) {Stadio~1: Key-pattern regex\\{\scriptsize 11 pattern: password, token, api\_key, ...}};
     \node[decision, right=of s1] (d1) {match?};
     \node[redact, right=0.6cm of d1] (r1) {\texttt{[REDACTED]}};
-    \node[pass, below=0.3cm of d1] (p1) {chiave pulita};
-
-    %% ---- Stage 2 ----
-    \node[stage, below=1.4cm of s1] (s2) {Stadio~2: JWT heuristic\\{\scriptsize stringa con 2 punti + base64}};
+    \node[pass, below=0.35cm of d1] (p1) {chiave pulita};
+    %% Stadio 2
+    \node[stage, below=1.5cm of s1] (s2) {Stadio~2: \gls{JWT} heuristic\\{\scriptsize stringa con 2 punti + base64}};
     \node[decision, right=of s2] (d2) {match?};
     \node[redact, right=0.6cm of d2] (r2) {\texttt{[REDACTED]}};
-    \node[pass, below=0.3cm of d2] (p2) {valore pulito};
-
-    %% ---- Stage 3 ----
-    \node[stage, below=1.4cm of s2] (s3) {Stadio~3: Header prefix\\{\scriptsize Authorization, X-API-Key, ...}};
+    \node[pass, below=0.35cm of d2] (p2) {valore pulito};
+    %% Stadio 3
+    \node[stage, below=1.5cm of s2] (s3) {Stadio~3: Header prefix\\{\scriptsize Authorization, X-API-Key, ...}};
     \node[decision, right=of s3] (d3) {match?};
     \node[redact, right=0.6cm of d3] (r3) {\texttt{[REDACTED]}};
-    \node[pass, below=0.3cm of d3] (p3) {header pulito};
-
-    %% ---- Output ----
-    \node[ag-violet, below=1.4cm of s3, minimum width=4.0cm] (out) {\texttt{EvidenceStore.pin\_artifact()}\\{\scriptsize record sanitizzato scritto su JSONL}};
-
-    %% ---- Frecce principali (pipeline verticale) ----
+    \node[pass, below=0.35cm of d3] (p3) {header pulito};
+    %% Output
+    \node[ag-violet, below=1.5cm of s3, minimum width=4.2cm] (out) {\texttt{EvidenceStore.pin\_artifact()}\\{\scriptsize record sanitizzato scritto su JSONL}};
+    %% Frecce pipeline
     \draw[ag-arr] (inp) -- (s1);
     \draw[ag-arr] (s1.east) -- (d1.west);
-    \draw[ag-arr] (d1.north) -- ++(0, 0.3) -| (r1.north) node[pos=0.15, right, font=\scriptsize, xshift=2pt] {sì};
-    \draw[ag-arr] (d1.south) -- (p1.north) node[near start, right, font=\scriptsize, xshift=3pt] {no};
+    %% Stadio 1: percorsi sì/no con label SOPRA la freccia
+    \draw[ag-arr] (d1.north) -- ++(0, 0.3) -| (r1.north);
+    \node[font=\scriptsize, above] at ([yshift=0.35cm, xshift=0.6cm]d1.north) {sì};
+    \draw[ag-arr] (d1.south) -- (p1.north);
+    \node[font=\scriptsize, anchor=west] at ([xshift=4pt, yshift=-4pt]d1.south) {no};
     \draw[ag-arr] (p1.south) -- ++(0,-0.2) -| (s2.north east);
     \draw[ag-arr] (r1.south) -- ++(0,-0.2) -| (s2.north east);
-
+    %% Stadio 2
     \draw[ag-arr] (s2.east) -- (d2.west);
-    \draw[ag-arr] (d2.north) -- ++(0, 0.3) -| (r2.north) node[pos=0.15, right, font=\scriptsize, xshift=2pt] {sì};
-    \draw[ag-arr] (d2.south) -- (p2.north) node[near start, right, font=\scriptsize, xshift=3pt] {no};
+    \draw[ag-arr] (d2.north) -- ++(0, 0.3) -| (r2.north);
+    \node[font=\scriptsize, above] at ([yshift=0.35cm, xshift=0.6cm]d2.north) {sì};
+    \draw[ag-arr] (d2.south) -- (p2.north);
+    \node[font=\scriptsize, anchor=west] at ([xshift=4pt, yshift=-4pt]d2.south) {no};
     \draw[ag-arr] (p2.south) -- ++(0,-0.2) -| (s3.north east);
     \draw[ag-arr] (r2.south) -- ++(0,-0.2) -| (s3.north east);
-
+    %% Stadio 3
     \draw[ag-arr] (s3.east) -- (d3.west);
-    \draw[ag-arr] (d3.north) -- ++(0, 0.3) -| (r3.north) node[pos=0.15, right, font=\scriptsize, xshift=2pt] {sì};
-    \draw[ag-arr] (d3.south) -- (p3.north) node[near start, right, font=\scriptsize, xshift=3pt] {no};
+    \draw[ag-arr] (d3.north) -- ++(0, 0.3) -| (r3.north);
+    \node[font=\scriptsize, above] at ([yshift=0.35cm, xshift=0.6cm]d3.north) {sì};
+    \draw[ag-arr] (d3.south) -- (p3.north);
+    \node[font=\scriptsize, anchor=west] at ([xshift=4pt, yshift=-4pt]d3.south) {no};
     \draw[ag-arr] (p3.south) -- ++(0,-0.25) -| (out.north east);
     \draw[ag-arr] (r3.south) -- ++(0,-0.25) -| (out.north east);
-
   \end{tikzpicture}
   \caption{Sanitizzazione a imbuto dell'evidenza (D4.P2): key-pattern, \gls{JWT} heuristic e header prefix in sequenza.}
   \label{fig:sanitization-funnel}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:sanitization-funnel}.}\\
-    \texttt{File:} \texttt{Tesi/sections/4-implementation.tex}\\ \texttt{Sezione:} \verb|\subsection{Evidence Sanitization (D4.P2)}| (oppure il titolo esatto della sottosezione)\\ \texttt{Ctrl+F:} \texttt{``La sanitizzazione centralizzata tramite tripla copertura''}\\ \texttt{Azione:} inserire dopo il paragrafo che descrive i tre meccanismi in prosa, prima del paragrafo che commenta la centralizzazione come garanzia strutturale. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:sanitization-funnel}.}\\
+    \texttt{Label:} \S4.6 (Evidence Store e Sanitizzazione delle Credenziali)\\
+    \texttt{Ctrl+F:} cerca \texttt{D4.P2} o \texttt{sanitizzazione} in \S4.6\\
+    \texttt{Azione:} inserire dopo il paragrafo che descrive i tre stadi, prima del commento sulla centralizzazione. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA J -- Topologia di rete del testbed (Cap. 5, §5.1.1)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA J (8.7) -- Topologia Testbed ─────────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \resizebox{0.9\textwidth}{!}{%
+  \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[node distance=0.7cm and 1.8cm]
-
-      %% ---- Host: apiguard-assurance ----
+      %% Host
       \node[ag-gold, minimum width=4.0cm, minimum height=32pt] (host) {\textbf{Host: apiguard-assurance}\\ {\scriptsize Python process, \texttt{apiguard run}}};
-
-      %% ---- Kong Gateway ----
-      \node[ag-blue, below=1.6cm of host, minimum width=4.4cm, minimum height=52pt] (kong) {\textbf{Kong~3.9 DB-less}\\ {\scriptsize :8000\ (HTTP proxy)}\\ {\scriptsize :8443\ (HTTPS proxy)}\\ {\scriptsize :8001\ (Admin \gls{API})}};
-
-      %% ---- Forgejo ----
+      %% Kong
+      \node[ag-blue, below=1.6cm of host, minimum width=4.4cm, minimum height=52pt] (kong) {\textbf{Kong~3.9 DB-less}\\ {\scriptsize :8000 (HTTP proxy)}\\ {\scriptsize :8443 (HTTPS proxy)}\\ {\scriptsize :8001 (Admin \gls{API})}};
+      %% Forgejo
       \node[ag-green, right=2.6cm of kong, minimum width=3.2cm, minimum height=32pt] (forgejo) {\textbf{Forgejo~14.0.3}\\ {\scriptsize target applicativo}};
-
-      %% ---- PostgreSQL ----
+      %% PostgreSQL
       \node[ag-gray, below=0.7cm of forgejo, minimum width=3.2cm, minimum height=28pt] (pg) {\textbf{PostgreSQL}\\ {\scriptsize backend Forgejo}};
-
-      %% ---- Utenti RBAC ----
+      %% Utenti RBAC
       \node[ag-gray, left=2.0cm of kong, minimum width=2.8cm, minimum height=52pt] (rbac) {{\scriptsize \textbf{thesis-admin}}\\ {\scriptsize \textbf{user-a} (utente std.)}\\ {\scriptsize \textbf{user-b} (GREY\_BOX~\#2)}};
-
-      %% ---- Frecce ----
-      % Host -> Kong (probe HTTP e Admin API)
+      %% Frecce: solo dritte
       \draw[ag-arr] (host.south) -- (kong.north) node[midway, right, font=\scriptsize, align=left] {:8000/:8443 (probe)\\:8001 (Admin \gls{API})};
-      % Kong -> Forgejo (proxy)
       \draw[ag-arr] (kong.east) -- (forgejo.west) node[midway, above, font=\scriptsize] {proxy / route};
-      % Forgejo <-> PostgreSQL
       \draw[ag-barr] (forgejo.south) -- (pg.north) node[midway, right, font=\scriptsize] {SQL};
-      % RBAC -> Kong (token)
       \draw[ag-arr, dashed] (rbac.east) -- (kong.west) node[midway, above, font=\scriptsize, xshift=-4pt] {token};
-
-      %% ---- Box infrastruttura Docker Compose ----
+      %% Docker Compose box
       \begin{scope}[on background layer]
         \node[ag-group, draw=gray!40, fill=gray!3, fit=(kong)(forgejo)(pg), label={[font=\scriptsize\bfseries, gray!60]south:Docker Compose network}] (compose) {};
       \end{scope}
-
     \end{tikzpicture}
-  }% fine resizebox
+  }%
   \caption{Topologia dell'ambiente di validazione sperimentale (Forgejo~14.0.3 + Kong~3.9 DB-less, Docker Compose).}
   \label{fig:testbed-topology}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:testbed-topology}.}\\
-    \texttt{File:} \texttt{Tesi/sections/5-experiments.tex}\\ \texttt{Sezione:} \verb|\section{Topologia del Testbed Sperimentale}| (\verb|\label{sec:testbed}|)\\ \texttt{Ctrl+F:} \texttt{``La scelta dell'ambiente target è derivata dalla matrice di copertura della suite''}\\ \texttt{Azione:} inserire \emph{subito dopo} quella frase, prima del paragrafo che descrive in prosa le caratteristiche di Forgejo. Questa figura è il \emph{prerequisito visivo} per la lettura dell'intero capitolo sperimentale. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:testbed-topology}.}\\
+    \texttt{Label:} \verb|\label{sec:testbed}| \quad
+    \texttt{Ctrl+F:} \texttt{La scelta dell'ambiente target è derivata dalla matrice di copertura della suite:}\\
+    \texttt{Azione:} inserire subito dopo quella frase, prima del paragrafo descrittivo su Forgejo. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA K -- Distribuzione dei finding per test (Cap. 5, §5.3.1)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA K (8.8) -- Distribuzione finding ─────────────────────────────────
 \begin{figure}[ht]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
-        xbar, width=0.82\textwidth, height=7.5cm, bar width=10pt, xlabel={Numero di finding}, symbolic y coords={
-            {ext.1.5.testssl}, {ext.1.5.sslyze}, {7.2}, {4.1}, {0.2}, {0.1}, {1.1}
-          }, ytick=data, yticklabel style={font=\small\ttfamily}, xmin=0, xmax=82, xtick={0,10,20,30,40,50,60,70,74,80}, nodes near coords, nodes near coords align={horizontal}, every node near coord/.style={font=\small}, enlarge y limits=0.12, grid=major, grid style={dashed, gray!30}, tick label style={font=\small}, ]
-      \addplot[ fill=blue!25, draw=blue!50 ] coordinates {
-          (3,{ext.1.5.testssl}) (1,{ext.1.5.sslyze}) (1,{7.2}) (2,{4.1}) (1,{0.2}) (16,{0.1}) (74,{1.1}) };
+        xbar, width=0.82\textwidth, height=7.5cm, bar width=10pt,
+        xlabel={Numero di finding},
+        symbolic y coords={{ext.1.5.testssl},{ext.1.5.sslyze},{7.2},{4.1},{0.2},{0.1},{1.1}},
+        ytick=data, yticklabel style={font=\small\ttfamily},
+        xmin=0, xmax=82,
+        xtick={0,10,20,30,40,50,60,70,74,80},
+        nodes near coords, nodes near coords align={horizontal},
+        every node near coord/.style={font=\small},
+        enlarge y limits=0.12,
+        grid=major, grid style={dashed, gray!30},
+        tick label style={font=\small},
+      ]
+      \addplot[fill=blue!25, draw=blue!50] coordinates {
+          (3,{ext.1.5.testssl}) (1,{ext.1.5.sslyze}) (1,{7.2}) (2,{4.1}) (1,{0.2}) (16,{0.1}) (74,{1.1})
+        };
     \end{axis}
   \end{tikzpicture}
-  \caption{Distribuzione dei 98 finding per test in Milestone~1.}
+  \caption{Distribuzione dei 98 finding per test nell'assessment di validazione.}
   \label{fig:finding-distribution}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:finding-distribution}.}\\
-    \texttt{File:} \texttt{Tesi/sections/5-experiments.tex}\\ \texttt{Sezione:} \verb|\subsection{Analisi dei Risultati per Dominio}| (\verb|\label{subsec:analisi-domini}|)\\ \texttt{Ctrl+F:} \texttt{``L'assessment ha prodotto 98 finding distribuiti su 7 \textbackslash texttt\{FAIL\}''}\\ \texttt{Azione:} inserire \emph{dopo} la frase che introduce i 98 finding e \emph{prima} dell'analisi per dominio. Il grafico e la Tabella~\ref{tab:risultati-per-test} sono complementari: la tabella dà i valori esatti, il grafico dà la proporzione immediata. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:finding-distribution}.}\\
+    \texttt{Label:} \verb|\label{sec:coverage-idempotenza}| (\S5.3)\\
+    \texttt{Ctrl+F:} cerca \texttt{98 finding} o \texttt{finding} in \S5.3\\
+    \texttt{Azione:} inserire dopo la frase che introduce il conteggio totale dei finding, prima dell'analisi per dominio. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA L -- Decision tree degli exit code in pipeline CI/CD (Cap. 6, §6.2.1)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA L (8.9) -- Decision tree exit code CI/CD ─────────────────────────
 \begin{figure}[ht]
   \centering
   \begin{tikzpicture}[node distance=0.7cm and 1.6cm]
-
-    %% ---- Nodo di partenza ----
+    %% Nodi verticali (stack centrale)
     \node[ag-terminal] (start) {Runner \gls{CI/CD}};
-
-    %% ---- Azione ----
     \node[ag-gold, below=0.7cm of start, minimum width=4.4cm] (cmd) {\texttt{apiguard run -{}-config config.yaml}};
-
-    %% ---- Decisione: exit code ----
     \node[ag-diamond, below=0.8cm of cmd, aspect=3.0] (dec) {exit code?};
-
-    %% ---- Rami (quattro uscite) ----
-    % exit 0
-    \node[ag-green, right=2.4cm of dec, yshift=+2.4cm, minimum width=3.2cm] (e0) {\texttt{0}: CLEAN\\{\scriptsize tutti PASS/SKIP}};
-    \node[ag-green, right=0.6cm of e0, minimum width=3.2cm] (a0) {Pipeline prosegue\\(merge / deploy consentito)};
-
-    % exit 1
-    \node[ag-red, right=2.4cm of dec, yshift=+0.8cm, minimum width=3.2cm] (e1) {\texttt{1}: FAIL\\{\scriptsize almeno un FAIL}};
-    \node[ag-red, right=0.6cm of e1, minimum width=3.2cm] (a1) {Blocco merge/deploy\\Report allegato come artefatto};
-
-    % exit 2
-    \node[ag-gold, right=2.4cm of dec, yshift=-0.8cm, minimum width=3.2cm] (e2) {\texttt{2}: ERROR\\{\scriptsize ERROR senza FAIL}};
-    \node[ag-gold, right=0.6cm of e2, minimum width=3.2cm] (a2) {Alert malfunzionamento\\Revisione manuale richiesta};
-
-    % exit 10
+    %% Exit code nodes: colonna a destra di cmd, non sopra
+    %% Posizionati al lato DESTRO del diamante a distanza sufficiente da cmd
+    \node[ag-green, right=4.5cm of dec, yshift=+2.4cm, minimum width=3.2cm] (e0) {\texttt{0}: CLEAN\\{\scriptsize tutti PASS/SKIP}};
+    \node[ag-red, right=4.5cm of dec, yshift=+0.8cm, minimum width=3.2cm] (e1) {\texttt{1}: FAIL\\{\scriptsize almeno un FAIL}};
+    \node[ag-gold, right=4.5cm of dec, yshift=-0.8cm, minimum width=3.2cm] (e2) {\texttt{2}: ERROR\\{\scriptsize ERROR senza FAIL}};
     \node[ag-red, below=2.2cm of dec, minimum width=3.2cm, draw=red!70, fill=red!12] (e10) {\texttt{10}: INFRA\\{\scriptsize errore infrastrutturale}};
+    %% Action nodes
+    \node[ag-green, right=0.6cm of e0, minimum width=3.2cm] (a0) {Pipeline prosegue\\(merge / deploy consentito)};
+    \node[ag-red, right=0.6cm of e1, minimum width=3.2cm] (a1) {Blocco merge/deploy\\Report allegato come artefatto};
+    \node[ag-gold, right=0.6cm of e2, minimum width=3.2cm] (a2) {Alert malfunzionamento\\Revisione manuale richiesta};
     \node[ag-gray, right=0.6cm of e10, minimum width=3.2cm] (a10) {Diagnosi deployment\\Verifica \texttt{config.yaml}};
-
-    %% ---- Frecce ----
+    %% Frecce verticali
     \draw[ag-arr] (start) -- (cmd);
     \draw[ag-arr] (cmd) -- (dec);
-
-    \draw[ag-arr, green!55!black] (dec.east) to[bend left=15] (e0.west);
-    \draw[ag-arr, red!60] (dec.east) to[bend left=0] (e1.west);
-    \draw[ag-arr, orange!60] (dec.east) to[bend right=15] (e2.west);
     \draw[ag-arr, red!80] (dec.south) -- (e10.north);
-
+    %% Trunk a destra (ben oltre cmd.east per non sovrapporre)
+    %% cmd.east e' a circa cmd.center + 2.2cm = dec.center + 2.2cm
+    %% Il trunk e' a 4.5cm da dec.east, quindi dec.east + 4.5cm (molto piu' a destra di cmd.east)
+    \coordinate (junc) at ([xshift=2.0cm]dec.east);
+    \draw[ag-arr] (dec.east) -- (junc);
+    \draw[ag-arr, green!55!black] (junc) |- (e0.west);
+    \draw[ag-arr, red!60] (junc) |- (e1.west);
+    \draw[ag-arr, orange!60] (junc) |- (e2.west);
+    %% Frecce orizzontali action
     \draw[ag-arr, green!55!black] (e0.east) -- (a0.west);
     \draw[ag-arr, red!60] (e1.east) -- (a1.west);
     \draw[ag-arr, orange!60] (e2.east) -- (a2.west);
     \draw[ag-arr, gray!60] (e10.east) -- (a10.west);
-
   \end{tikzpicture}
   \caption{Routing degli exit code semantici (D6.P1) nella pipeline \gls{CI/CD}: 0 clean, 1 fail, 2 error, 10 infra.}
   \label{fig:cicd-decision-tree}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:cicd-decision-tree}.}\\
-    \texttt{File:} \texttt{Tesi/sections/6-discussion.tex}\\ \texttt{Sezione:} \verb|\subsection{Semantic Exit Codes...}| (\verb|\label{subsec:exit-codes}|)\\ \texttt{Ctrl+F:} \texttt{``La separazione tra \textbackslash texttt\{1\}
-      e \textbackslash texttt\{10\} ha un valore operativo preciso''}\\ \texttt{Azione:} inserire dopo il paragrafo che spiega la separazione semantica tra i codici, prima del paragrafo finale che menziona GitHub Actions e GitLab CI. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:cicd-decision-tree}.}\\
+    \texttt{Label:} \verb|\label{sec:devsecops}| (\S6.2)\\
+    \texttt{Ctrl+F:} cerca \texttt{exit code} o \texttt{exit\_code} in \S6.2\\
+    \texttt{Azione:} inserire nella sottosezione sugli exit code semantici, dopo il paragrafo che ne spiega la semantica. }
 \end{figure}
 
-
-
-% ───────────────────────────────────────────────────────────────────────────
-% FIGURA M -- Evoluzione a piattaforma modulare (Cap. 6, §6.3.2)
-% ───────────────────────────────────────────────────────────────────────────
-
+% ─── FIGURA M (8.10) -- Piattaforma modulare ─────────────────────────────────
 \begin{figure}[ht]
   \centering
   \begin{tikzpicture}[node distance=1.2cm and 0.9cm]
-
-    %% ---- Core immutabile (centro) ----
-    \node[ag-blue, minimum width=4.4cm, minimum height=52pt] (core) {\textbf{Core: infrastruttura immutabile}\\ {\scriptsize Engine \textbar{} DAG Scheduler \textbar{} EvidenceStore}\\ {\scriptsize TargetContext \textbar{} BaseTest \textbar{} BaseConnector}};
-
-    %% ---- Modulo attuale: REST/OAS ----
-    \node[ag-green, above=1.2cm of core, minimum width=3.2cm] (rest) {\textbf{REST / OAS}\\{\scriptsize (Milestone~1, attivo)}};
-
-    %% ---- Moduli futuri (tratteggiati) ----
-    \node[ag-gray, right=1.4cm of core, minimum width=3.0cm, draw=gray!40, dashed] (gql) {\textit{GraphQL}\\{\scriptsize (Milestone futura)}};
-    \node[ag-gray, below=1.2cm of core, minimum width=3.0cm, draw=gray!40, dashed] (grpc) {\textit{gRPC}\\{\scriptsize (Milestone futura)}};
-    \node[ag-gray, left=1.4cm of core, minimum width=3.0cm, draw=gray!40, dashed] (ws) {\textit{WebSocket}\\{\scriptsize (Milestone futura)}};
-
-    %% ---- Frecce (plugin -> core) ----
+    %% Core immutabile (centro)
+    \node[ag-blue, minimum width=4.6cm, minimum height=52pt] (core) {
+    \textbf{Core: infrastruttura immutabile}\\
+    {\scriptsize Engine \textbar{} DAG Scheduler \textbar{} EvidenceStore}\\
+    {\scriptsize TargetContext \textbar{} BaseTest \textbar{} BaseConnector}
+    };
+    %% Modulo attivo REST/OAS
+    \node[ag-green, above=1.2cm of core, minimum width=3.2cm] (rest) {\textbf{REST / OAS}\\{\scriptsize (attivo)}};
+    %% Moduli pianificati
+    \node[ag-gray, right=1.5cm of core, minimum width=3.0cm, draw=gray!40, dashed] (gql) {\textit{GraphQL}\\{\scriptsize (pianificato)}};
+    \node[ag-gray, below=1.2cm of core, minimum width=3.0cm, draw=gray!40, dashed] (grpc) {\textit{gRPC}\\{\scriptsize (pianificato)}};
+    \node[ag-gray, left=1.5cm of core, minimum width=3.0cm, draw=gray!40, dashed] (ws) {\textit{WebSocket}\\{\scriptsize (pianificato)}};
+    %% Frecce: solo dritte
     \draw[ag-arr, green!55!black, thick] (rest.south) -- (core.north);
     \draw[ag-darr, gray!50] (gql.west) -- (core.east);
     \draw[ag-darr, gray!50] (grpc.north) -- (core.south);
     \draw[ag-darr, gray!50] (ws.east) -- (core.west);
-
-    %% ---- Etichetta schema ----
-    \node[font=\scriptsize\itshape, gray!70, below=0.3cm of grpc] {frecce continue = attivo; \quad frecce tratteggiate = futuro};
-
+    %% Nota aggiunta: il discovery dinamico pkgutil permette plugin esterni
+    \node[font=\scriptsize\itshape, gray!70, below=0.4cm of grpc, align=center]
+    {frecce continue: attivo \quad frecce tratteggiate: pianificato\\
+    {\tiny il discovery dinamico via \texttt{pkgutil} permette moduli di terze parti}};
   \end{tikzpicture}
   \caption{Evoluzione di APIGuard Assurance verso una piattaforma modulare: core immutabile e moduli di protocollo intercambiabili.}
   \label{fig:modular-platform}
-
   \par\smallskip
-  {\small
-    \noindent\textbf{Mini-guida: Figura~\ref{fig:modular-platform}.}\\
-    \texttt{File:} \texttt{Tesi/sections/6-discussion.tex}\\ \texttt{Sezione:} sottosezione sulle traiettorie di ricerca avanzata (§6.3.2, quella sul plugin system)\\ \texttt{Ctrl+F:} \texttt{``Il discovery dinamico via \textbackslash texttt\{pkgutil\}
-      è già compatibile con moduli''}\\ \texttt{Azione:} inserire subito dopo quella frase, come chiusura visiva del capitolo di discussione e dello sviluppo futuro. }
+  {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:modular-platform}.}\\
+    \texttt{Label:} \verb|\label{sec:sviluppi-futuri}| (\S6.3)\\
+    \texttt{Ctrl+F:} cerca \texttt{plugin} o \texttt{pkgutil} in \S6.3\\
+    \texttt{Azione:} inserire nella sottosezione sul plugin system, come chiusura visiva delle future work. }
 \end{figure}
-
 
 % ─── Fine capitolo assets ────────────────────────────────────────────────────
