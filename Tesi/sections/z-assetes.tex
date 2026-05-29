@@ -360,9 +360,13 @@ uml-compose/.style = {-{Diamond}, semithick},
 
       \draw[ag-arr, orange!70] (err_start) -- (exc.west);
 
-      %% Freccia cattura: scende esattamente a -44ex (step di 4ex) e torna indietro a BaseTest
-      \draw[ag-arr, orange!70] (exc.south) |- ([yshift=-44ex]BT.south)
-      node[pos=0.75, above, ag-note, align=center] {catturata\\internamente};
+      %% --- RISOLUZIONE DEL CENTRAGGIO DELLA LABEL ---
+      %% 1. Definiamo in modo sicuro le coordinate del tracciato per evitare crash del compilatore
+      \coordinate (bt_return) at ([yshift=-44ex]BT.south);
+      \coordinate (elbow) at (exc.south |- bt_return);
+
+      %% 2. Disegniamo la linea e usiamo pos=0.4 per far scivolare il testo
+      \draw[ag-arr, orange!70] (exc.south) -- (elbow) -- node[pos=0.6, above, ag-note, align=center] {catturata\\internamente} (bt_return);
 
       %% TestResult(ERROR): Ritorno finale all'Engine esattamente a -48ex (step di 4ex)
       \draw[msg-return, red!60] ([yshift=-48ex]BT.south) -- ([yshift=-48ex]Eng.south)
