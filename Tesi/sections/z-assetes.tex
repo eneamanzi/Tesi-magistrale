@@ -388,136 +388,188 @@ uml-compose/.style = {-{Diamond}, semithick},
   \centering
   \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
-        cls/.style={draw, rectangle, rounded corners=1pt, minimum width=2.8cm, minimum height=22pt, inner sep=5pt, align=center, font=\small},
-        abs/.style={cls, fill=blue!7, draw=blue!40, font=\small\itshape},
-        conc/.style={cls, fill=gray!8, draw=gray!50},
-        ext-abs/.style={cls, fill=green!7, draw=green!45, font=\small\itshape},
-        ext-conc/.style={cls, fill=gray!8, draw=gray!50},
+        % Base: riquadri leggermente più attillati
+        cls/.style={draw, rectangle, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=2.4em},
+        %
+        % Famiglia 1 (Nativi):
+        abs/.style={cls, fill=blue!7, draw=blue!40, font=\small\itshape, minimum width=5.5em},
+        conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=5.5em},
+        %
+        % Famiglia 2 (Esterni):
+        ext-abs/.style={cls, fill=green!7, draw=green!45, font=\small\itshape, minimum width=8.5em},
+        ext-conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=8.5em},
+        %
+        % Famiglia 3 (Connettori):
         conn-abs/.style={cls, fill=violet!7, draw=violet!40, font=\small\itshape},
-        conn-conc/.style={cls, fill=gray!8, draw=gray!50},
-        node distance=0.38cm and 2.8cm,
+        conn-conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=8.5em},
       ]
-      %% ── Gerarchia nativa (BaseTest sopra, subclasses sotto a sinistra) ─────
+      %
+      %% ── 1. Gerarchia Nativa ─────────────────────────────────────────────────
       \node[abs] (BT) {\texttt{BaseTest}\\{\scriptsize (abstract)}};
-      %% Subclasses impilate a sinistra di BT, allineate al bordo sinistro
-      \node[conc, below=1.2cm of BT, xshift=-2.4cm] (T01) {\texttt{test\_0\_1}};
-      \node[conc, below=of T01] (T11) {\texttt{test\_1\_1}};
-      \node[conc, below=of T11] (T21) {\texttt{test\_2\_1}};
-      \node[conc, below=of T21] (Tdot) {\texttt{...\ D0--D7}};
-      %% Bus verticale: ogni subclass -> orizzontale -> bus -> su -> BT
-      \coordinate (busNat) at (BT.south);
-      \draw[gray!60, semithick] (busNat) -- (busNat |- Tdot.south);
-      \draw[ag-arr, gray!70] (T01.east) -- (T01.east -| busNat);
-      \draw[ag-arr, gray!70] (T11.east) -- (T11.east -| busNat);
-      \draw[ag-arr, gray!70] (T21.east) -- (T21.east -| busNat);
-      \draw[ag-arr, gray!70] (Tdot.east) -- (Tdot.east -| busNat);
-      \draw[uml-inherit] (busNat) -- (BT.south);
-
-      %% ── Gerarchia esterna (ETT sopra, subclasses sotto) ──────────────────
-      \node[ext-abs, right=of BT] (ETT) {\texttt{ExternalToolTest}\\{\scriptsize (abstract)}};
-      \node[ext-conc, below=1.2cm of ETT, xshift=-2.0cm] (E01) {\texttt{ext\_0\_1\_nuclei}};
-      \node[ext-conc, below=of E01] (E15s) {\texttt{ext\_1\_5\_sslyze}};
-      \node[ext-conc, below=of E15s] (E15t) {\texttt{ext\_1\_5\_testssl}};
-      %% Bus esterno
-      \coordinate (busExt) at (ETT.south);
-      \draw[gray!60, semithick] (busExt) -- (busExt |- E15t.south);
-      \draw[ag-arr, gray!70] (E01.east) -- (E01.east -| busExt);
-      \draw[ag-arr, gray!70] (E15s.east) -- (E15s.east -| busExt);
-      \draw[ag-arr, gray!70] (E15t.east) -- (E15t.east -| busExt);
-      \draw[uml-inherit] (busExt) -- (ETT.south);
-
-      %% ── Gerarchia Connector (destra) ──────────────────────────────────────
-      \node[conn-abs, right=of ETT] (BC) {\texttt{BaseConnector}\\{\scriptsize (abstract)}};
-      \node[conn-abs, below=1.2cm of BC, xshift=-1.5cm] (BLC) {\texttt{BaseLibrary}\\\texttt{Connector}\\{\scriptsize (abstract)}};
-      \node[conn-abs, below=1.2cm of BC, xshift=+1.5cm] (BSC) {\texttt{BaseSub}\\\texttt{processConnector}\\{\scriptsize (abstract)}};
-      \node[conn-conc, below=of BLC] (SSL) {\texttt{SslyzeConnector}};
-      \node[conn-conc, below=of BSC, xshift=-0.6cm] (NUC) {\texttt{NucleiConnector}};
-      \node[conn-conc, below=of BSC, xshift=+0.6cm] (TSL) {\texttt{TestsslConnector}};
-      \draw[uml-inherit] (BLC) -- (BC.south);
-      \draw[uml-inherit] (BSC) -- (BC.south);
-      \draw[uml-inherit] (SSL) -- (BLC);
-      \draw[uml-inherit] (NUC) -- (BSC);
-      \draw[uml-inherit] (TSL) -- (BSC);
-
-      %% Relazione composizione ETT -> BC
+      %
+      % Bus strettissimo (0.8em)
+      \coordinate (busNat) at ([xshift=0.8em, yshift=-1.5ex]BT.south west);
+      \draw[uml-inherit] (busNat) -- ([xshift=0.8em]BT.south west);
+      %
+      % Figli con rientro minimo (1.5em)
+      \node[conc, below=3ex of BT.south west, anchor=north west, xshift=1.5em] (T01) {\texttt{test\_0\_1}};
+      \node[conc, below=1ex of T01.south west, anchor=north west] (T11) {\texttt{test\_1\_1}};
+      \node[conc, below=1ex of T11.south west, anchor=north west] (T21) {\texttt{test\_2\_1}};
+      \node[conc, below=1ex of T21.south west, anchor=north west] (Tdot) {\texttt{...\ D0--D7}};
+      %
+      \draw[gray!60, semithick] (busNat) -- (busNat |- Tdot.west);
+      \draw[gray!60, semithick] (busNat |- T01.west) -- (T01.west);
+      \draw[gray!60, semithick] (busNat |- T11.west) -- (T11.west);
+      \draw[gray!60, semithick] (busNat |- T21.west) -- (T21.west);
+      \draw[gray!60, semithick] (busNat |- Tdot.west) -- (Tdot.west);
+      %
+      %% ── 2. Gerarchia Esterna ────────────────────────────────────────────────
+      % Corridoio dimezzato (2em)
+      \node[ext-abs, right=2em of BT] (ETT) {\texttt{ExternalToolTest}\\{\scriptsize (abstract)}};
+      %
+      \coordinate (busExt) at ([xshift=0.8em, yshift=-1.5ex]ETT.south west);
+      \draw[uml-inherit] (busExt) -- ([xshift=0.8em]ETT.south west);
+      %
+      \node[ext-conc, below=3ex of ETT.south west, anchor=north west, xshift=1.5em] (E01) {\texttt{ext\_0\_1\_nuclei}};
+      \node[ext-conc, below=1ex of E01.south west, anchor=north west] (E15s) {\texttt{ext\_1\_5\_sslyze}};
+      \node[ext-conc, below=1ex of E15s.south west, anchor=north west] (E15t) {\texttt{ext\_1\_5\_testssl}};
+      %
+      \draw[gray!60, semithick] (busExt) -- (busExt |- E15t.west);
+      \draw[gray!60, semithick] (busExt |- E01.west) -- (E01.west);
+      \draw[gray!60, semithick] (busExt |- E15s.west) -- (E15s.west);
+      \draw[gray!60, semithick] (busExt |- E15t.west) -- (E15t.west);
+      %
+      %% ── 3. Gerarchia Connector ──────────────────────────────────────────────
+      % Corridoio ristretto (3em)
+      \node[conn-abs, right=3em of ETT] (BC) {\texttt{BaseConnector}\\{\scriptsize (abstract)}};
+      %
+      \coordinate (busBC) at ([xshift=0.8em, yshift=-1.5ex]BC.south west);
+      \draw[uml-inherit] (busBC) -- ([xshift=0.8em]BC.south west);
+      %
+      \node[conn-abs, below=3ex of BC.south west, anchor=north west, xshift=1.5em] (BLC) {\texttt{BaseLibraryConnector}\\{\scriptsize (abstract)}};
+      \coordinate (busBLC) at ([xshift=0.8em, yshift=-1.5ex]BLC.south west);
+      \draw[uml-inherit] (busBLC) -- ([xshift=0.8em]BLC.south west);
+      %
+      \node[conn-conc, below=3ex of BLC.south west, anchor=north west, xshift=1.5em] (SSL) {\texttt{SslyzeConnector}};
+      %
+      \coordinate (refBSC) at (BLC.west |- SSL.south);
+      \node[conn-abs, below=2ex of refBSC, anchor=north west] (BSC) {\texttt{BaseSubprocessConnector}\\{\scriptsize (abstract)}};
+      \coordinate (busBSC) at ([xshift=0.8em, yshift=-1.5ex]BSC.south west);
+      \draw[uml-inherit] (busBSC) -- ([xshift=0.8em]BSC.south west);
+      %
+      \node[conn-conc, below=3ex of BSC.south west, anchor=north west, xshift=1.5em] (NUC) {\texttt{NucleiConnector}};
+      \node[conn-conc, below=1ex of NUC.south west, anchor=north west] (TSL) {\texttt{TestsslConnector}};
+      %
+      \draw[gray!60, semithick] (busBC) -- (busBC |- BSC.west);
+      \draw[gray!60, semithick] (busBC |- BLC.west) -- (BLC.west);
+      \draw[gray!60, semithick] (busBC |- BSC.west) -- (BSC.west);
+      %
+      \draw[gray!60, semithick] (busBLC) -- (busBLC |- SSL.west);
+      \draw[gray!60, semithick] (busBLC |- SSL.west) -- (SSL.west);
+      %
+      \draw[gray!60, semithick] (busBSC) -- (busBSC |- TSL.west);
+      \draw[gray!60, semithick] (busBSC |- NUC.west) -- (NUC.west);
+      \draw[gray!60, semithick] (busBSC |- TSL.west) -- (TSL.west);
+      %
+      %% ── Relazioni ─────────────────────────────────────────────────────────
       \draw[uml-compose, dashed, gray!60] (ETT.east) -- (BC.west) node[midway, above, font=\scriptsize\itshape, gray!70] {usa};
-
-      %% Etichette di gruppo
-      \node[font=\small\bfseries, blue!60!black, above=0.3cm of BT] {Test nativi (D0--D7)};
-      \node[font=\small\bfseries, green!55!black, above=0.3cm of ETT] {Test esterni};
-      \node[font=\small\bfseries, violet!60!black, above=0.3cm of BC] {Connettori};
+      %
+      %% ── Etichette Superiori ───────────────────────────────────────────────
+      \node[font=\small\bfseries, blue!60!black, above=2ex of BT] {Test nativi (D0--D7)};
+      \node[font=\small\bfseries, green!55!black, above=2ex of ETT] {Test esterni};
+      \node[font=\small\bfseries, violet!60!black, above=2ex of BC] {Connettori};
+      %
     \end{tikzpicture}
   }%
   \caption{Gerarchia duale \texttt{BaseTest}/\texttt{ExternalToolTest} (D1.P4) e gerarchia dei connettori Library/Subprocess (D1.P5).}
   \label{fig:class-hierarchy}
   \par\smallskip
   {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:class-hierarchy}.}\\
-    \texttt{Label:} \S4.3 e \S4.4 (Architettura Test Nativi, Gerarchia Connettori)\\
-    \texttt{Ctrl+F:} cerca \texttt{BaseTest} o \texttt{ExternalToolTest} in \S4.3\\
+    \texttt{Label:} \verb|\label{sec:pipeline}| (\S4.1) \quad
+    \texttt{Ctrl+F:} cerca \texttt{D4.P3} o \texttt{Fail-Safe Error Isolation} in \S4.1\\
     \texttt{Azione:} inserire tra \S4.3 e \S4.4, dopo la spiegazione della gerarchia duale. }
 \end{figure}
 
 % ─── FIGURA I (8.6) -- Sanitizzazione a imbuto ───────────────────────────────
 \begin{figure}[ht]
   \centering
-  \begin{tikzpicture}[
-      node distance=0.5cm and 2.6cm,
-      stage/.style={ag-blue, minimum width=4.2cm, minimum height=24pt},
-      redact/.style={ag-red, minimum width=2.4cm, minimum height=22pt},
-      pass/.style={ag-green, minimum width=2.4cm, minimum height=22pt},
-      decision/.style={ag-diamond, minimum width=3.2cm},
-    ]
-    %% Input
-    \node[ag-gray, minimum width=4.2cm] (inp) {Record grezzo (\texttt{dict})\\{\scriptsize output connector / transazione HTTP}};
-    %% Stadio 1
-    \node[stage, below=0.7cm of inp] (s1) {Stadio~1: Key-pattern regex\\{\scriptsize 11 pattern: password, token, api\_key, ...}};
-    \node[decision, right=of s1] (d1) {match?};
-    \node[redact, right=0.6cm of d1] (r1) {\texttt{[REDACTED]}};
-    \node[pass, below=0.35cm of d1] (p1) {chiave pulita};
-    %% Stadio 2
-    \node[stage, below=1.5cm of s1] (s2) {Stadio~2: \gls{JWT} heuristic\\{\scriptsize stringa con 2 punti + base64}};
-    \node[decision, right=of s2] (d2) {match?};
-    \node[redact, right=0.6cm of d2] (r2) {\texttt{[REDACTED]}};
-    \node[pass, below=0.35cm of d2] (p2) {valore pulito};
-    %% Stadio 3
-    \node[stage, below=1.5cm of s2] (s3) {Stadio~3: Header prefix\\{\scriptsize Authorization, X-API-Key, ...}};
-    \node[decision, right=of s3] (d3) {match?};
-    \node[redact, right=0.6cm of d3] (r3) {\texttt{[REDACTED]}};
-    \node[pass, below=0.35cm of d3] (p3) {header pulito};
-    %% Output
-    \node[ag-violet, below=1.5cm of s3, minimum width=4.2cm] (out) {\texttt{EvidenceStore.pin\_artifact()}\\{\scriptsize record sanitizzato scritto su JSONL}};
-    %% Frecce pipeline
-    \draw[ag-arr] (inp) -- (s1);
-    \draw[ag-arr] (s1.east) -- (d1.west);
-    %% Stadio 1: percorsi sì/no con label SOPRA la freccia
-    \draw[ag-arr] (d1.north) -- ++(0, 0.3) -| (r1.north);
-    \node[font=\scriptsize, above] at ([yshift=0.35cm, xshift=0.6cm]d1.north) {sì};
-    \draw[ag-arr] (d1.south) -- (p1.north);
-    \node[font=\scriptsize, anchor=west] at ([xshift=4pt, yshift=-4pt]d1.south) {no};
-    \draw[ag-arr] (p1.south) -- ++(0,-0.2) -| (s2.north east);
-    \draw[ag-arr] (r1.south) -- ++(0,-0.2) -| (s2.north east);
-    %% Stadio 2
-    \draw[ag-arr] (s2.east) -- (d2.west);
-    \draw[ag-arr] (d2.north) -- ++(0, 0.3) -| (r2.north);
-    \node[font=\scriptsize, above] at ([yshift=0.35cm, xshift=0.6cm]d2.north) {sì};
-    \draw[ag-arr] (d2.south) -- (p2.north);
-    \node[font=\scriptsize, anchor=west] at ([xshift=4pt, yshift=-4pt]d2.south) {no};
-    \draw[ag-arr] (p2.south) -- ++(0,-0.2) -| (s3.north east);
-    \draw[ag-arr] (r2.south) -- ++(0,-0.2) -| (s3.north east);
-    %% Stadio 3
-    \draw[ag-arr] (s3.east) -- (d3.west);
-    \draw[ag-arr] (d3.north) -- ++(0, 0.3) -| (r3.north);
-    \node[font=\scriptsize, above] at ([yshift=0.35cm, xshift=0.6cm]d3.north) {sì};
-    \draw[ag-arr] (d3.south) -- (p3.north);
-    \node[font=\scriptsize, anchor=west] at ([xshift=4pt, yshift=-4pt]d3.south) {no};
-    \draw[ag-arr] (p3.south) -- ++(0,-0.25) -| (out.north east);
-    \draw[ag-arr] (r3.south) -- ++(0,-0.25) -| (out.north east);
-  \end{tikzpicture}
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Stili Gold Standard: proporzioni uniformi e testi centrati
+        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small},%
+        stage/.style={base, ag-blue, minimum width=15em, minimum height=3.5ex},%
+        redact/.style={base, ag-red, minimum width=7em, minimum height=3.5ex},%
+        pass/.style={base, ag-green, minimum width=7em, minimum height=3.5ex},%
+        % Il rombo viene allargato leggermente per far respirare il testo senza esplodere in altezza
+        decision/.style={ag-diamond, minimum width=5em, align=center, inner sep=2pt, font=\small},%
+      ]
+      %
+      %% ── Asse Centrale (Dati in ingresso e Stadi) ──────────────────────────
+      \node[base, ag-gray, minimum width=15em] (inp) {Record grezzo (\texttt{dict})\\{\scriptsize output connector / transazione HTTP}};
+      %
+      \node[stage, below=4ex of inp] (s1) {Stadio~1: Key-pattern regex\\{\scriptsize 11 pattern: password, token, api\_key, ...}};
+      \node[stage, below=11ex of s1] (s2) {Stadio~2: \gls{JWT} heuristic\\{\scriptsize stringa con 2 punti + base64}};
+      \node[stage, below=11ex of s2] (s3) {Stadio~3: Header prefix\\{\scriptsize Authorization, X-API-Key, ...}};
+      \node[base, ag-violet, minimum width=15em, below=11ex of s3] (out) {\texttt{EvidenceStore.pin\_artifact()}\\{\scriptsize record sanitizzato scritto su JSONL}};
+      %
+      %% ── Diramazioni Stadio 1 ──────────────────────────────────────────────
+      \node[decision, right=3em of s1] (d1) {match?};
+      \node[redact, right=2.5em of d1] (r1) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d1] (p1) {chiave pulita};
+      %
+      %% ── Diramazioni Stadio 2 ──────────────────────────────────────────────
+      \node[decision, right=3em of s2] (d2) {match?};
+      \node[redact, right=2.5em of d2] (r2) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d2] (p2) {valore pulito};
+      %
+      %% ── Diramazioni Stadio 3 ──────────────────────────────────────────────
+      \node[decision, right=3em of s3] (d3) {match?};
+      \node[redact, right=2.5em of d3] (r3) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d3] (p3) {header pulito};
+      %
+      %% ── Routing Input -> S1 ───────────────────────────────────────────────
+      \draw[ag-arr] (inp) -- (s1);
+      %
+      %% ── Routing Logico Stadio 1 ───────────────────────────────────────────
+      \draw[ag-arr] (s1.east) -- (d1.west);
+      \draw[ag-arr] (d1.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r1.west);
+      \draw[ag-arr] (d1.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p1.north);
+      % Ritorno a Bus per alimentare lo Stadio 2
+      \coordinate (m1) at ([yshift=2ex]s2.north);
+      \draw[gray!70, semithick] (r1.south) |- (m1);
+      \draw[gray!70, semithick] (p1.south) |- (m1);
+      \fill[gray!70] (m1) circle (1.5pt);
+      \draw[ag-arr] (m1) -- (s2.north);
+      %
+      %% ── Routing Logico Stadio 2 ───────────────────────────────────────────
+      \draw[ag-arr] (s2.east) -- (d2.west);
+      \draw[ag-arr] (d2.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r2.west);
+      \draw[ag-arr] (d2.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p2.north);
+      % Ritorno a Bus per alimentare lo Stadio 3
+      \coordinate (m2) at ([yshift=2ex]s3.north);
+      \draw[gray!70, semithick] (r2.south) |- (m2);
+      \draw[gray!70, semithick] (p2.south) |- (m2);
+      \fill[gray!70] (m2) circle (1.5pt);
+      \draw[ag-arr] (m2) -- (s3.north);
+      %
+      %% ── Routing Logico Stadio 3 ───────────────────────────────────────────
+      \draw[ag-arr] (s3.east) -- (d3.west);
+      \draw[ag-arr] (d3.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r3.west);
+      \draw[ag-arr] (d3.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p3.north);
+      % Ritorno a Bus per l'Output finale
+      \coordinate (m3) at ([yshift=2ex]out.north);
+      \draw[gray!70, semithick] (r3.south) |- (m3);
+      \draw[gray!70, semithick] (p3.south) |- (m3);
+      \fill[gray!70] (m3) circle (1.5pt);
+      \draw[ag-arr] (m3) -- (out.north);
+      %
+    \end{tikzpicture}
+  }%
   \caption{Sanitizzazione a imbuto dell'evidenza (D4.P2): key-pattern, \gls{JWT} heuristic e header prefix in sequenza.}
   \label{fig:sanitization-funnel}
   \par\smallskip
   {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:sanitization-funnel}.}\\
-    \texttt{Label:} \S4.6 (Evidence Store e Sanitizzazione delle Credenziali)\\
+    \texttt{Label:} \verb|\label{sec:evidence_store}| (\S4.6)
     \texttt{Ctrl+F:} cerca \texttt{D4.P2} o \texttt{sanitizzazione} in \S4.6\\
     \texttt{Azione:} inserire dopo il paragrafo che descrive i tre stadi, prima del commento sulla centralizzazione. }
 \end{figure}
@@ -526,26 +578,51 @@ uml-compose/.style = {-{Diamond}, semithick},
 \begin{figure}[ht]
   \centering
   \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[node distance=0.7cm and 1.8cm]
-      %% Host
-      \node[ag-gold, minimum width=4.0cm, minimum height=32pt] (host) {\textbf{Host: apiguard-assurance}\\ {\scriptsize Python process, \texttt{apiguard run}}};
-      %% Kong
-      \node[ag-blue, below=1.6cm of host, minimum width=4.4cm, minimum height=52pt] (kong) {\textbf{Kong~3.9 DB-less}\\ {\scriptsize :8000 (HTTP proxy)}\\ {\scriptsize :8443 (HTTPS proxy)}\\ {\scriptsize :8001 (Admin \gls{API})}};
-      %% Forgejo
-      \node[ag-green, right=2.6cm of kong, minimum width=3.2cm, minimum height=32pt] (forgejo) {\textbf{Forgejo~14.0.3}\\ {\scriptsize target applicativo}};
-      %% PostgreSQL
-      \node[ag-gray, below=0.7cm of forgejo, minimum width=3.2cm, minimum height=28pt] (pg) {\textbf{PostgreSQL}\\ {\scriptsize backend Forgejo}};
-      %% Utenti RBAC
-      \node[ag-gray, left=2.0cm of kong, minimum width=2.8cm, minimum height=52pt] (rbac) {{\scriptsize \textbf{thesis-admin}}\\ {\scriptsize \textbf{user-a} (utente std.)}\\ {\scriptsize \textbf{user-b} (GREY\_BOX~\#2)}};
-      %% Frecce: solo dritte
-      \draw[ag-arr] (host.south) -- (kong.north) node[midway, right, font=\scriptsize, align=left] {:8000/:8443 (probe)\\:8001 (Admin \gls{API})};
-      \draw[ag-arr] (kong.east) -- (forgejo.west) node[midway, above, font=\scriptsize] {proxy / route};
-      \draw[ag-barr] (forgejo.south) -- (pg.north) node[midway, right, font=\scriptsize] {SQL};
-      \draw[ag-arr, dashed] (rbac.east) -- (kong.west) node[midway, above, font=\scriptsize, xshift=-4pt] {token};
-      %% Docker Compose box
+    \begin{tikzpicture}[
+        % Stili Gold Standard
+        cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
+        %
+        % Host e Kong larghi (14.5em)
+        host/.style={cls, fill=orange!10, draw=orange!50, minimum width=14.5em},
+        infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=14.5em},
+        %
+        % Forgejo, Postgres e Utenti uniformati a 10em per simmetria perfetta
+        app/.style={cls, fill=green!7, draw=green!45, minimum width=10em},
+        backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=10em},
+        users/.style={cls, fill=gray!8, draw=gray!50, minimum width=10em},
+        %
+        group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
+      ]
+      %
+      %% ── Asse Centrale ─────────────────────────────────────────────────────
+      \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
+      %
+      \node[infra, below=9ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HTTP proxy)}\\{\footnotesize :8443 (HTTPS proxy)}\\{\footnotesize :8001 (Admin \gls{API})}};
+      %
+      %% ── Ali Laterali (Spazio portato a 4em per far respirare i testi) ─────
+      \node[app, right=4em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target applicativo}};
+      %
+      \node[users, left=4em of kong] (rbac) {{\footnotesize \textbf{Utenti RBAC}}\\{\footnotesize thesis-admin}\\{\footnotesize user-a (std.)}\\{\footnotesize user-b (GREY\_BOX~\#2)}};
+      %
+      %% ── Backend ───────────────────────────────────────────────────────────
+      \node[backend, below=5ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize backend Forgejo}};
+      %
+      %% ── Container Group (Docker Compose network) ──────────────────────────
       \begin{scope}[on background layer]
-        \node[ag-group, draw=gray!40, fill=gray!3, fit=(kong)(forgejo)(pg), label={[font=\scriptsize\bfseries, gray!60]south:Docker Compose network}] (compose) {};
+        \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
       \end{scope}
+      \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
+      %
+      %% ── Frecce ────────────────────────────────────────────────────────────
+      \draw[ag-arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
+      %
+      % Scritta di nuovo su una riga sola, ora che c'è spazio
+      \draw[ag-arr] (kong.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {proxy/route} (forgejo.west);
+      %
+      \draw[ag-barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
+      %
+      \draw[ag-arr, dashed] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
+      %
     \end{tikzpicture}
   }%
   \caption{Topologia dell'ambiente di validazione sperimentale (Forgejo~14.0.3 + Kong~3.9 DB-less, Docker Compose).}
@@ -562,20 +639,43 @@ uml-compose/.style = {-{Diamond}, semithick},
   \centering
   \begin{tikzpicture}
     \begin{axis}[
-        xbar, width=0.82\textwidth, height=7.5cm, bar width=10pt,
+        xbar,
+        width=0.75\textwidth, % <-- CORREZIONE: Lascia il 25% di spazio per le etichette laterali
+        height=8.5cm,
+        bar width=14pt,
+        %
+        % Setup Asse X
+        xmin=0, xmax=85,
+        xtick={0,10,20,30,40,50,60,70,80},
         xlabel={Numero di finding},
+        xlabel style={font=\small\bfseries, text=gray!80!black},
+        tick label style={font=\small, text=gray!70!black},
+        %
+        % Setup Asse Y
         symbolic y coords={{ext.1.5.testssl},{ext.1.5.sslyze},{7.2},{4.1},{0.2},{0.1},{1.1}},
-        ytick=data, yticklabel style={font=\small\ttfamily},
-        xmin=0, xmax=82,
-        xtick={0,10,20,30,40,50,60,70,74,80},
-        nodes near coords, nodes near coords align={horizontal},
-        every node near coord/.style={font=\small},
+        ytick=data,
+        yticklabel style={font=\small\ttfamily, text=gray!80!black},
         enlarge y limits=0.12,
-        grid=major, grid style={dashed, gray!30},
-        tick label style={font=\small},
+        %
+        % Griglia
+        grid=major,
+        grid style={dashed, gray!30},
+        axis line style={gray!50},
+        %
+        % Numeri a fianco delle barre
+        nodes near coords,
+        nodes near coords align={horizontal},
+        every node near coord/.style={font=\small\bfseries, text=blue!70!black},
       ]
-      \addplot[fill=blue!25, draw=blue!50] coordinates {
-          (3,{ext.1.5.testssl}) (1,{ext.1.5.sslyze}) (1,{7.2}) (2,{4.1}) (1,{0.2}) (16,{0.1}) (74,{1.1})
+
+      \addplot[fill=blue!10, draw=blue!45, thick] coordinates {
+          (3,{ext.1.5.testssl})
+          (1,{ext.1.5.sslyze})
+          (1,{7.2})
+          (2,{4.1})
+          (1,{0.2})
+          (16,{0.1})
+          (74,{1.1})
         };
     \end{axis}
   \end{tikzpicture}
@@ -591,40 +691,74 @@ uml-compose/.style = {-{Diamond}, semithick},
 % ─── FIGURA L (8.9) -- Decision tree exit code CI/CD ─────────────────────────
 \begin{figure}[ht]
   \centering
-  \begin{tikzpicture}[node distance=0.7cm and 1.6cm]
-    %% Nodi verticali (stack centrale)
-    \node[ag-terminal] (start) {Runner \gls{CI/CD}};
-    \node[ag-gold, below=0.7cm of start, minimum width=4.4cm] (cmd) {\texttt{apiguard run -{}-config config.yaml}};
-    \node[ag-diamond, below=0.8cm of cmd, aspect=3.0] (dec) {exit code?};
-    %% Exit code nodes: colonna a destra di cmd, non sopra
-    %% Posizionati al lato DESTRO del diamante a distanza sufficiente da cmd
-    \node[ag-green, right=4.5cm of dec, yshift=+2.4cm, minimum width=3.2cm] (e0) {\texttt{0}: CLEAN\\{\scriptsize tutti PASS/SKIP}};
-    \node[ag-red, right=4.5cm of dec, yshift=+0.8cm, minimum width=3.2cm] (e1) {\texttt{1}: FAIL\\{\scriptsize almeno un FAIL}};
-    \node[ag-gold, right=4.5cm of dec, yshift=-0.8cm, minimum width=3.2cm] (e2) {\texttt{2}: ERROR\\{\scriptsize ERROR senza FAIL}};
-    \node[ag-red, below=2.2cm of dec, minimum width=3.2cm, draw=red!70, fill=red!12] (e10) {\texttt{10}: INFRA\\{\scriptsize errore infrastrutturale}};
-    %% Action nodes
-    \node[ag-green, right=0.6cm of e0, minimum width=3.2cm] (a0) {Pipeline prosegue\\(merge / deploy consentito)};
-    \node[ag-red, right=0.6cm of e1, minimum width=3.2cm] (a1) {Blocco merge/deploy\\Report allegato come artefatto};
-    \node[ag-gold, right=0.6cm of e2, minimum width=3.2cm] (a2) {Alert malfunzionamento\\Revisione manuale richiesta};
-    \node[ag-gray, right=0.6cm of e10, minimum width=3.2cm] (a10) {Diagnosi deployment\\Verifica \texttt{config.yaml}};
-    %% Frecce verticali
-    \draw[ag-arr] (start) -- (cmd);
-    \draw[ag-arr] (cmd) -- (dec);
-    \draw[ag-arr, red!80] (dec.south) -- (e10.north);
-    %% Trunk a destra (ben oltre cmd.east per non sovrapporre)
-    %% cmd.east e' a circa cmd.center + 2.2cm = dec.center + 2.2cm
-    %% Il trunk e' a 4.5cm da dec.east, quindi dec.east + 4.5cm (molto piu' a destra di cmd.east)
-    \coordinate (junc) at ([xshift=2.0cm]dec.east);
-    \draw[ag-arr] (dec.east) -- (junc);
-    \draw[ag-arr, green!55!black] (junc) |- (e0.west);
-    \draw[ag-arr, red!60] (junc) |- (e1.west);
-    \draw[ag-arr, orange!60] (junc) |- (e2.west);
-    %% Frecce orizzontali action
-    \draw[ag-arr, green!55!black] (e0.east) -- (a0.west);
-    \draw[ag-arr, red!60] (e1.east) -- (a1.west);
-    \draw[ag-arr, orange!60] (e2.east) -- (a2.west);
-    \draw[ag-arr, gray!60] (e10.east) -- (a10.west);
-  \end{tikzpicture}
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Stili Gold Standard (niente dipendenze da classi esterne)
+        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
+        cmd/.style={base, fill=blue!5, draw=blue!40, font=\small\ttfamily, minimum width=18em},
+        decision/.style={draw, shape=diamond, aspect=2.5, inner sep=2pt, align=center, font=\small, fill=orange!10, draw=orange!50},
+        %
+        % Stili per gli Exit Codes (Larghezza fissa per allineamento a colonna)
+        code0/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
+        code1/.style={base, fill=red!10, draw=red!60!black, minimum width=8.5em},
+        code2/.style={base, fill=orange!10, draw=orange!60!black, minimum width=8.5em},
+        code10/.style={base, fill=gray!15, draw=gray!60!black, minimum width=8.5em},
+        %
+        % Stili per le Actions (Larghezza fissa e generosa)
+        act0/.style={base, fill=green!5, draw=green!40, minimum width=16em},
+        act1/.style={base, fill=red!5, draw=red!40, minimum width=16em},
+        act2/.style={base, fill=orange!5, draw=orange!40, minimum width=16em},
+        act10/.style={base, fill=gray!5, draw=gray!40, minimum width=16em},
+      ]
+
+      %% ── Asse Centrale (Runner -> Comando -> Decisione) ────────────────────
+      \node[base, fill=gray!10, draw=gray!40, font=\small\bfseries] (start) {Runner CI/CD};
+      \node[cmd, below=3ex of start] (cmd) {apiguard run -{}-config config.yaml};
+      \node[decision, below=3ex of cmd] (dec) {exit code?};
+
+      %% ── Colonna Exit Codes (Ancorati in alto a sx, coordinate forzate) ────
+      % Il primo è spostato a destra di 4em rispetto al centro del rombo
+      \path (dec.south) ++(4em, -4ex) node[code0, anchor=north west] (e0) {\textbf{\texttt{0}: CLEAN}\\{\scriptsize tutti PASS/SKIP}};
+      \path (e0.south west) ++(0, -2.5ex) node[code1, anchor=north west] (e1) {\textbf{\texttt{1}: FAIL}\\{\scriptsize almeno un FAIL}};
+      \path (e1.south west) ++(0, -2.5ex) node[code2, anchor=north west] (e2) {\textbf{\texttt{2}: ERROR}\\{\scriptsize ERROR senza FAIL}};
+      \path (e2.south west) ++(0, -2.5ex) node[code10, anchor=north west] (e10) {\textbf{\texttt{10}: INFRA}\\{\scriptsize errore infrastrutturale}};
+
+      %% ── Colonna Actions (Ancorate esattamente a 3em a destra dei codici) ──
+      \path (e0.east) ++(3em, 0) node[act0, anchor=west] (a0) {\textbf{Pipeline prosegue}\\{\scriptsize (merge / deploy consentito)}};
+      \path (e1.east) ++(3em, 0) node[act1, anchor=west] (a1) {\textbf{Blocco merge/deploy}\\{\scriptsize Report allegato come artefatto}};
+      \path (e2.east) ++(3em, 0) node[act2, anchor=west] (a2) {\textbf{Alert malfunzionamento}\\{\scriptsize Revisione manuale richiesta}};
+      \path (e10.east) ++(3em, 0) node[act10, anchor=west] (a10) {\textbf{Diagnosi deployment}\\{\scriptsize Verifica \texttt{config.yaml}}};
+
+      %% ── Frecce di Flusso Principale ───────────────────────────────────────
+      % Uso -latex per garantire la punta della freccia pulita senza dipendere da ag-arr
+      \draw[-latex, semithick] (start) -- (cmd);
+      \draw[-latex, semithick] (cmd) -- (dec);
+
+      %% ── Routing a Bus per le condizioni (Il tronco verticale) ─────────────
+      \coordinate (bus-end) at (dec.south |- e10.west);
+      \draw[gray!70, semithick] (dec.south) -- (bus-end);
+
+      % Diramazioni orizzontali verso gli Exit Code (colorate)
+      \draw[-latex, semithick, green!50!black] (dec.south |- e0.west) -- (e0.west);
+      \fill[gray!70] (dec.south |- e0.west) circle (1.5pt);
+
+      \draw[-latex, semithick, red!60!black] (dec.south |- e1.west) -- (e1.west);
+      \fill[gray!70] (dec.south |- e1.west) circle (1.5pt);
+
+      \draw[-latex, semithick, orange!60!black] (dec.south |- e2.west) -- (e2.west);
+      \fill[gray!70] (dec.south |- e2.west) circle (1.5pt);
+
+      \draw[-latex, semithick, gray!60!black] (dec.south |- e10.west) -- (e10.west);
+      \fill[gray!70] (dec.south |- e10.west) circle (1.5pt);
+
+      %% ── Frecce dalle Condizioni alle Azioni (colorate in scala) ───────────
+      \draw[-latex, semithick, green!50!black] (e0.east) -- (a0.west);
+      \draw[-latex, semithick, red!60!black] (e1.east) -- (a1.west);
+      \draw[-latex, semithick, orange!60!black] (e2.east) -- (a2.west);
+      \draw[-latex, semithick, gray!60!black] (e10.east) -- (a10.west);
+
+    \end{tikzpicture}
+  }%
   \caption{Routing degli exit code semantici (D6.P1) nella pipeline \gls{CI/CD}: 0 clean, 1 fail, 2 error, 10 infra.}
   \label{fig:cicd-decision-tree}
   \par\smallskip
@@ -637,29 +771,57 @@ uml-compose/.style = {-{Diamond}, semithick},
 % ─── FIGURA M (8.10) -- Piattaforma modulare ─────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \begin{tikzpicture}[node distance=1.2cm and 0.9cm]
-    %% Core immutabile (centro)
-    \node[ag-blue, minimum width=4.6cm, minimum height=52pt] (core) {
-    \textbf{Core: infrastruttura immutabile}\\
-    {\scriptsize Engine \textbar{} DAG Scheduler \textbar{} EvidenceStore}\\
-    {\scriptsize TargetContext \textbar{} BaseTest \textbar{} BaseConnector}
-    };
-    %% Modulo attivo REST/OAS
-    \node[ag-green, above=1.2cm of core, minimum width=3.2cm] (rest) {\textbf{REST / OAS}\\{\scriptsize (attivo)}};
-    %% Moduli pianificati
-    \node[ag-gray, right=1.5cm of core, minimum width=3.0cm, draw=gray!40, dashed] (gql) {\textit{GraphQL}\\{\scriptsize (pianificato)}};
-    \node[ag-gray, below=1.2cm of core, minimum width=3.0cm, draw=gray!40, dashed] (grpc) {\textit{gRPC}\\{\scriptsize (pianificato)}};
-    \node[ag-gray, left=1.5cm of core, minimum width=3.0cm, draw=gray!40, dashed] (ws) {\textit{WebSocket}\\{\scriptsize (pianificato)}};
-    %% Frecce: solo dritte
-    \draw[ag-arr, green!55!black, thick] (rest.south) -- (core.north);
-    \draw[ag-darr, gray!50] (gql.west) -- (core.east);
-    \draw[ag-darr, gray!50] (grpc.north) -- (core.south);
-    \draw[ag-darr, gray!50] (ws.east) -- (core.west);
-    %% Nota aggiunta: il discovery dinamico pkgutil permette plugin esterni
-    \node[font=\scriptsize\itshape, gray!70, below=0.4cm of grpc, align=center]
-    {frecce continue: attivo \quad frecce tratteggiate: pianificato\\
-    {\tiny il discovery dinamico via \texttt{pkgutil} permette moduli di terze parti}};
-  \end{tikzpicture}
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Distanza puramente tipografica (Gold Standard): 5ex verticale, 3.5em orizzontale
+        node distance=5ex and 3.5em,
+        %
+        % Stili di base
+        base/.style={draw, rounded corners=2pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
+        %
+        % Core (Blu)
+        core/.style={base, fill=blue!8, draw=blue!45, minimum width=17em, thick},
+        %
+        % Moduli Satelliti
+        active/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
+        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=8.5em, font=\small\itshape},
+        %
+        % Stili Frecce
+        arr-active/.style={-latex, thick, green!50!black},
+        arr-planned/.style={-latex, thick, dashed, gray!50}
+      ]
+
+      %% ── Core immutabile (Centro) ──────────────────────────────────────────
+      \node[core] (core) {
+      \textbf{Core: infrastruttura immutabile}\\
+      {\scriptsize Engine \textbar{} DAG Scheduler \textbar{} EvidenceStore}\\
+      {\scriptsize TargetContext \textbar{} BaseTest \textbar{} BaseConnector}
+      };
+
+      %% ── Moduli Satelliti (A stella) ───────────────────────────────────────
+      % Modulo attivo (Sopra)
+      \node[active, above=of core] (rest) {\textbf{REST / OAS}\\{\scriptsize (attivo)}};
+
+      % Moduli pianificati (Destra, Sotto, Sinistra)
+      \node[planned, right=of core] (gql) {\textbf{GraphQL}\\{\scriptsize (pianificato)}};
+      \node[planned, below=of core] (grpc) {\textbf{gRPC}\\{\scriptsize (pianificato)}};
+      \node[planned, left=of core] (ws) {\textbf{WebSocket}\\{\scriptsize (pianificato)}};
+
+      %% ── Frecce di Collegamento (Convergenti verso il Core) ────────────────
+      \draw[arr-active] (rest.south) -- (core.north);
+      \draw[arr-planned] (gql.west) -- (core.east);
+      \draw[arr-planned] (grpc.north) -- (core.south);
+      \draw[arr-planned] (ws.east) -- (core.west);
+
+      %% ── Legenda e Note ────────────────────────────────────────────────────
+      % Distanza puramente tipografica anche qui (4ex)
+      \node[font=\small, text=gray!80!black, below=4ex of grpc, align=center] (note) {
+      frecce continue: modulo attivo \quad frecce tratteggiate: moduli pianificati\\[1ex]
+      {\itshape Il discovery dinamico via \texttt{pkgutil} permette il caricamento trasparente di moduli di terze parti}
+      };
+
+    \end{tikzpicture}
+  }%
   \caption{Evoluzione di APIGuard Assurance verso una piattaforma modulare: core immutabile e moduli di protocollo intercambiabili.}
   \label{fig:modular-platform}
   \par\smallskip
