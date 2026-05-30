@@ -59,3 +59,29 @@ SOno solo qeuste 3 le categorie? chi li ha categorizzati cosi? c'è un paper che
 
 
 ## 2.2 TODO
+"Le architetture a microservizi dispongono di quattro modelli principali per esporre i propri servizi al traffico esterno e per governare il traffico interno, ciascuno con un diverso posizionamento nel perimetro di sicurezza."
+-> siamo sixuir che sono soloq euti 4? oppure possiamo dire che i più reilvanti sonoq eusti 4
+e possibilemente mettiamola giu un po meglio dato che è il paragrafo introduttivo diq uesta sezione
+
+Tutti i paragrafi con dentro dicimo la tcnologica/mdoello per esposizone inr ete le metiamo coem paragraph con il titoletto dell paragarfo
+risutla più chziro e meglio dientificabile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
