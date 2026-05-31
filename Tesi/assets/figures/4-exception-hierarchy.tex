@@ -1,0 +1,96 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Distanze ridotte: ora usiamo la larghezza per risparmiare altezza
+        node distance=0.8ex and 1.5em,
+        %
+        % Stili di base: 19em di larghezza ci permette di tenere tutto su 1 riga
+        base/.style={draw, rounded corners=1.5pt, inner sep=5pt, text width=19em, align=left, font=\small},
+        %
+        root/.style={draw=gray!50, fill=gray!10, rounded corners=2pt, inner sep=6pt, align=center, minimum width=9em},
+        %
+        blk/.style={base, fill=red!6, draw=red!50},
+        rec/.style={base, fill=orange!8, draw=orange!50},
+        cli/.style={base, fill=gray!8, draw=gray!50},
+        %
+        % Categorie snellite
+        cat-lbl/.style={align=right, text width=8em},
+        %
+        % Fili sottili ed eleganti
+        tree/.style={-latex, gray!60, semithick, rounded corners=2pt},
+        fork/.style={gray!60, semithick, rounded corners=2pt}
+      ]
+
+      %% ── 1. Nodi Eccezioni a singola riga (Colonna di Destra) ──────────────
+
+      % Bloccanti
+      \node[blk] (b1) {\texttt{ConfigurationError} \hfill {\footnotesize\color{red!70!black}[Fase 1]}};
+      \node[blk, below=0.8ex of b1] (b2) {\texttt{OpenAPILoadError} \hfill {\footnotesize\color{red!70!black}[Fase 2]}};
+      \node[blk, below=0.8ex of b2] (b3) {\texttt{DAGCycleError} \hfill {\footnotesize\color{red!70!black}[Fase 4]}};
+      \node[blk, below=0.8ex of b3] (b4) {\texttt{AuthenticationSetupError} \hfill {\footnotesize\color{red!70!black}[auth helper]}};
+
+      % Recuperate (Staccate leggermente dal gruppo sopra)
+      \node[rec, below=2.5ex of b4] (r1) {\texttt{SecurityClientError} \hfill {\footnotesize\color{orange!70!black}[Fase 5 \textrightarrow{} ERROR]}};
+      \node[rec, below=0.8ex of r1] (r2) {\texttt{ExternalToolError} \hfill {\footnotesize\color{orange!70!black}[Fase 5 \textrightarrow{} ERROR]}};
+      \node[rec, below=0.8ex of r2] (r3) {\texttt{TeardownError} \hfill {\footnotesize\color{orange!70!black}[Fase 6 \textrightarrow{} WARN]}};
+      \node[rec, below=0.8ex of r3] (r4) {\texttt{GatewayAdapterError} \hfill {\footnotesize\color{orange!70!black}[gateway/base.py]}};
+
+      % CLI (Staccate leggermente)
+      \node[cli, below=2.5ex of r4] (c1) {\texttt{SeedGeneratorFetchError} \hfill {\footnotesize\color{gray!70!black}[exit code 10]}};
+      \node[cli, below=0.8ex of c1] (c2) {\texttt{SeedGeneratorParseError} \hfill {\footnotesize\color{gray!70!black}[exit code 10]}};
+
+      %% ── 2. Etichette Categorie (Colonna Centrale) ─────────────────────────
+      % Ancorate matematicamente a metà altezza dei rispettivi gruppi
+
+      \path (b1.north west) -- (b4.south west) node[midway, left=1.5em, anchor=east, cat-lbl, text=red!70!black] (lbl-blk) {
+      \textbf{Bloccanti}\\ {\footnotesize (Fasi 1--4)}\\[1pt] {\footnotesize\normalfont\color{gray!70!black} bloccano l'avvio}
+      };
+
+      \path (r1.north west) -- (r4.south west) node[midway, left=1.5em, anchor=east, cat-lbl, text=orange!70!black] (lbl-rec) {
+      \textbf{Recuperate}\\ {\footnotesize (Fasi 5--6)}\\[1pt] {\footnotesize\normalfont\color{gray!70!black} ERROR / WARNING}
+      };
+
+      \path (c1.north west) -- (c2.south west) node[midway, left=1.5em, anchor=east, cat-lbl, text=gray!60!black] (lbl-cli) {
+      \textbf{CLI}\\ {\footnotesize \texttt{generate-seed}}\\[1pt] {\footnotesize\normalfont\color{gray!70!black} standalone}
+      };
+
+      %% ── 3. Radice (Colonna Sinistra) ──────────────────────────────────────
+      \path (lbl-blk.north west) -- (lbl-cli.south west) node[midway, left=1.5em, anchor=east, root] (root) {
+      \textbf{\texttt{ToolBaseError}}\\[2pt]{\footnotesize\itshape(classe astratta)}
+      };
+
+      %% ── 4. Geometrie dei Cavi (Routing) ───────────────────────────────────
+
+      % Dal padre alle 3 categorie
+      \draw[tree] (root.east) -- ++(0.75em, 0) |- (lbl-blk.west);
+      \draw[tree] (root.east) -- ++(0.75em, 0) |- (lbl-rec.west);
+      \draw[tree] (root.east) -- ++(0.75em, 0) |- (lbl-cli.west);
+
+      % Dal nodo "Bloccanti" ai 4 figli
+      \coordinate (Fblk) at ([xshift=0.75em]lbl-blk.east);
+      \draw[fork] (lbl-blk.east) -- (Fblk);
+      \draw[tree] (Fblk) |- (b1.west);
+      \draw[tree] (Fblk) |- (b2.west);
+      \draw[tree] (Fblk) |- (b3.west);
+      \draw[tree] (Fblk) |- (b4.west);
+
+      % Dal nodo "Recuperate" ai 4 figli
+      \coordinate (Frec) at ([xshift=0.75em]lbl-rec.east);
+      \draw[fork] (lbl-rec.east) -- (Frec);
+      \draw[tree] (Frec) |- (r1.west);
+      \draw[tree] (Frec) |- (r2.west);
+      \draw[tree] (Frec) |- (r3.west);
+      \draw[tree] (Frec) |- (r4.west);
+
+      % Dal nodo "CLI" ai 2 figli
+      \coordinate (Fcli) at ([xshift=0.75em]lbl-cli.east);
+      \draw[fork] (lbl-cli.east) -- (Fcli);
+      \draw[tree] (Fcli) |- (c1.west);
+      \draw[tree] (Fcli) |- (c2.west);
+
+    \end{tikzpicture}
+  }%
+  \caption{Gerarchia delle 11 eccezioni custom di APIGuard Assurance (D4.P4): eccezioni bloccanti che interrompono lo startup (Fasi~1--4, rosso), eccezioni recuperate localmente che producono \texttt{TestResult(ERROR/WARNING)} (Fasi~5--6, oro), e classi specifiche del comando \gls{CLI} \texttt{generate-seed} (grigio). Tutte ereditano da \texttt{ToolBaseError}.}
+  \label{fig:exception-hierarchy}
+\end{figure}

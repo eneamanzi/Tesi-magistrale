@@ -1,0 +1,20 @@
+\begin{table}[ht]
+  \centering \small
+  \begin{tabularx}{\textwidth}{@{} l l C C L @{}}
+    \toprule
+    \textbf{Vulnerabilità OWASP} & \textbf{Natura} & \textbf{Visibilità WAF/DAST} & \textbf{Rilevazione APIGuard} & \textbf{Prerequisito informativo} \\
+    \midrule
+    API1:2023: BOLA              & Semantica       & Cieca                        & \cmark                        & Token $\geq 2$ ruoli              \\
+    \addlinespace
+    API2:2023: Broken Auth       & Sin./Sem.       & Parziale                     & \cmark                        & Nessuno (BLACK\_BOX)              \\
+    \addlinespace
+    API3:2023: BOPLA             & Semantica       & Cieca                        & \cmark                        & Token autenticato                 \\
+    \addlinespace
+    API5:2023: BFLA              & Semantica       & Cieca                        & \cmark                        & Token $\geq 2$ ruoli              \\
+    \addlinespace
+    API7:2023: SSRF              & Semantica       & Parziale                     & \cmark                        & Nessuno / token                   \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Tassonomia OWASP API Security Top~10 (2023): natura, visibilità WAF/DAST e prerequisito informativo per la rilevazione.}
+  \label{tab:semantic-gap}
+\end{table}

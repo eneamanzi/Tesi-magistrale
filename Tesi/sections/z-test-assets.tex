@@ -1,0 +1,321 @@
+% !TEX root = ../main.tex
+%
+% Z-TEST-ASSETS.TEX Collaudo visivo di tutti gli asset Includere con \include{sections/z-test-assets} in main.tex (commentare prima della consegna).
+
+\chapter{Asset test: figure e tabelle}
+
+\makeatletter
+\renewcommand{\fps@figure}{H}
+\renewcommand{\fps@table}{H}
+\makeatother
+
+% ═══════════════════════════════════════════════════════════════════════════════
+\section{Tabelle}
+% ═══════════════════════════════════════════════════════════════════════════════
+
+% ── Cap. 2 ───────────────────────────────────────────────────────────────────
+
+% INSERIRE
+% Cap. 2, §2.2.1
+%
+% PRIMA   : "Questa caratteristica impone vincoli specifici sulle tipologie di verifica applicabili in sede di assessment."
+% DOPO    : "\subsection{Criteri di Selezione e Giustificazione Architetturale} \label{subsec:criteri-selezione}"
+% REF     : aggiungere frase nuova prima della tabella: La Tabella~\ref{tab:modelli-esposizione} confronta i quattro modelli lungo le dimensioni rilevanti per il security assessment.
+\input{assets/tables/2-gateway-comparison.tex}
+\noindent{\small Cap.~2, §2.2.1, confronto modelli di esposizione: enforcement, accesso piano di configurazione, verificabilità WHITE\_BOX.}
+\clearpage
+
+% INSERIRE
+% Cap. 2, §2.3.1
+%
+% PRIMA   : "richiesta sintatticamente corretta che viola le assunzioni del sistema sull'identità, i privilegi o il comportamento atteso del chiamante."
+% DOPO    : "Colmare il semantic gap richiede che lo strumento disponga di una rappresentazione formale"
+% REF     : modifica frase esistente:
+%   PRIMA "...sono tutte vulnerabilità semantiche."
+%   DOPO  "...sono tutte vulnerabilità semantiche, come sintetizzato nella Tabella~\ref{tab:semantic-gap}."
+\input{assets/tables/2-semantic-gap.tex}
+\noindent{\small Cap.~2, §2.3.1, tassonomia OWASP Top~10 (2023): natura, visibilità WAF/DAST, prerequisito informativo.}
+\clearpage
+
+% INSERIRE
+% Cap. 2, §2.4.3
+%
+% PRIMA   : "i verdetti dipendono dalle proprietà definite dall'utente, non da un oracolo derivato dal contratto dell'endpoint."
+% DOPO    : (fine del file)
+% REF     : aggiungere frase nuova prima della tabella: La Tabella~\ref{tab:testing-comparison} sintetizza le differenze strutturali tra i paradigmi esaminati, riportando per ciascuno il tipo di conoscenza del contratto sfruttata, la disponibilità di un oracle formale e il livello di copertura semantica raggiungibile.
+\input{assets/tables/2-testing-comparison.tex}
+\noindent{\small Cap.~2, §2.4.3, confronto paradigmi: SAST, DAST, Fuzzer OAS, APIGuard (oracle, riproducibilità, copertura semantica).}
+\clearpage
+
+% ── Cap. 3 ───────────────────────────────────────────────────────────────────
+
+% FATTO \cmark
+% Cap. 3, introduzione capitolo
+\input{assets/tables/3-property-index.tex}
+\noindent{\small Cap.~3, intro, mappa delle 39 proprietà architetturali per dominio.}
+\clearpage
+
+% FATTO \cmark
+% Cap. 3, §3.3.1
+\input{assets/tables/3-domini.tex}
+\noindent{\small Cap.~3, §3.3.1, otto domini di assurance con titolo e ambito.}
+\clearpage
+
+% DISCUTI
+% Cap. 3, §3.3.1
+%
+% Terza tabella nello stesso contesto di tab:domini e tab:box-gradient. Valutare se integrare le colonne Strategia e Implementato direttamente in tab:domini invece di aggiungere una tabella separata.
+%
+% PRIMA   : "Questa catena logica si riflette nelle dipendenze dichiarate dai singoli test che operano su questi domini, il cui meccanismo di risoluzione è descritto nella Sezione~\ref{subsec:dag}."
+% DOPO    : "Domain-5 occupa una posizione particolare nella tassonomia: il dominio è architetturalmente predisposto"
+% REF     : aggiungere frase prima della tabella: La Tabella~\ref{tab:domini-box-gradient} integra la vista precedente con la strategia operativa assegnata a ciascun dominio e lo stato di implementazione nella Milestone~1.
+\input{assets/tables/3-domini-box-gradient.tex}
+\noindent{\small Cap.~3, §3.3.1, [DISCUTI] domini con strategia Box Gradient e stato implementativo.}
+\clearpage
+
+% FATTO \cmark
+% Cap. 3, §3.3.2
+\input{assets/tables/3-box-gradient.tex}
+\noindent{\small Cap.~3, §3.3.2, Box Gradient: precondizioni per strategia BLACK/GREY/WHITE.}
+\clearpage
+
+% ── Cap. 4 ───────────────────────────────────────────────────────────────────
+
+% FATTO \cmark
+% Cap. 4, §4.1
+\input{assets/tables/4-pipeline-fasi.tex}
+\noindent{\small Cap.~4, §4.1, fasi della pipeline con mapping cartella/file (1-2-4 bloccanti; 5-6-7 non-bloccanti).}
+\clearpage
+
+% FATTO \cmark
+% Cap. 4, §4.1.2
+%
+% Nota: quando si inserisce fig:exception-hierarchy modificare anche la frase
+% che introduce questa tabella nel capitolo:
+%   PRIMA "...riportate nella Tabella~\ref{tab:exception-hierarchy} con la relativa fase."
+%   DOPO  "...riportate nella Tabella~\ref{tab:exception-hierarchy} con la relativa fase, la cui struttura gerarchica è illustrata nella Figura~\ref{fig:exception-hierarchy}."
+\input{assets/tables/4-exception-hierarchy-tab.tex}
+\noindent{\small Cap.~4, §4.1.2 11, eccezioni custom: file e comportamento (bloccanti Fasi~1--4; recuperate Fasi~5--6).}
+\clearpage
+
+% ── Cap. 5 ───────────────────────────────────────────────────────────────────
+
+% FATTO \cmark
+% Cap. 5, §5.1.1
+\input{assets/tables/5-versioni-testbed.tex}
+\noindent{\small Cap.~5, §5.1.1, componenti e versioni dell'ambiente di test.}
+\clearpage
+
+% FATTO \cmark
+% Cap. 5, §5.2.1
+\input{assets/tables/5-analisi-statica.tex}
+\noindent{\small Cap.~5, §5.2.1, risultati analisi statica v0.1.0 (ruff, mypy, bandit, vulture, pip-audit).}
+\clearpage
+
+% FATTO \cmark
+% Cap. 5, §5.2.3
+\input{assets/tables/5-verdetto-release.tex}
+\noindent{\small Cap.~5, §5.2.3, sintesi verifiche qualità codebase.}
+\clearpage
+
+% FATTO \cmark
+% Cap. 5, §5.3
+\input{assets/tables/5-idempotenza-kpi.tex}
+\noindent{\small Cap.~5, §5.3, KPI idempotenza su due run indipendenti.}
+\clearpage
+
+% FATTO \cmark
+% Cap. 5, §5.3
+\input{assets/tables/5-risultati-per-test.tex}
+\noindent{\small Cap.~5, §5.3, status e finding count per ciascuno dei 18 test.}
+\clearpage
+
+% FATTO \cmark
+% Cap. 5, §5.4
+\input{assets/tables/5-performance-baseline.tex}
+\noindent{\small Cap.~5, §5.4, metriche di sistema sui due run (wall-clock, CPU, memoria).}
+\clearpage
+
+% FATTO \cmark
+% Cap. 5, §5.4.2
+\input{assets/tables/5-dag-topology.tex}
+\noindent{\small Cap.~5, §5.4.2, topologia DAG: Phase~A (16 test) e Phase~B (\texttt{depends\_on=["1.1"]}).}
+\clearpage
+
+% ═══════════════════════════════════════════════════════════════════════════════
+\section{Figure}
+% ═══════════════════════════════════════════════════════════════════════════════
+
+% ── Cap. 2 ───────────────────────────────────────────────────────────────────
+
+% INSERIRE
+% Cap. 2, §2.4.1
+%
+% PRIMA   : "questo è il limite strutturale del fuzzing cieco applicato alle \gls{API} REST~\cite{MISSING:atlidakis:2019:restler}."
+% DOPO    : "Quando invece il contratto è disponibile, la \gls{OAS} diventa la prima e più precisa fonte di conoscenza:"
+% REF     : modifica frase esistente:
+%   PRIMA "...il limite strutturale del fuzzing cieco applicato alle \gls{API} REST~\cite{MISSING:atlidakis:2019:restler}."
+%   DOPO  "...il limite strutturale del fuzzing cieco applicato alle \gls{API} REST~\cite{MISSING:atlidakis:2019:restler}, illustrato schematicamente nella Figura~\ref{fig:combinatorial-wall}."
+\input{assets/figures/2-combinatorial-wall.tex}
+\noindent{\small Cap.~2, §2.4.1, combinatorial wall: fuzzer sintattico (Via~A) vs.\ engine contract-driven OAS (Via~B).}
+\clearpage
+
+% ── Cap. 3 ───────────────────────────────────────────────────────────────────
+
+% INSERIRE
+% Cap. 3, §3.2
+%
+% PRIMA   : "Le proprietà discusse nella sezione precedente costituiscono la base del sistema. Le scelte di questa sezione si aggiungono ad esse, ciascuna rispondendo a un'esigenza architetturale specifica che le proprietà fondamentali lasciano aperta."
+% DOPO    : "\subsection{Flusso di Dipendenze Monodirezionale (D1.P2)} \label{subsec:dep-flow}"
+% REF     : modifica prima frase di sec:architettura:
+%   PRIMA "Le proprietà discusse nella sezione precedente costituiscono la base del sistema."
+%   DOPO  "Le proprietà discusse nella sezione precedente costituiscono la base del sistema, i cui componenti principali e le loro relazioni sono illustrati nella Figura~\ref{fig:architettura-apiguard}."
+\input{assets/figures/3-architettura-apiguard.tex}
+\noindent{\small Cap.~3, §3.2, architettura alto livello: input, Engine (Split State D1.P3), DAG Scheduler (D2.P2), EvidenceStore (D4.P1).}
+\clearpage
+
+% INSERIRE
+% Cap. 3, §3.2.2
+%
+% PRIMA   : "Salvaguardia contro lo stallo: se il grafo risulta ancora attivo ma non riesce a estrarre nessun test pronto, il sistema emette un errore strutturato che elenca i test mai schedulati e interrompe l'esecuzione in modo controllato, fornendo all'operatore la diagnostica necessaria senza dover ricostruire lo stato interno del grafo."
+% DOPO    : "L'ordinamento topologico puro non garantisce un ordine unico tra test pronti allo stesso livello:"
+% REF     : aggiungere frase nuova dopo la chiusura del blocco itemize: La topologia del \gls{DAG} nell'assessment di validazione, con le due fasi di esecuzione risultanti, è illustrata nella Figura~\ref{fig:dag-topology}.
+\input{assets/figures/3-dag-topology.tex}
+\noindent{\small Cap.~3, §3.2.2, topologia DAG: Phase~A (16 test), Phase~B (\texttt{depends\_on=["1.1"]}), Phase~C pianificata.}
+\clearpage
+
+% ── Cap. 4 ───────────────────────────────────────────────────────────────────
+
+% INSERIRE
+% Cap. 4, §4.1
+%
+% PRIMA   : "nessuno di questi moduli importa da \texttt{engine.py}."
+% DOPO    : "\subsection{Fail-Safe Error Isolation (D4.P3)} \label{subsec:fail-safe}"
+% REF     : aggiungere frase alla fine del paragrafo su engine.py:
+%   PRIMA "...nessuno di questi moduli importa da \texttt{engine.py}."
+%   DOPO  "...nessuno di questi moduli importa da \texttt{engine.py}. Il flusso completo della pipeline con le condizioni di errore per ciascuna fase è sintetizzato nella Figura~\ref{fig:pipeline-flowchart}."
+\input{assets/figures/4-pipeline-flowchart.tex}
+\noindent{\small Cap.~4, §4.1, pipeline a 7 fasi: zona startup bloccante (Fasi~1--4) e zona esecuzione non bloccante (Fasi~5--7).}
+\clearpage
+
+% FATTO \cmark
+% Cap. 4, §4.1
+\input{assets/figures/4-src-layout.tex}
+\noindent{\small Cap.~4, §4.1, layout \texttt{src/} con mapping di ogni modulo alla fase della pipeline.}
+\clearpage
+
+% INSERIRE
+% Cap. 4, §4.1.1
+%
+% PRIMA   : "La solidità complessiva del sistema non è condizionata dalla correttezza di nessun singolo test."
+% DOPO    : "\subsection{Gerarchia delle Eccezioni con Phase Mapping (D4.P4)} \label{subsec:exception-hierarchy}"
+% REF     : modifica ultima frase di subsec:fail-safe:
+%   PRIMA "La solidità complessiva del sistema non è condizionata dalla correttezza di nessun singolo test."
+%   DOPO  "La solidità complessiva del sistema non è condizionata dalla correttezza di nessun singolo test, come illustrato dal sequence diagram in Figura~\ref{fig:sequence-error-isolation}."
+\input{assets/figures/4-sequence-error-isolation.tex}
+\noindent{\small Cap.~4, §4.1.1, ciclo di vita di un test (D4.P3): scenario nominale e scenario di eccezione con error isolation.}
+\clearpage
+
+% INSERIRE
+% Cap. 4, §4.1.2
+%
+% PRIMA   : "\label{tab:exception-hierarchy}" "\end{table}" (Ctrl+F nel capitolo: il blocco input{...4-exception-hierarchy-tab} è già lì; inserire subito dopo)
+% DOPO    : "La prima scelta che riflette una decisione di design consapevole e non un vincolo tecnico, riguarda la collocazione di \texttt{GatewayAdapterError}"
+% REF     : vedi nota su tab:exception-hierarchy modificare anche quella frase quando si inserisce questa figura:
+%   PRIMA "...riportate nella Tabella~\ref{tab:exception-hierarchy} con la relativa fase."
+%   DOPO  "...riportate nella Tabella~\ref{tab:exception-hierarchy} con la relativa fase, la cui struttura gerarchica è illustrata nella Figura~\ref{fig:exception-hierarchy}."
+\input{assets/figures/4-exception-hierarchy.tex}
+\noindent{\small Cap.~4, §4.1.2, gerarchia ad albero delle 11 eccezioni (D4.P4): bloccanti, recuperate, CLI.}
+\clearpage
+
+% INSERIRE
+% Cap. 4, §4.3.1
+%
+% PRIMA   : "Il campo \texttt{TestResult.source} con tipo \texttt{Literal[\"native\",~\"external\"]} propaga la distinzione fino al report, dove i risultati nativi e quelli di tool specializzati vengono riportati con sezioni visivamente distinte all'interno dello stesso dominio."
+% DOPO    : "\subsection{Invarianti di \texttt{TestResult} a Livello di Tipo (D4.P9)}\label{subsec:testresult-invariants}"
+% REF     : aggiungere frase nuova prima della figura: La struttura complessiva delle tre gerarchie è illustrata nel diagramma di Figura~\ref{fig:class-hierarchy}.
+\input{assets/figures/4-class-hierarchy.tex}
+\noindent{\small Cap.~4, §4.3.1, gerarchia duale \texttt{BaseTest}/ \texttt{ExternalToolTest} (D1.P4) e connettori Library/Subprocess (D1.P5).}
+\clearpage
+
+% INSERIRE
+% Cap. 4, §4.1.3
+%
+% PRIMA   : "con la convenzione \texttt{\"\{test\_id\}.\{nome\_dato\}\"} che rende esplicito quale test ha prodotto ogni valore."
+% DOPO    : "\section{Discovery Dinamico e Risoluzione del Grafo} \label{sec:discovery-dag}"
+% REF     : aggiungere frase nuova prima della figura: La Figura~\ref{fig:testcontext-channels} illustra la struttura interna del \texttt{TestContext} con i tre canali tipizzati, le rispettive \gls{API} di accesso e la corrispondenza con le fasi del ciclo di vita dell'engine.
+\input{assets/figures/4-testcontext-channels.tex}
+\noindent{\small Cap.~4, §4.1.3 \texttt{TestContext} (D1.P3): canali Token, Teardown LIFO e Shared Data.}
+\clearpage
+
+% INSERIRE
+% Cap. 4, §4.6.2
+%
+% PRIMA   : "intercettando i token che compaiono nei valori di header \gls{HTTP} inclusi nei record di evidenza."
+% DOPO    : "La sovrapposizione dei tre meccanismi copre scenari che nessuno dei tre individualmente intercetterebbe:"
+% REF     : modifica frase che introduce l'enumerate:
+%   PRIMA "...applica tre tecniche in sequenza sul dizionario \texttt{raw\_output} grezzo :"
+%   DOPO  "...applica tre tecniche in sequenza sul dizionario \texttt{raw\_output} grezzo, illustrate nella Figura~\ref{fig:sanitization-funnel}:"
+\input{assets/figures/4-sanitization-funnel.tex}
+\noindent{\small Cap.~4, §4.6.2, sanitizzazione a imbuto (D4.P2): key-pattern regex, JWT heuristic, header prefix in sequenza.}
+\clearpage
+
+% ── Cap. 5 ───────────────────────────────────────────────────────────────────
+
+% INSERIRE
+% Cap. 5, §5.1.1
+%
+% PRIMA   : "% TODO: inserire figura con diagramma architetturale del testbed (Kong, Forgejo, PostgreSQL, tool, lab-net, porte)" (riga 44 del file sostituire il commento TODO con l'\input{})
+% DOPO    : "\input{assets/tables/5-versioni-testbed.tex}"
+% REF     : modifica frase in subsec:architettura-testbed (riga 42):
+%   PRIMA "L'ambiente di test è composto da quattro servizi che comunicano all'interno di un network Docker dedicato (\texttt{lab-net}):"
+%   DOPO  "L'ambiente di test è composto da quattro servizi che comunicano all'interno di un network Docker dedicato (\texttt{lab-net}), come illustrato nella Figura~\ref{fig:testbed-topology}:"
+\input{assets/figures/5-testbed-topology.tex}
+\noindent{\small Cap.~5, §5.1.1, topologia testbed: Forgejo~14.0.3, Kong~3.9 DB-less, Docker Compose, porte :8000/:8443/:8001.}
+\clearpage
+
+% INSERIRE
+% Cap. 5, §5.3.1
+%
+% PRIMA   : "\subsection{Analisi dei Risultati per Dominio} \label{subsec:analisi-domini}"
+% DOPO    : "L'assessment ha prodotto 98 finding distribuiti su 7 \texttt{FAIL}"
+% REF     : aggiungere come prima frase della sottosezione: La Figura~\ref{fig:coverage-map} riporta la mappa di copertura dell'assessment di validazione, con il raggruppamento per dominio, la strategia Box Gradient associata e l'esito di ciascun test.
+\input{assets/figures/5-coverage-map.tex}
+\noindent{\small Cap.~5, §5.3.1, mappa di copertura (v0.1.0): test per dominio, Box Gradient (D3.P3), esiti PASS/FAIL/SKIP.}
+\clearpage
+
+% DISCUTI
+% Cap. 5, §5.3
+%
+% Ridondante con tab:risultati-per-test già presente. Il grafico visualizza la distribuzione disomogenea (test~1.1 produce 74/98 finding), ma questo dato è già espresso in prosa e in tabella.
+%
+% PRIMA   : "Prima di analizzare i risultati per dominio, è utile presentare una lettura trasversale dei tre esiti."
+% DOPO    : "I 7 \texttt{FAIL}, con il dettaglio dei finding per test nella Tabella~\ref{tab:risultati-per-test}"
+% REF     : aggiungere frase prima della figura: La Figura~\ref{fig:finding-distribution} illustra la distribuzione disomogenea dei 98 finding: il test~1.1 da solo ne produce 74 (75,5\%), una concentrazione che la lettura per dominio nella Sezione~\ref{subsec:analisi-domini} interpreta nel contesto del contratto OpenAPI di Forgejo.
+\input{assets/figures/5-finding-distribution.tex}
+\noindent{\small Cap.~5, §5.3, [DISCUTI] distribuzione 98 finding per test. Verificare ridondanza con tab:risultati-per-test.}
+\clearpage
+
+% ── Cap. 6 ───────────────────────────────────────────────────────────────────
+
+% INSERIRE
+% Cap. 6, §6.2.1
+%
+% PRIMA   : "Con codici semanticamente distinti questo routing è automatizzabile senza leggere i log."
+% DOPO    : "Sistemi di \gls{CI/CD} come GitHub Actions o GitLab \gls{CI}"
+% REF     : modifica frase esistente:
+%   PRIMA "Con codici semanticamente distinti questo routing è automatizzabile senza leggere i log."
+%   DOPO  "Con codici semanticamente distinti questo routing è automatizzabile senza leggere i log, come schematizzato nella Figura~\ref{fig:cicd-decision-tree}."
+\input{assets/figures/6-cicd-decision-tree.tex}
+\noindent{\small Cap.~6, §6.2.1, routing exit code semantici (D6.P1): 0 clean, 1 fail, 2 error, 10 infra.}
+\clearpage
+
+% INSERIRE
+% Cap. 6, §6.3.2
+%
+% PRIMA   : "garantendo che i finding prodotti da moduli distinti siano confrontabili nel report finale."
+% DOPO    : "\paragraph{Coverage augmentation progressiva.}"
+% REF     : aggiungere frase nel corpo del paragrafo prima della figura: La Figura~\ref{fig:modular-platform} illustra l'architettura a stella risultante, con il core invariato e i moduli di protocollo come unità intercambiabili.
+\input{assets/figures/6-modular-platform.tex}
+\noindent{\small Cap.~6, §6.3.2, piattaforma modulare: core immutabile + moduli REST/GraphQL/gRPC/WebSocket.}
+\clearpage

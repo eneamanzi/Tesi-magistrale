@@ -1,0 +1,17 @@
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{@{}llp{0.42\textwidth}@{}}
+    \toprule
+    \textbf{Strategia}  & \textbf{Prerequisiti}               & \textbf{Razionale}                                                                                                             \\
+    \midrule
+    \texttt{BLACK\_BOX} & Nessuno (solo accesso di rete)      & Controlli perimetrali applicati dal gateway a qualsiasi interlocutore; simulazione di un attaccante esterno senza credenziali. \\
+    \addlinespace
+    \texttt{GREY\_BOX}  & Token per \(\geq\)2 ruoli distinti  & Garanzie che presuppongono stato autenticato con identità di ruolo distinte; inaccessibili senza credenziali valide.           \\
+    \addlinespace
+    \texttt{WHITE\_BOX} & Accesso Admin \gls{API} del gateway & Configurazione statica verificabile per ispezione diretta tramite piano di controllo del gateway.                              \\
+    \bottomrule
+  \end{tabular}
+  \caption{Box Gradient applicato in APIGuard Assurance.}
+  \label{tab:box-gradient}
+\end{table}

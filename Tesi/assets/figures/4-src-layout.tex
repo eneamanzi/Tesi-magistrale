@@ -1,0 +1,34 @@
+\begin{figure}[ht]
+  \dirtree{%
+    .1 src/.
+    .2 cli.py \normalfont\textit{(entry point \gls{CLI})}.
+    .2 engine.py \normalfont\textit{(orchestratore, Fasi 3 e 5)}.
+    .2 config/ \normalfont\textit{(Fase 1)}.
+    .3 loader.py.
+    .2 discovery/ \normalfont\textit{(Fase 2)}.
+    .3 openapi.py.
+    .3 surface.py.
+    .2 core/ \normalfont\textit{(layer fondamentale, Fasi 3--5)}.
+    .3 context.py \normalfont\textit{(Fase 3)}.
+    .3 evidence.py \normalfont\textit{(Fase 3)}.
+    .3 dag.py \normalfont\textit{(Fase 4)}.
+    .3 client.py \normalfont\textit{(Fase 5)}.
+    .3 exceptions.py.
+    .3 gateway/.
+    .2 tests/ \normalfont\textit{(Fasi 4--5)}.
+    .3 registry.py \normalfont\textit{(Fase 4)}.
+    .3 base.py.
+    .3 helpers/.
+    .3 domain\_0/ \normalfont\textit{... domain\_7/}.
+    .2 external\_tests/ \normalfont\textit{(Fasi 4--5)}.
+    .3 registry.py \normalfont\textit{(Fase 4)}.
+    .3 base.py.
+    .2 connectors/ \normalfont\textit{(Fase 5)}.
+    .2 report/ \normalfont\textit{(Fase 7)}.
+    .3 builder.py.
+    .3 renderer.py.
+    .3 templates/.
+  }
+  \caption{Layout di \texttt{src/} con mapping alle fasi della pipeline.}
+  \label{fig:src-layout}
+\end{figure}

@@ -1,0 +1,98 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Spaziatura compatta
+        node distance=1.5ex and 0.4em,
+        %
+        % Stili di base: inner sep portato a 4pt per allontanare il testo dai bordi
+        base/.style={draw, rounded corners=1.5pt, align=center, inner sep=4pt},
+        %
+        % Etichetta di dominio: Altezza aumentata a 5.2ex
+        dom/.style={base, fill=gray!10, draw=gray!50, minimum width=11.5em, minimum height=5.2ex, font=\footnotesize\bfseries},
+        %
+        % Stili Esiti
+        pass/.style={fill=green!10, draw=green!50!black},
+        fail/.style={fill=red!10, draw=red!60!black},
+        skip/.style={fill=gray!15, draw=gray!50},
+        %
+        % Nodi test nativi: Altezza aumentata per mantenere l'allineamento a griglia
+        tst/.style={base, minimum width=3.5em, minimum height=5.2ex, font=\footnotesize\ttfamily},
+        %
+        % Nodi test esterni: Altezza aumentata a 5.2ex
+        ext/.style={base, minimum width=5em, minimum height=5.2ex, font=\footnotesize\ttfamily\itshape},
+        %
+        % Placeholder per D5
+        inact/.style={base, draw=gray!35, dashed, fill=gray!4, minimum width=8em, minimum height=5.2ex, font=\footnotesize\itshape, text=gray!70!black},
+      ]
+
+      %% ── D0: Discovery ─────────────────────────────────────────────────────
+      \node[dom] (d0) {D0: Discovery\\[-1pt]{\scriptsize B\,|\,G\quad P0--P1}};
+
+      \node[tst, fail, right=1.5em of d0] (t01)  {\texttt{0.1}};
+      \node[tst, fail, right=of t01]      (t02)  {\texttt{0.2}};
+      \node[tst, skip, right=of t02]      (t03)  {\texttt{0.3}};
+      \node[ext, pass, right=of t03]      (te01) {\texttt{ext.0.1}\\[-2pt]{\scriptsize nuclei}};
+
+      %% ── D1: Authentication ────────────────────────────────────────────────
+      \node[dom, below=1.5ex of d0.south west, anchor=north west] (d1)
+      {D1: Authentication\\[-1pt]{\scriptsize B\,|\,G\quad P0--P1}};
+
+      \node[tst, fail, right=1.5em of d1] (t11)   {\texttt{1.1}};
+      \node[tst, pass, right=of t11]      (t14)   {\texttt{1.4}};
+      \node[tst, pass, right=of t14]      (t15)   {\texttt{1.5}};
+      \node[tst, skip, right=of t15]      (t16)   {\texttt{1.6}};
+      \node[ext, fail, right=of t16]      (te15s) {\texttt{ext.1.5}\\[-2pt]{\scriptsize sslyze}};
+      \node[ext, fail, right=of te15s]    (te15t) {\texttt{ext.1.5}\\[-2pt]{\scriptsize testssl}};
+
+      %% ── D2: Authorization ─────────────────────────────────────────────────
+      \node[dom, below=1.5ex of d1.south west, anchor=north west] (d2)
+      {D2: Authorization\\[-1pt]{\scriptsize G\quad P1--P2}};
+
+      \node[tst, pass, right=1.5em of d2] (t21) {\texttt{2.1}};
+
+      %% ── D3: Data Integrity ────────────────────────────────────────────────
+      \node[dom, below=1.5ex of d2.south west, anchor=north west] (d3)
+      {D3: Data Integrity\\[-1pt]{\scriptsize G\quad P2}};
+
+      \node[tst, pass, right=1.5em of d3] (t33) {\texttt{3.3}};
+
+      %% ── D4: Availability ──────────────────────────────────────────────────
+      \node[dom, below=1.5ex of d3.south west, anchor=north west] (d4)
+      {D4: Availability\\[-1pt]{\scriptsize G\,|\,W\quad P1--P2}};
+
+      \node[tst, fail, right=1.5em of d4] (t41) {\texttt{4.1}};
+      \node[tst, pass, right=of t41]      (t42) {\texttt{4.2}};
+      \node[tst, pass, right=of t42]      (t43) {\texttt{4.3}};
+
+      %% ── D5: Observability — nessun test attivo (Milestone 2) ──────────────
+      \node[dom, fill=gray!4, draw=gray!35, below=1.5ex of d4.south west, anchor=north west] (d5)
+      {D5: Observability\\[-1pt]{\scriptsize W\quad P3\quad\textit{(M2)}}};
+
+      \node[inact, right=1.5em of d5] (td5) {nessun test attivo};
+
+      %% ── D6: Hardening ─────────────────────────────────────────────────────
+      \node[dom, below=1.5ex of d5.south west, anchor=north west] (d6)
+      {D6: Hardening\\[-1pt]{\scriptsize W\quad P2--P3}};
+
+      \node[tst, pass, right=1.5em of d6] (t62) {\texttt{6.2}};
+      \node[tst, pass, right=of t62]      (t64) {\texttt{6.4}};
+
+      %% ── D7: Business Logic ────────────────────────────────────────────────
+      \node[dom, below=1.5ex of d6.south west, anchor=north west] (d7)
+      {D7: Business Logic\\[-1pt]{\scriptsize G\quad P2}};
+
+      \node[tst, fail, right=1.5em of d7] (t72) {\texttt{7.2}};
+
+      %% ── Legenda ──────────────────────────────────────────────────────────
+      \node[tst, pass, below=3.5ex of d7.south west, anchor=north west] (lg-pass) {\texttt{PASS}};
+      \node[tst, fail, right=0.8em of lg-pass] (lg-fail) {\texttt{FAIL}};
+      \node[tst, skip, right=0.8em of lg-fail] (lg-skip) {\texttt{SKIP}};
+      \node[ext, pass, right=0.8em of lg-skip] (lg-ext)  {\textit{Esterno}};
+      \node[font=\footnotesize\itshape, text=gray!70!black, right=0.8em of lg-ext] {corsivo = test esterno tramite connector};
+
+    \end{tikzpicture}
+  }%
+  \caption{Mappa di copertura dell'assessment di validazione (v0.1.0): test attivi per dominio di assurance, strategia Box Gradient (D3.P3) ed esito (\texttt{PASS}/\texttt{FAIL}/\texttt{SKIP}). I test esterni, eseguiti tramite connector, sono riportati in corsivo.}
+  \label{fig:coverage-map}
+\end{figure}

@@ -7,70 +7,7 @@ La presentazione di \textit{APIGuard Assurance} segue un approccio \textit{top-d
 
 Il design di APIGuard Assurance è formalizzato in 39 proprietà architetturali distribuite su sette categorie; la Tabella~\ref{tab:property-index} le raccoglie come mappa di riferimento.\footnote{In grassetto le proprietà trattate in questo capitolo.}
 
-\begin{table}[ht]
-  \centering
-  \small
-  \begin{tabular}{@{}lp{0.62\textwidth}@{}}
-    \toprule
-    \textbf{Dominio}                    & \textbf{Proprietà} \\
-    \midrule
-    D1: Architettura \& Design          &
-    \hyperref[subsec:agnosticismo]{\textbf{D1.P1}},
-    \hyperref[subsec:dep-flow]{\textbf{D1.P2}},
-    \hyperref[subsec:split-state]{\textbf{D1.P3}},
-    \hyperref[subsec:dual-hierarchy]{D1.P4},
-    \hyperref[subsec:connector-hierarchy]{D1.P5},
-    \hyperref[subsec:gateway-adapter]{\textbf{D1.P6}}        \\
-    \addlinespace
-    D2: Estensibilità \& Manutenibilità &
-    \hyperref[subsec:discovery-impl]{D2.P1},
-    \hyperref[subsec:dag]{\textbf{D2.P2}},
-    \hyperref[subsec:connector-hierarchy]{D2.P3},
-    \hyperref[subsec:connector-injection]{D2.P4},
-    \hyperref[subsec:auth-layer]{D2.P5},
-    \hyperref[subsec:connector-classification]{D2.P6},
-    \hyperref[subsec:path-seed]{D2.P7},
-    \hyperref[subsec:payload-catalog]{D2.P8}                 \\
-    \addlinespace
-    D3: Config \& Riproducibilità       &
-    \hyperref[subsec:config-driven]{\textbf{D3.P1}},
-    \hyperref[subsec:openapi-sot]{\textbf{D3.P2}},
-    \hyperref[subsec:box-gradient]{\textbf{D3.P3}},
-    \hyperref[subsec:reproducibility]{\textbf{D3.P4}},
-    \hyperref[subsec:zero-state]{\textbf{D3.P5}}             \\
-    \addlinespace
-    D4: Robustezza \& Sicurezza         &
-    \hyperref[subsec:evidence-store]{\textbf{D4.P1}},
-    \hyperref[subsec:sanitization]{D4.P2},
-    \hyperref[subsec:fail-safe]{D4.P3},
-    \hyperref[subsec:exception-hierarchy]{D4.P4},
-    \hyperref[subsec:graceful-degradation]{D4.P5},
-    \hyperref[subsec:teardown]{D4.P6},
-    \hyperref[subsec:probing-policy]{D4.P7},
-    \hyperref[subsec:fail-fast]{D4.P8},
-    \hyperref[subsec:testresult-invariants]{D4.P9}           \\
-    \addlinespace
-    D5: Qualità \& Osservabilità        &
-    \hyperref[subsec:traceability]{D5.P1},
-    \hyperref[subsec:traceability]{D5.P2},
-    \hyperref[subsec:payload-catalog]{D5.P3},
-    D5.P4,
-    \hyperref[subsec:dual-audit-trail]{D5.P5}                \\
-    \addlinespace
-    D6: CI/CD \& DevEx                  &
-    \hyperref[subsec:exit-codes]{D6.P1},
-    D6.P2,
-    \hyperref[subsec:dual-layer-type-safety]{D6.P3}          \\
-    \addlinespace
-    D7: Packaging \& Deployment         &
-    \hyperref[subsec:connector-hierarchy]{D7.P1},
-    \hyperref[subsec:agpl-isolation]{D7.P2},
-    D7.P3                                                    \\
-    \bottomrule
-  \end{tabular}
-  \caption{Proprietà APIGuard Assurance per dominio.}
-  \label{tab:property-index}
-\end{table}
+\input{assets/tables/3-property-index.tex}
 
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -268,33 +205,7 @@ La superficie di sicurezza di un'\gls{API} esposta tramite gateway non è omogen
 
 La Tabella~\ref{tab:domini} li riporta con il loro titolo e l'ambito di verifica che ciascuno racchiude.
 
-\begin{table}[ht]
-  \centering
-  \small
-  \begin{tabular}{@{}clp{0.52\textwidth}@{}}
-    \toprule
-    \textbf{Dominio} & \textbf{Titolo}                   & \textbf{Ambito di verifica}                                                                                                   \\
-    \midrule
-    D0               & API Discovery                     & Inventario degli endpoint esposti; rilevazione di Shadow API non documentate nella specifica.                                 \\
-    \addlinespace
-    D1               & Identity \& Authentication        & Meccanismi di riconoscimento del chiamante; robustezza del trasporto delle credenziali; ciclo di vita e revoca dei \gls{JWT}. \\
-    \addlinespace
-    D2               & Authorization                     & Logiche di controllo degli accessi; difetti di segregazione orizzontale e verticale (\gls{RBAC}, \gls{BOLA}).                 \\
-    \addlinespace
-    D3               & Data Integrity                    & Coerenza strutturale dei payload; implementazione delle firme crittografiche (\gls{HMAC}).                                    \\
-    \addlinespace
-    D4               & Availability \& Resilience        & Difese contro l'esaurimento delle risorse; audit di circuit breaker e soglie di rate limiting.                                \\
-    \addlinespace
-    D5               & Observability                     & Qualità e tempestività della telemetria generata dal sistema. \textit{(Milestone~2)}                                          \\
-    \addlinespace
-    D6               & Configuration \& Hardening        & Rafforzamento della configurazione del gateway; policy di routing; header di sicurezza \gls{HTTP}.                            \\
-    \addlinespace
-    D7               & Business Logic \& Sensitive Flows & Falle semantiche complesse: elusione dei vincoli di processo, \gls{SSRF}, race condition su operazioni critiche.              \\
-    \bottomrule
-  \end{tabular}
-  \caption{Domini di Assurance di APIGuard Assurance.}
-  \label{tab:domini}
-\end{table}
+\input{assets/tables/3-domini.tex}
 
 La sequenza dei primi tre domini rispecchia una catena logica di precondizioni: non ha senso verificare l'autorizzazione (D2) senza avere prima verificato che l'autenticazione funzioni (D1), così come non ha senso verificare l'autenticazione senza conoscere la superficie di attacco (D0). Un assessment che verifichi D2 in assenza di certezze su D1 raccoglie evidenza su un sistema il cui comportamento in caso di autenticazione compromessa è ignoto. I domini D3-D7 non seguono la stessa dipendenza lineare: appartengono a famiglie semantiche distinte, ciascuna con le proprie precondizioni di accesso, senza vincoli di ordinamento reciproco tra di loro. Questa catena logica si riflette nelle dipendenze dichiarate dai singoli test che operano su questi domini, il cui meccanismo di risoluzione è descritto nella Sezione~\ref{subsec:dag}.
 
@@ -309,23 +220,7 @@ La classificazione Black/Grey/White Box del testing, introdotta nella Sezione~\r
 Il mapping adottato, sintetizzato nella Tabella~\ref{tab:box-gradient}, correla la strategia operativa alle precondizioni concrete che ogni classe di garanzie impone al tester.
 Il livello di visibilità di ogni test è determinato da ciò che la verifica richiede per essere condotta correttamente.
 
-\begin{table}[ht]
-  \centering
-  \small
-  \begin{tabular}{@{}llp{0.42\textwidth}@{}}
-    \toprule
-    \textbf{Strategia}  & \textbf{Prerequisiti}               & \textbf{Razionale}                                                                                                             \\
-    \midrule
-    \texttt{BLACK\_BOX} & Nessuno (solo accesso di rete)      & Controlli perimetrali applicati dal gateway a qualsiasi interlocutore; simulazione di un attaccante esterno senza credenziali. \\
-    \addlinespace
-    \texttt{GREY\_BOX}  & Token per \(\geq\)2 ruoli distinti  & Garanzie che presuppongono stato autenticato con identità di ruolo distinte; inaccessibili senza credenziali valide.           \\
-    \addlinespace
-    \texttt{WHITE\_BOX} & Accesso Admin \gls{API} del gateway & Configurazione statica verificabile per ispezione diretta tramite piano di controllo del gateway.                              \\
-    \bottomrule
-  \end{tabular}
-  \caption{Box Gradient applicato in APIGuard Assurance.}
-  \label{tab:box-gradient}
-\end{table}
+\input{assets/tables/3-box-gradient.tex}
 
 I controlli perimetrali applicati dal gateway a qualsiasi interlocutore, autenticato o meno, non presuppongono nessuna conoscenza dell'infrastruttura interna: il risultato atteso è lo stesso indipendentemente da chi effettua la richiesta. Eseguirli senza credenziali è l'unico modo per ottenere evidenza non contaminata da privilegi impliciti, ed è per questo che i test \texttt{BLACK\_BOX} sono la scelta naturale per questa classe di garanzie.
 

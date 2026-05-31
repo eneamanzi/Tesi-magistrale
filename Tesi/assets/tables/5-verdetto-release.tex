@@ -1,0 +1,26 @@
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Aspetto}            & \textbf{Stato} & \textbf{Dettaglio}                                                  \\
+    \midrule
+    Analisi statica             & \checkmark     &
+    0 errori su tutti e cinque gli strumenti (Sezione~\ref{subsec:static-analysis})                                    \\
+    \addlinespace
+    Type safety                 & \checkmark     &
+    0 errori mypy strict; validazione Pydantic attiva su tutti i confini (Sezione~\ref{subsec:dual-layer-type-safety}) \\
+    \addlinespace
+    Documentazione interna      & \checkmark     &
+    292/292 simboli pubblici con docstring (100\%)                                                                     \\
+    \addlinespace
+    Riproducibilità della build & \checkmark     &
+    SHA-256 identico su due build consecutive (451\,261~byte)                                                          \\
+    \addlinespace
+    Portabilità                 & \checkmark     &
+    Cold install in ambiente pulito: \texttt{apiguard version} $\to$ \texttt{0.1.0}                                    \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Sintesi delle verifiche di qualità sulla codebase.}
+  \label{tab:verdetto-release}
+\end{table}

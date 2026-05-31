@@ -1,0 +1,69 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Dieta orizzontale: 8em per farci stare il testo, ma senza allargare troppo
+        actor/.style={ag-blue, minimum width=8em, minimum height=2.5em, align=center},
+        lifeline/.style={draw=gray!50, dashed, very thin},
+        msg/.style={ag-arr, black!70},
+        msg-return/.style={ag-darr, black!50},
+        note-box/.style={draw=orange!50, fill=yellow!12, rounded corners=2pt, inner sep=4pt, font=\scriptsize},
+      ]
+
+      %% Attori (corridoi stretti a 2em per mantenere la scala 1:1)
+      \node[actor] (Eng) {\texttt{Engine}};
+      \node[actor, right=2em of Eng] (BT) {\texttt{BaseTest}};
+      \node[actor, right=2em of BT] (SC) {\texttt{SecurityClient}};
+      \node[actor, right=2em of SC] (TGT) {Target (Kong)};
+
+      %% Lifelines (Asse del tempo scalabile)
+      \draw[lifeline] (Eng.south) -- ++(0,-52ex);
+      \draw[lifeline] (BT.south) -- ++(0,-52ex);
+      \draw[lifeline] (SC.south) -- ++(0,-52ex);
+      \draw[lifeline] (TGT.south) -- ++(0,-52ex);
+
+      %% Scenario normale (Step regolari di -4ex)
+      \draw[msg] ([yshift=-4ex]Eng.south) -- ([yshift=-4ex]BT.south) node[midway, above, font=\scriptsize] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-8ex]BT.south) -- ([yshift=-8ex]SC.south) node[midway, above, font=\scriptsize] {\texttt{request(method, url, ...)}};
+      \draw[msg] ([yshift=-12ex]SC.south) -- ([yshift=-12ex]TGT.south) node[midway, above, font=\scriptsize] {\gls{HTTP} request};
+      \draw[msg-return] ([yshift=-16ex]TGT.south) -- ([yshift=-16ex]SC.south) node[midway, above, font=\scriptsize] {\gls{HTTP} response};
+      \draw[msg-return] ([yshift=-20ex]SC.south) -- ([yshift=-20ex]BT.south) node[midway, above, font=\scriptsize] {\texttt{Response}};
+      \draw[msg-return] ([yshift=-24ex]BT.south) -- ([yshift=-24ex]Eng.south) node[midway, above, font=\scriptsize] {\texttt{TestResult(PASS | FAIL)}};
+
+      %% Separatore scenari: riga spessa con box etichetta
+      \draw[gray!60, very thick] ([yshift=-28ex]Eng.south) -- ([yshift=-28ex]TGT.south);
+      \node[fill=gray!15, draw=gray!60, rounded corners=2pt, inner sep=3pt, font=\scriptsize\itshape]
+      at ($([yshift=-28ex]Eng.south)!0.5!([yshift=-28ex]TGT.south)$)
+      {scenario alternativo: eccezione imprevista};
+
+      %% Scenario eccezione
+      \draw[msg] ([yshift=-32ex]Eng.south) -- ([yshift=-32ex]BT.south) node[midway, above, font=\scriptsize] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-36ex]BT.south) -- ([yshift=-36ex]SC.south) node[midway, above, font=\scriptsize] {\texttt{request(method, url, ...)}};
+
+      %% --- CORREZIONE POSIZIONAMENTO E GRIGLIA VERTICALE (-40, -44, -48) ---
+
+      %% Punto di partenza a -40ex (esattamente 4ex dopo l'ultima freccia)
+      \coordinate (err_start) at ([yshift=-40ex]SC.south);
+
+      %% Il box posizionato al 70% della distanza verso Kong per adattarsi al corridoio da 2em
+      \node[note-box] (exc) at ($([yshift=-40ex]SC.south)!0.7!([yshift=-40ex]TGT.south)$) {\texttt{Exception} imprevista};
+
+      \draw[ag-arr, orange!70] (err_start) -- (exc.west);
+
+      %% --- RISOLUZIONE DEL CENTRAGGIO DELLA LABEL ---
+      %% 1. Definiamo in modo sicuro le coordinate del tracciato per evitare crash del compilatore
+      \coordinate (bt_return) at ([yshift=-44ex]BT.south);
+      \coordinate (elbow) at (exc.south |- bt_return);
+
+      %% 2. Disegniamo la linea e usiamo pos=0.4 per far scivolare il testo
+      \draw[ag-arr, orange!70] (exc.south) -- (elbow) -- node[pos=0.6, above, ag-note, align=center] {catturata\\internamente} (bt_return);
+
+      %% TestResult(ERROR): Ritorno finale all'Engine esattamente a -48ex (step di 4ex)
+      \draw[msg-return, red!60] ([yshift=-48ex]BT.south) -- ([yshift=-48ex]Eng.south)
+      node[midway, above, font=\scriptsize, red!70] {\texttt{TestResult(ERROR)}: pipeline prosegue};
+
+    \end{tikzpicture}
+  }%
+  \caption{Ciclo di vita di un test in Fase~5: scenario normale e scenario di eccezione con error isolation (D4.P3).}
+  \label{fig:sequence-error-isolation}
+\end{figure}

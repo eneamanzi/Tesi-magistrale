@@ -1,0 +1,56 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Distanza puramente tipografica (Gold Standard): 5ex verticale, 3.5em orizzontale
+        node distance=5ex and 3.5em,
+        %
+        % Stili di base
+        base/.style={draw, rounded corners=2pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
+        %
+        % Core (Blu)
+        core/.style={base, fill=blue!8, draw=blue!45, minimum width=17em, thick},
+        %
+        % Moduli Satelliti
+        active/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
+        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=8.5em, font=\small\itshape},
+        %
+        % Stili Frecce
+        arr-active/.style={-latex, thick, green!50!black},
+        arr-planned/.style={-latex, thick, dashed, gray!50}
+      ]
+
+      %% ── Core immutabile (Centro) ──────────────────────────────────────────
+      \node[core] (core) {
+      \textbf{Core: infrastruttura immutabile}\\
+      {\scriptsize Engine \textbar{} DAG Scheduler \textbar{} EvidenceStore}\\
+      {\scriptsize TargetContext \textbar{} BaseTest \textbar{} BaseConnector}
+      };
+
+      %% ── Moduli Satelliti (A stella) ───────────────────────────────────────
+      % Modulo attivo (Sopra)
+      \node[active, above=of core] (rest) {\textbf{REST / OAS}\\{\scriptsize (attivo)}};
+
+      % Moduli pianificati (Destra, Sotto, Sinistra)
+      \node[planned, right=of core] (gql) {\textbf{GraphQL}\\{\scriptsize (pianificato)}};
+      \node[planned, below=of core] (grpc) {\textbf{gRPC}\\{\scriptsize (pianificato)}};
+      \node[planned, left=of core] (ws) {\textbf{WebSocket}\\{\scriptsize (pianificato)}};
+
+      %% ── Frecce di Collegamento (Convergenti verso il Core) ────────────────
+      \draw[arr-active] (rest.south) -- (core.north);
+      \draw[arr-planned] (gql.west) -- (core.east);
+      \draw[arr-planned] (grpc.north) -- (core.south);
+      \draw[arr-planned] (ws.east) -- (core.west);
+
+      %% ── Legenda e Note ────────────────────────────────────────────────────
+      % Distanza puramente tipografica anche qui (4ex)
+      \node[font=\small, text=gray!80!black, below=4ex of grpc, align=center] (note) {
+      frecce continue: modulo attivo \quad frecce tratteggiate: moduli pianificati\\[1ex]
+      {\itshape Il discovery dinamico via \texttt{pkgutil} permette il caricamento trasparente di moduli di terze parti}
+      };
+
+    \end{tikzpicture}
+  }%
+  \caption{Evoluzione di APIGuard Assurance verso una piattaforma modulare: core immutabile e moduli di protocollo intercambiabili.}
+  \label{fig:modular-platform}
+\end{figure}

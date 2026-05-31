@@ -1,0 +1,39 @@
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{l l l C C}
+    \toprule
+    \textbf{Test ID}         & \textbf{Dominio}   & \textbf{Tipo} & \textbf{Status} & \textbf{Finding} \\
+    \midrule
+    \texttt{0.1}             & D0: Discovery      & Nativo        & \texttt{FAIL}   & 16               \\
+    \texttt{0.2}             & D0: Discovery      & Nativo        & \texttt{FAIL}   & 1                \\
+    \texttt{0.3}             & D0: Discovery      & Nativo        & \texttt{SKIP}   & 0                \\
+    \addlinespace
+    \texttt{1.1}             & D1: Auth           & Nativo        & \texttt{FAIL}   & 74               \\
+    \texttt{1.4}             & D1: Auth           & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{1.5}             & D1: Auth           & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{1.6}             & D1: Auth           & Nativo        & \texttt{SKIP}   & 0                \\
+    \addlinespace
+    \texttt{2.1}             & D2: Authorization  & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{3.3}             & D3: Data Integrity & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{4.1}             & D4: Availability   & Nativo        & \texttt{FAIL}   & 2                \\
+    \texttt{4.2}             & D4: Availability   & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{4.3}             & D4: Availability   & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{6.2}             & D6: Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+    \texttt{6.4}             & D6: Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+    \addlinespace
+    \texttt{7.2}             & D7: Business Logic & Nativo        & \texttt{FAIL}   & 1                \\
+    \addlinespace
+    \texttt{ext.0.1.nuclei}  & D0: Discovery      & Esterno       & \texttt{PASS}   & 0                \\
+    \texttt{ext.1.5.sslyze}  & D1: Auth           & Esterno       & \texttt{FAIL}   & 1                \\
+    \texttt{ext.1.5.testssl} & D1: Auth           & Esterno       & \texttt{FAIL}   & 3                \\
+    \midrule
+    \textbf{Totale}          &                    &               &                 & \textbf{98}      \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Status e finding count per test.}
+  \label{tab:risultati-per-test}
+\end{table}

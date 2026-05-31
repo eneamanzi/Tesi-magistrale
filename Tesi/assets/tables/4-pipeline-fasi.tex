@@ -1,0 +1,25 @@
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Fase}                 & \textbf{Cartella}               & \textbf{File}                         \\
+    \midrule
+    1. Inizializzazione           & \texttt{config/}                & \texttt{loader.py}                    \\
+    \addlinespace
+    2. OpenAPI Discovery          & \texttt{discovery/}             & \texttt{openapi.py}                   \\
+    \addlinespace
+    3. Costruzione Contesti       & \texttt{src/}                   & \texttt{engine.py}                    \\
+    \addlinespace
+    4. Test Discovery e \gls{DAG} & \texttt{tests/}, \texttt{core/} & \texttt{registry.py}, \texttt{dag.py} \\
+    \addlinespace
+    5. Esecuzione                 & \texttt{src/}                   & \texttt{engine.py}                    \\
+    \addlinespace
+    6. Teardown                   & \texttt{core/}                  & \texttt{context.py}                   \\
+    \addlinespace
+    7. Report                     & \texttt{report/}                & \texttt{renderer.py}                  \\
+    \bottomrule
+  \end{tabular}
+  \caption{Fasi della pipeline di assessment (1-2-4 bloccanti; 5-6-7 non-bloccanti).}
+  \label{tab:pipeline-fasi}
+\end{table}

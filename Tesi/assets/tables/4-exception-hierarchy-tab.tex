@@ -1,0 +1,33 @@
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{@{}llX@{}}
+    \toprule
+    \textbf{Classe}                   & \textbf{File}               & \textbf{Comportamento}                                                       \\
+    \midrule
+    \texttt{ToolBaseError}            & \texttt{exceptions.py}      & Radice della gerarchia; non si solleva direttamente                          \\
+    \addlinespace
+    \texttt{ConfigurationError}       & \texttt{exceptions.py}      & Fase~1: fatale, config non valida; blocca lo startup                         \\
+    \addlinespace
+    \texttt{OpenAPILoadError}         & \texttt{exceptions.py}      & Fase~2: fatale, spec irraggiungibile o invalida; blocca lo startup           \\
+    \addlinespace
+    \texttt{DAGCycleError}            & \texttt{exceptions.py}      & Fase~4: fatale, ciclo nelle dipendenze; blocca lo startup                    \\
+    \addlinespace
+    \texttt{AuthenticationSetupError} & \texttt{exceptions.py}      & Helper auth: fatale se le credenziali configurate sono invalide              \\
+    \addlinespace
+    \texttt{SecurityClientError}      & \texttt{exceptions.py}      & Fase~5: recuperata, produce \texttt{TestResult(ERROR)}                       \\
+    \addlinespace
+    \texttt{ExternalToolError}        & \texttt{exceptions.py}      & Fase~5: recuperata, produce \texttt{TestResult(ERROR)}                       \\
+    \addlinespace
+    \texttt{TeardownError}            & \texttt{exceptions.py}      & Fase~6: recuperata, registrata come \texttt{WARNING}                         \\
+    \addlinespace
+    \texttt{GatewayAdapterError}      & \texttt{gateway/base.py}    & Fase~5: recuperata, produce \texttt{TestResult(ERROR)}                       \\
+    \addlinespace
+    \texttt{SeedGeneratorFetchError}  & \texttt{seed\_generator.py} & \gls{CLI} \texttt{generate-seed}: catturata in \texttt{cli.py}, exit~code~10 \\
+    \addlinespace
+    \texttt{SeedGeneratorParseError}  & \texttt{seed\_generator.py} & \gls{CLI} \texttt{generate-seed}: catturata in \texttt{cli.py}, exit~code~10 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Gerarchia delle eccezioni custom (Fasi 1--4 bloccanti; Fasi 5--6 recuperate localmente).}
+  \label{tab:exception-hierarchy}
+\end{table}

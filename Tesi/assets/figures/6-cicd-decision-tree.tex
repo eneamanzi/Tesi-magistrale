@@ -1,0 +1,73 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Stili Gold Standard (niente dipendenze da classi esterne)
+        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
+        cmd/.style={base, fill=blue!5, draw=blue!40, font=\small\ttfamily, minimum width=18em},
+        decision/.style={draw, shape=diamond, aspect=2.5, inner sep=2pt, align=center, font=\small, fill=orange!10, draw=orange!50},
+        %
+        % Stili per gli Exit Codes (Larghezza fissa per allineamento a colonna)
+        code0/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
+        code1/.style={base, fill=red!10, draw=red!60!black, minimum width=8.5em},
+        code2/.style={base, fill=orange!10, draw=orange!60!black, minimum width=8.5em},
+        code10/.style={base, fill=gray!15, draw=gray!60!black, minimum width=8.5em},
+        %
+        % Stili per le Actions (Larghezza fissa e generosa)
+        act0/.style={base, fill=green!5, draw=green!40, minimum width=16em},
+        act1/.style={base, fill=red!5, draw=red!40, minimum width=16em},
+        act2/.style={base, fill=orange!5, draw=orange!40, minimum width=16em},
+        act10/.style={base, fill=gray!5, draw=gray!40, minimum width=16em},
+      ]
+
+      %% ── Asse Centrale (Runner -> Comando -> Decisione) ────────────────────
+      \node[base, fill=gray!10, draw=gray!40, font=\small\bfseries] (start) {Runner CI/CD};
+      \node[cmd, below=3ex of start] (cmd) {apiguard run -{}-config config.yaml};
+      \node[decision, below=3ex of cmd] (dec) {exit code?};
+
+      %% ── Colonna Exit Codes (Ancorati in alto a sx, coordinate forzate) ────
+      % Il primo è spostato a destra di 4em rispetto al centro del rombo
+      \path (dec.south) ++(4em, -4ex) node[code0, anchor=north west] (e0) {\textbf{\texttt{0}: CLEAN}\\{\scriptsize tutti PASS/SKIP}};
+      \path (e0.south west) ++(0, -2.5ex) node[code1, anchor=north west] (e1) {\textbf{\texttt{1}: FAIL}\\{\scriptsize almeno un FAIL}};
+      \path (e1.south west) ++(0, -2.5ex) node[code2, anchor=north west] (e2) {\textbf{\texttt{2}: ERROR}\\{\scriptsize ERROR senza FAIL}};
+      \path (e2.south west) ++(0, -2.5ex) node[code10, anchor=north west] (e10) {\textbf{\texttt{10}: INFRA}\\{\scriptsize errore infrastrutturale}};
+
+      %% ── Colonna Actions (Ancorate esattamente a 3em a destra dei codici) ──
+      \path (e0.east) ++(3em, 0) node[act0, anchor=west] (a0) {\textbf{Pipeline prosegue}\\{\scriptsize (merge / deploy consentito)}};
+      \path (e1.east) ++(3em, 0) node[act1, anchor=west] (a1) {\textbf{Blocco merge/deploy}\\{\scriptsize Report allegato come artefatto}};
+      \path (e2.east) ++(3em, 0) node[act2, anchor=west] (a2) {\textbf{Alert malfunzionamento}\\{\scriptsize Revisione manuale richiesta}};
+      \path (e10.east) ++(3em, 0) node[act10, anchor=west] (a10) {\textbf{Diagnosi deployment}\\{\scriptsize Verifica \texttt{config.yaml}}};
+
+      %% ── Frecce di Flusso Principale ───────────────────────────────────────
+      % Uso -latex per garantire la punta della freccia pulita senza dipendere da ag-arr
+      \draw[-latex, semithick] (start) -- (cmd);
+      \draw[-latex, semithick] (cmd) -- (dec);
+
+      %% ── Routing a Bus per le condizioni (Il tronco verticale) ─────────────
+      \coordinate (bus-end) at (dec.south |- e10.west);
+      \draw[gray!70, semithick] (dec.south) -- (bus-end);
+
+      % Diramazioni orizzontali verso gli Exit Code (colorate)
+      \draw[-latex, semithick, green!50!black] (dec.south |- e0.west) -- (e0.west);
+      \fill[gray!70] (dec.south |- e0.west) circle (1.5pt);
+
+      \draw[-latex, semithick, red!60!black] (dec.south |- e1.west) -- (e1.west);
+      \fill[gray!70] (dec.south |- e1.west) circle (1.5pt);
+
+      \draw[-latex, semithick, orange!60!black] (dec.south |- e2.west) -- (e2.west);
+      \fill[gray!70] (dec.south |- e2.west) circle (1.5pt);
+
+      \draw[-latex, semithick, gray!60!black] (dec.south |- e10.west) -- (e10.west);
+      \fill[gray!70] (dec.south |- e10.west) circle (1.5pt);
+
+      %% ── Frecce dalle Condizioni alle Azioni (colorate in scala) ───────────
+      \draw[-latex, semithick, green!50!black] (e0.east) -- (a0.west);
+      \draw[-latex, semithick, red!60!black] (e1.east) -- (a1.west);
+      \draw[-latex, semithick, orange!60!black] (e2.east) -- (a2.west);
+      \draw[-latex, semithick, gray!60!black] (e10.east) -- (a10.west);
+
+    \end{tikzpicture}
+  }%
+  \caption{Routing degli exit code semantici (D6.P1) nella pipeline \gls{CI/CD}: 0 clean, 1 fail, 2 error, 10 infra.}
+  \label{fig:cicd-decision-tree}
+\end{figure}

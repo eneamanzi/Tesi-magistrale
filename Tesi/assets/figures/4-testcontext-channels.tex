@@ -1,0 +1,98 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Distanze compatte per fermare il downscaling di resizebox
+        node distance=1.2ex and 1em,
+        %
+        % Intestazione del canale
+        ch-hdr/.style={draw=green!60!black, fill=green!18, rounded corners=1.5pt,
+            minimum width=11.5em, font=\small\bfseries, align=center},
+        %
+        % Riga di metodo/dato dentro il canale
+        ch-row/.style={draw=green!50!black, fill=green!7, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=18pt,
+            inner sep=4pt, font=\footnotesize\ttfamily, align=left},
+        %
+        % Blocco API
+        ch-api/.style={draw=gray!40, fill=gray!10, rounded corners=1.5pt,
+            minimum width=11.5em, inner sep=4pt, font=\footnotesize, align=left},
+        %
+        % Badge di fase (quando il canale viene usato)
+        ph-badge/.style={draw=gray!50, fill=gray!15, rounded corners=1.5pt,
+            minimum width=11.5em, inner sep=3pt, font=\footnotesize\bfseries, align=center},
+      ]
+
+      %% ─────────────────────────────────────────────────────────────────────
+      %% Canale Token (sinistra)
+      %% ─────────────────────────────────────────────────────────────────────
+      \node[ch-hdr] (tok-hdr) {Canale Token};
+
+      \node[ch-row, below=0.6ex of tok-hdr] (tok-r1) {\texttt{ROLE\_ADMIN}};
+      \node[ch-row, below=0.6ex of tok-r1]  (tok-r2) {\texttt{ROLE\_USER\_A}};
+      \node[ch-row, below=0.6ex of tok-r2]  (tok-r3) {\texttt{ROLE\_USER\_B}};
+
+      \node[ch-api, below=0.6ex of tok-r3] (tok-api) {
+        \texttt{set\_token(role, tok)}\\[1pt]
+        \texttt{get\_token(role) \textrightarrow{} tok}\\[1pt]
+        \texttt{has\_token(role) \textrightarrow{} bool}
+      };
+
+      \node[ph-badge, below=1.2ex of tok-api] (tok-ph) {Fase~5: test autenticati\\scrivono e leggono};
+
+      %% ─────────────────────────────────────────────────────────────────────
+      %% Canale Teardown LIFO (centro)
+      %% ─────────────────────────────────────────────────────────────────────
+      \node[ch-hdr, right=of tok-hdr] (td-hdr) {Canale Teardown \footnotesize[LIFO]};
+
+      \node[ch-row, below=0.6ex of td-hdr] (td-r1) {push(fn\_C)};
+      \node[ch-row, below=0.6ex of td-r1]  (td-r2) {push(fn\_B)};
+      \node[ch-row, below=0.6ex of td-r2]  (td-r3) {push(fn\_A)};
+
+      \node[ch-api, below=0.6ex of td-r3] (td-api) {
+      \texttt{push\_teardown(callable)}\\[1pt]
+      {\itshape drain order:}\\[1pt]
+      \texttt{fn\_A \textrightarrow{} fn\_B \textrightarrow{} fn\_C}
+      };
+
+      \node[ph-badge, below=1.2ex of td-api] (td-ph) {Fase~5: push\\Fase~6: drain inv.};
+
+      %% ─────────────────────────────────────────────────────────────────────
+      %% Canale Shared Data (destra)
+      %% ─────────────────────────────────────────────────────────────────────
+      \node[ch-hdr, right=of td-hdr] (sh-hdr) {Canale Shared Data};
+
+      \node[ch-row, below=0.6ex of sh-hdr] (sh-r1) {\texttt{"1.1.token"}};
+      \node[ch-row, below=0.6ex of sh-r1]  (sh-r2) {\texttt{"1.1.repos"}};
+      \node[ch-row, below=0.6ex of sh-r2]  (sh-r3) {\texttt{"ext.0.1.hits"}};
+
+      \node[ch-api, below=0.6ex of sh-r3] (sh-api) {
+        \texttt{set\_shared("{id}.{k}", v)}\\[1pt]
+        \texttt{get\_shared("{id}.{k}")}\\[1pt]
+        \texttt{~~\textrightarrow{} v}
+      };
+
+      \node[ph-badge, below=1.2ex of sh-api] (sh-ph) {Fase~5: produttore scrive\\batch successivi leggono};
+
+      %% ── Sfondo per i tre canali ──────────────────────────────────────────
+      \begin{scope}[on background layer]
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=6pt,
+          fit=(tok-hdr)(tok-r1)(tok-r2)(tok-r3)(tok-api)(tok-ph)] {};
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=6pt,
+          fit=(td-hdr)(td-r1)(td-r2)(td-r3)(td-api)(td-ph)] {};
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=6pt,
+          fit=(sh-hdr)(sh-r1)(sh-r2)(sh-r3)(sh-api)(sh-ph)] {};
+      \end{scope}
+
+      %% ── Intestazione globale (TestContext) ───────────────────────────────
+      % Larghezza dinamica usando il fit tra il primo e l'ultimo header per centratura perfetta
+      \node[draw=green!60!black, fill=green!25, rounded corners=2pt,
+        minimum width=36.5em, font=\small\bfseries, align=center,
+        above=3ex of td-hdr.north] (tc-master)
+      {\texttt{TestContext} [mutable]: tre canali tipizzati con responsabilità distinte};
+
+    \end{tikzpicture}
+  }%
+  \caption{Struttura interna del \texttt{TestContext} (D1.P3): i tre canali tipizzati con le rispettive \gls{API} di accesso, le chiavi costanti per il canale token, il pattern di naming per il canale shared e l'ordinamento \gls{LIFO} del canale teardown.}
+  \label{fig:testcontext-channels}
+\end{figure}

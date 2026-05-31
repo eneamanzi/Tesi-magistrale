@@ -1,0 +1,105 @@
+\begin{figure}[ht]
+  \centering
+  % NIENTE \resizebox: il diagramma è ottimizzato per rientrare nella pagina
+  % garantendo che i font \footnotesize vengano stampati alla loro vera grandezza.
+  \begin{tikzpicture}[
+      node distance=1.5ex and 2.5em,
+      %
+      % Stili di base Gold Standard
+      base/.style={draw, rounded corners=1.5pt, inner sep=5pt, align=center, font=\small},
+      %
+      % Colonne snellite e uniformate (minimum height=3em per i blocchi principali)
+      col-in/.style={base, fill=gray!10, draw=gray!50, minimum width=10em},
+      col-mid-blue/.style={base, fill=blue!7, draw=blue!40, minimum width=14em, minimum height=3em},
+      col-mid-green/.style={base, fill=green!7, draw=green!45, minimum width=14em, minimum height=3em},
+      col-mid-gold/.style={base, fill=orange!10, draw=orange!50, minimum width=14em, minimum height=2.5em},
+      col-mid-violet/.style={base, fill=violet!7, draw=violet!40, minimum width=14em, minimum height=3em},
+      col-out/.style={base, fill=gray!8, draw=gray!50, minimum width=9.5em},
+      %
+      % Frecce ortogonali pulite
+      arr/.style={-latex, semithick, gray!80!black},
+      darr/.style={-latex, semithick, dashed, gray!80!black},
+      barr/.style={latex-latex, semithick, gray!80!black},
+      %
+      % Etichette sulle frecce
+      lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=3pt},
+      %
+      % Sfondo per raggruppamento dinamico
+      bg-engine/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=10pt}
+    ]
+
+    %% ── Engine (Colonna Centrale) Fissato per primo ──────────────────────
+    % Altezza normalizzata tramite lo stile col-mid-blue
+    \node[col-mid-blue] (tc) {\textbf{\texttt{TargetContext}} {\footnotesize[frozen]}\\{\footnotesize base\_url | attack\_surface | creds}};
+
+    \node[col-mid-green, below=of tc] (tx) {\textbf{\texttt{TestContext}} {\footnotesize[mutable]}\\{\footnotesize token | teardown | shared\_data}};
+    \node[col-mid-gold, below=of tx] (dag) {\textbf{DAG Scheduler}\\{\footnotesize ordinamento, batch sequenziali}};
+
+    %% Box di raggruppamento dinamico (Assessment Engine)
+    \begin{scope}[on background layer]
+      \node[bg-engine, fit=(tc)(tx)(dag)] (engine) {};
+    \end{scope}
+
+    % Etichetta agganciata in alto a sinistra
+    \node[font=\footnotesize\bfseries, text=blue!70!black, anchor=south east, shift={(-1em, 0.5ex)}]
+    at (engine.north) {Assessment Engine};
+
+    %% ── Input (Colonna Sinistra) Ancorati matematicamente ────────────────
+    % Config.yaml: Allineato esattamente col tetto dell'engine (che ora si è abbassato proporzionalmente)
+    \node[col-in, anchor=north east] (cfg) at ([xshift=-2.5em]tc.west |- engine.north) {\textbf{\texttt{config.yaml}}\\{\footnotesize credenziali, URL, param.}};
+
+    % OpenAPI.yaml: Più in basso
+    \node[col-in, anchor=east] (oas) at ([xshift=-2.5em, yshift=-7ex]tc.west) {\textbf{\texttt{openapi.yaml}}\\{\footnotesize spec formale target}};
+
+    %% ── Target (Colonna Destra) ────────────────────────────────────────────
+    \node[col-out, right=6em of tc] (kong) {\textbf{Kong Gateway}\\{\footnotesize :8000 / :8443 / :8001}};
+
+    % Forgejo abbassato ulteriormente (8.5ex) per fare molto spazio all'etichetta Admin API
+    \node[col-out, below=8.5ex of kong] (forgejo) {\textbf{Forgejo}\\{\footnotesize target applicativo}};
+
+    %% ── EvidenceStore (Sotto l'Engine) ─────────────────────────────────────
+    \node[col-mid-violet, below=4ex of dag] (ev) {\textbf{EvidenceStore} {\footnotesize[JSONL]}\\{\footnotesize \texttt{evidence.json} | \texttt{report.html}}};
+
+    %% ── FRECCE E COLLEGAMENTI ──────────────────────────────────────────────
+
+    %% Input -> Engine
+    % config.yaml: Nessuna curva. Va dritto al TargetContext.
+    \draw[arr] (cfg.east) -- (tc.west |- cfg.east);
+
+    % openapi.yaml: Esce dall'alto, sale e curva entrando nella metà inferiore del TargetContext (-2ex)
+    \draw[arr] (oas.north) |- ([yshift=-2ex]tc.west);
+
+    %% Engine -> Target (Probe HTTP su due righe)
+    \path (tc.east) ++(0, 1.5ex) coordinate (probe-start);
+    \path (kong.west) ++(0, 1.5ex) coordinate (probe-end);
+    \draw[arr] (probe-start) -- node[midway, above, align=center, lbl] {probe\\\gls{HTTP}} (probe-end);
+
+    \draw[barr] (kong.south) -- (forgejo.north);
+
+    %% Interne Engine -> Evidence
+    \draw[arr] (dag.north) -- (tx.south);
+    \draw[arr] (dag.south) -- (ev.north);
+
+    %% Engine -> Target (Admin API - WHITE_BOX)
+    \path (tx.east) ++(0, -1ex) coordinate (admin-start);
+    \path (kong.west) ++(0, -1.5ex) coordinate (admin-end);
+
+    % Punto di svolta inferiore (a 2.5em da TestContext)
+    \path (admin-start) ++(2.5em, 0) coordinate (admin-turn1);
+
+    % Punto di svolta superiore (l'angolo a 90° prima di entrare in Kong)
+    \coordinate (admin-turn2) at (admin-turn1 |- admin-end);
+
+    % Freccia strutturale pulita
+    \draw[darr] (admin-start) -- (admin-turn1) -- (admin-turn2) -- (admin-end);
+
+    % Etichetta posizionata incastonata nello spazio vuoto.
+    % Spostata più in basso (yshift=-2ex) e leggermente più a sinistra (xshift=0.2em)
+    \node[lbl, align=left, anchor=north west]
+    at ([xshift=0.2em, yshift=-2ex]admin-turn2)
+    {Admin \gls{API}\\{\footnotesize WHITE\_BOX}};
+
+  \end{tikzpicture}
+  \caption{Architettura di alto livello di APIGuard Assurance: input, Engine con Split State (D1.P3), DAG Scheduler (D2.P2) ed EvidenceStore (D4.P1).}
+  \label{fig:architettura-apiguard}
+\end{figure}

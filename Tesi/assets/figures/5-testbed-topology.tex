@@ -1,0 +1,59 @@
+\begin{figure}[ht]
+  \centering
+  % NIENTE \resizebox: larghezze calibrate per impedire il downscaling ottico
+  \begin{tikzpicture}[
+      % Stili Gold Standard
+      node distance=4ex and 2.5em,
+      %
+      cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
+      %
+      % Larghezze ottimizzate (13.5em per i centrali, 9.5em per i laterali)
+      host/.style={cls, fill=orange!10, draw=orange!50, minimum width=13.5em},
+      infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=13.5em},
+      %
+      app/.style={cls, fill=green!7, draw=green!45, minimum width=9.5em},
+      backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=9.5em},
+      users/.style={cls, fill=gray!8, draw=gray!50, minimum width=9.5em},
+      %
+      group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
+      %
+      % Frecce native
+      arr/.style={-latex, semithick, gray!80!black},
+      darr/.style={-latex, semithick, dashed, gray!80!black},
+      barr/.style={latex-latex, semithick, gray!80!black},
+    ]
+
+    %% ── Asse Centrale ─────────────────────────────────────────────────────
+    \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
+
+    % Spazio verticale ridotto a 7ex per compattare
+    \node[infra, below=7ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HTTP proxy)}\\{\footnotesize :8443 (HTTPS proxy)}\\{\footnotesize :8001 (Admin \gls{API})}};
+
+    %% ── Ali Laterali (Distanza 2.5em per restare nei margini) ─────────────
+    \node[app, right=2.5em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target applicativo}};
+
+    \node[users, left=2.5em of kong] (rbac) {\textbf{Utenti RBAC}\\{\footnotesize thesis-admin}\\{\footnotesize user-a (std.)}\\{\footnotesize user-b (GREY\_BOX~\#2)}};
+
+    %% ── Backend ───────────────────────────────────────────────────────────
+    \node[backend, below=4ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize backend Forgejo}};
+
+    %% ── Container Group (Docker Compose network) ──────────────────────────
+    \begin{scope}[on background layer]
+      \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
+    \end{scope}
+    \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
+
+    %% ── Frecce ────────────────────────────────────────────────────────────
+    \draw[arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
+
+    % Testo spezzato su due righe tramite align=center e \\
+    \draw[arr] (kong.east) -- node[midway, above, align=center, font=\footnotesize\itshape, text=gray!70!black] {proxy/ \\route} (forgejo.west);
+
+    \draw[barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
+
+    \draw[darr] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
+
+  \end{tikzpicture}
+  \caption{Topologia dell'ambiente di validazione sperimentale (Forgejo~14.0.3 + Kong~3.9 DB-less, Docker Compose).}
+  \label{fig:testbed-topology}
+\end{figure}

@@ -39,68 +39,11 @@ Il Capitolo~\ref{chap:methodology} ha percorso il primo livello di questo approc
 
 L'intero assessment si svolge in sette fasi sequenziali, orchestrate da \texttt{engine.py}. La sequenza rispecchia una dipendenza logica reale tra le operazioni, dove ogni fase produce le precondizioni che la successiva presuppone; tale dipendenza determina anche la semantica degli errori. Le fasi 1, 2 e 4 producono la configurazione validata, la mappa degli endpoint e il grafo delle dipendenze tra test: senza questi tre elementi nessun test può essere eseguito in modo significativo, e un errore in una qualsiasi di esse rende l'intero assessment privo di fondamento. Le fasi 5, 6 e 7 operano invece su un contesto già validato, dove il fallimento è sempre recuperabile localmente: un test fallito produce un \texttt{TestResult(ERROR)} e la pipeline prosegue; un teardown parziale viene registrato come \texttt{WARNING} senza invalidare i risultati che lo precedono.
 
-\begin{table}[ht]
-  \centering
-  \small
-  \begin{tabular}{@{}lll@{}}
-    \toprule
-    \textbf{Fase}                 & \textbf{Cartella}               & \textbf{File}                         \\
-    \midrule
-    1. Inizializzazione           & \texttt{config/}                & \texttt{loader.py}                    \\
-    \addlinespace
-    2. OpenAPI Discovery          & \texttt{discovery/}             & \texttt{openapi.py}                   \\
-    \addlinespace
-    3. Costruzione Contesti       & \texttt{src/}                   & \texttt{engine.py}                    \\
-    \addlinespace
-    4. Test Discovery e \gls{DAG} & \texttt{tests/}, \texttt{core/} & \texttt{registry.py}, \texttt{dag.py} \\
-    \addlinespace
-    5. Esecuzione                 & \texttt{src/}                   & \texttt{engine.py}                    \\
-    \addlinespace
-    6. Teardown                   & \texttt{core/}                  & \texttt{context.py}                   \\
-    \addlinespace
-    7. Report                     & \texttt{report/}                & \texttt{renderer.py}                  \\
-    \bottomrule
-  \end{tabular}
-  \caption{Fasi della pipeline di assessment (1-2-4 bloccanti; 5-6-7 non-bloccanti).}
-  \label{tab:pipeline-fasi}
-\end{table}
+\input{assets/tables/4-pipeline-fasi.tex}
 
 La Tabella~\ref{tab:pipeline-fasi} riporta il mapping tra fase e modulo responsabile: ogni fase corrisponde a un modulo separato nel filesystem (Figura~\ref{fig:src-layout}), e \texttt{engine.py} è il solo file autorizzato a importare da tutti gli strati (Sezione~\ref{subsec:dep-flow}). Il dettaglio di ogni fase viene presentato nell'elenco sottostante; si nota che le eccezioni citate per le fasi bloccanti appartengono alla gerarchia custom analizzata nella Sezione~\ref{subsec:exception-hierarchy}, dove il loro phase mapping e le relative politiche di recovery sono descritte.
 
-\begin{figure}[ht]
-  \dirtree{%
-    .1 src/.
-    .2 cli.py \normalfont\textit{(entry point \gls{CLI})}.
-    .2 engine.py \normalfont\textit{(orchestratore, Fasi 3 e 5)}.
-    .2 config/ \normalfont\textit{(Fase 1)}.
-    .3 loader.py.
-    .2 discovery/ \normalfont\textit{(Fase 2)}.
-    .3 openapi.py.
-    .3 surface.py.
-    .2 core/ \normalfont\textit{(layer fondamentale, Fasi 3--5)}.
-    .3 context.py \normalfont\textit{(Fase 3)}.
-    .3 evidence.py \normalfont\textit{(Fase 3)}.
-    .3 dag.py \normalfont\textit{(Fase 4)}.
-    .3 client.py \normalfont\textit{(Fase 5)}.
-    .3 exceptions.py.
-    .3 gateway/.
-    .2 tests/ \normalfont\textit{(Fasi 4--5)}.
-    .3 registry.py \normalfont\textit{(Fase 4)}.
-    .3 base.py.
-    .3 helpers/.
-    .3 domain\_0/ \normalfont\textit{... domain\_7/}.
-    .2 external\_tests/ \normalfont\textit{(Fasi 4--5)}.
-    .3 registry.py \normalfont\textit{(Fase 4)}.
-    .3 base.py.
-    .2 connectors/ \normalfont\textit{(Fase 5)}.
-    .2 report/ \normalfont\textit{(Fase 7)}.
-    .3 builder.py.
-    .3 renderer.py.
-    .3 templates/.
-  }
-  \caption{Layout di \texttt{src/} con mapping alle fasi della pipeline.}
-  \label{fig:src-layout}
-\end{figure}
+\input{assets/figures/4-src-layout.tex}
 
 \begin{enumerate}
   \item \textbf{Fase~1: Inizializzazione} (Sezione~\ref{subsec:config-driven}). \texttt{config/loader.py} legge e
@@ -202,39 +145,7 @@ Il meccanismo che rende possibile la distinzione tra errori bloccanti e non-bloc
 \texttt{except~DAGCycleError}, permette di distinguere la causa e rispondere
 in modo differenziato. Tale granularità rispecchia in modo diretto la distinzione tra errori bloccanti e non-bloccanti stabilita a livello architetturale, concretizzandosi in 11 classi, distribuite su 3 file, riportate nella Tabella~\ref{tab:exception-hierarchy} con la relativa fase.
 
-\begin{table}[ht]
-  \centering
-  \small
-  \begin{tabularx}{\textwidth}{@{}llX@{}}
-    \toprule
-    \textbf{Classe}                   & \textbf{File}               & \textbf{Comportamento}                                                       \\
-    \midrule
-    \texttt{ToolBaseError}            & \texttt{exceptions.py}      & Radice della gerarchia; non si solleva direttamente                          \\
-    \addlinespace
-    \texttt{ConfigurationError}       & \texttt{exceptions.py}      & Fase~1: fatale, config non valida; blocca lo startup                         \\
-    \addlinespace
-    \texttt{OpenAPILoadError}         & \texttt{exceptions.py}      & Fase~2: fatale, spec irraggiungibile o invalida; blocca lo startup           \\
-    \addlinespace
-    \texttt{DAGCycleError}            & \texttt{exceptions.py}      & Fase~4: fatale, ciclo nelle dipendenze; blocca lo startup                    \\
-    \addlinespace
-    \texttt{AuthenticationSetupError} & \texttt{exceptions.py}      & Helper auth: fatale se le credenziali configurate sono invalide              \\
-    \addlinespace
-    \texttt{SecurityClientError}      & \texttt{exceptions.py}      & Fase~5: recuperata, produce \texttt{TestResult(ERROR)}                       \\
-    \addlinespace
-    \texttt{ExternalToolError}        & \texttt{exceptions.py}      & Fase~5: recuperata, produce \texttt{TestResult(ERROR)}                       \\
-    \addlinespace
-    \texttt{TeardownError}            & \texttt{exceptions.py}      & Fase~6: recuperata, registrata come \texttt{WARNING}                         \\
-    \addlinespace
-    \texttt{GatewayAdapterError}      & \texttt{gateway/base.py}    & Fase~5: recuperata, produce \texttt{TestResult(ERROR)}                       \\
-    \addlinespace
-    \texttt{SeedGeneratorFetchError}  & \texttt{seed\_generator.py} & \gls{CLI} \texttt{generate-seed}: catturata in \texttt{cli.py}, exit~code~10 \\
-    \addlinespace
-    \texttt{SeedGeneratorParseError}  & \texttt{seed\_generator.py} & \gls{CLI} \texttt{generate-seed}: catturata in \texttt{cli.py}, exit~code~10 \\
-    \bottomrule
-  \end{tabularx}
-  \caption{Gerarchia delle eccezioni custom (Fasi 1--4 bloccanti; Fasi 5--6 recuperate localmente).}
-  \label{tab:exception-hierarchy}
-\end{table}
+\input{assets/tables/4-exception-hierarchy-tab.tex}
 
 La prima scelta che riflette una decisione di design consapevole e non un vincolo tecnico, riguarda la collocazione di \texttt{GatewayAdapterError} in \texttt{gateway/base.py} invece che in \texttt{exceptions.py}. La scelta segue il principio di locality: l'eccezione è definita nello stesso file dell'interfaccia che la solleva, rendendo il contratto dell'\texttt{ABC} autosufficiente. Un consumer di \texttt{BaseGatewayAdapter} trova tutto ciò che gli serve in un unico modulo, senza dover importare da \texttt{core/exceptions.py}.
 

@@ -1,0 +1,100 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Base: riquadri leggermente più attillati
+        cls/.style={draw, rectangle, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=2.4em},
+        %
+        % Famiglia 1 (Nativi):
+        abs/.style={cls, fill=blue!7, draw=blue!40, font=\small\itshape, minimum width=5.5em},
+        conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=5.5em},
+        %
+        % Famiglia 2 (Esterni):
+        ext-abs/.style={cls, fill=green!7, draw=green!45, font=\small\itshape, minimum width=8.5em},
+        ext-conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=8.5em},
+        %
+        % Famiglia 3 (Connettori):
+        conn-abs/.style={cls, fill=violet!7, draw=violet!40, font=\small\itshape},
+        conn-conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=8.5em},
+      ]
+      %
+      %% ── 1. Gerarchia Nativa ─────────────────────────────────────────────────
+      \node[abs] (BT) {\texttt{BaseTest}\\{\scriptsize (abstract)}};
+      %
+      % Bus strettissimo (0.8em)
+      \coordinate (busNat) at ([xshift=0.8em, yshift=-1.5ex]BT.south west);
+      \draw[uml-inherit] (busNat) -- ([xshift=0.8em]BT.south west);
+      %
+      % Figli con rientro minimo (1.5em)
+      \node[conc, below=3ex of BT.south west, anchor=north west, xshift=1.5em] (T01) {\texttt{test\_0\_1}};
+      \node[conc, below=1ex of T01.south west, anchor=north west] (T11) {\texttt{test\_1\_1}};
+      \node[conc, below=1ex of T11.south west, anchor=north west] (T21) {\texttt{test\_2\_1}};
+      \node[conc, below=1ex of T21.south west, anchor=north west] (Tdot) {\texttt{...\ D0--D7}};
+      %
+      \draw[gray!60, semithick] (busNat) -- (busNat |- Tdot.west);
+      \draw[gray!60, semithick] (busNat |- T01.west) -- (T01.west);
+      \draw[gray!60, semithick] (busNat |- T11.west) -- (T11.west);
+      \draw[gray!60, semithick] (busNat |- T21.west) -- (T21.west);
+      \draw[gray!60, semithick] (busNat |- Tdot.west) -- (Tdot.west);
+      %
+      %% ── 2. Gerarchia Esterna ────────────────────────────────────────────────
+      % Corridoio dimezzato (2em)
+      \node[ext-abs, right=2em of BT] (ETT) {\texttt{ExternalToolTest}\\{\scriptsize (abstract)}};
+      %
+      \coordinate (busExt) at ([xshift=0.8em, yshift=-1.5ex]ETT.south west);
+      \draw[uml-inherit] (busExt) -- ([xshift=0.8em]ETT.south west);
+      %
+      \node[ext-conc, below=3ex of ETT.south west, anchor=north west, xshift=1.5em] (E01) {\texttt{ext\_0\_1\_nuclei}};
+      \node[ext-conc, below=1ex of E01.south west, anchor=north west] (E15s) {\texttt{ext\_1\_5\_sslyze}};
+      \node[ext-conc, below=1ex of E15s.south west, anchor=north west] (E15t) {\texttt{ext\_1\_5\_testssl}};
+      %
+      \draw[gray!60, semithick] (busExt) -- (busExt |- E15t.west);
+      \draw[gray!60, semithick] (busExt |- E01.west) -- (E01.west);
+      \draw[gray!60, semithick] (busExt |- E15s.west) -- (E15s.west);
+      \draw[gray!60, semithick] (busExt |- E15t.west) -- (E15t.west);
+      %
+      %% ── 3. Gerarchia Connector ──────────────────────────────────────────────
+      % Corridoio ristretto (3em)
+      \node[conn-abs, right=3em of ETT] (BC) {\texttt{BaseConnector}\\{\scriptsize (abstract)}};
+      %
+      \coordinate (busBC) at ([xshift=0.8em, yshift=-1.5ex]BC.south west);
+      \draw[uml-inherit] (busBC) -- ([xshift=0.8em]BC.south west);
+      %
+      \node[conn-abs, below=3ex of BC.south west, anchor=north west, xshift=1.5em] (BLC) {\texttt{BaseLibraryConnector}\\{\scriptsize (abstract)}};
+      \coordinate (busBLC) at ([xshift=0.8em, yshift=-1.5ex]BLC.south west);
+      \draw[uml-inherit] (busBLC) -- ([xshift=0.8em]BLC.south west);
+      %
+      \node[conn-conc, below=3ex of BLC.south west, anchor=north west, xshift=1.5em] (SSL) {\texttt{SslyzeConnector}};
+      %
+      \coordinate (refBSC) at (BLC.west |- SSL.south);
+      \node[conn-abs, below=2ex of refBSC, anchor=north west] (BSC) {\texttt{BaseSubprocessConnector}\\{\scriptsize (abstract)}};
+      \coordinate (busBSC) at ([xshift=0.8em, yshift=-1.5ex]BSC.south west);
+      \draw[uml-inherit] (busBSC) -- ([xshift=0.8em]BSC.south west);
+      %
+      \node[conn-conc, below=3ex of BSC.south west, anchor=north west, xshift=1.5em] (NUC) {\texttt{NucleiConnector}};
+      \node[conn-conc, below=1ex of NUC.south west, anchor=north west] (TSL) {\texttt{TestsslConnector}};
+      %
+      \draw[gray!60, semithick] (busBC) -- (busBC |- BSC.west);
+      \draw[gray!60, semithick] (busBC |- BLC.west) -- (BLC.west);
+      \draw[gray!60, semithick] (busBC |- BSC.west) -- (BSC.west);
+      %
+      \draw[gray!60, semithick] (busBLC) -- (busBLC |- SSL.west);
+      \draw[gray!60, semithick] (busBLC |- SSL.west) -- (SSL.west);
+      %
+      \draw[gray!60, semithick] (busBSC) -- (busBSC |- TSL.west);
+      \draw[gray!60, semithick] (busBSC |- NUC.west) -- (NUC.west);
+      \draw[gray!60, semithick] (busBSC |- TSL.west) -- (TSL.west);
+      %
+      %% ── Relazioni ─────────────────────────────────────────────────────────
+      \draw[uml-compose, dashed, gray!60] (ETT.east) -- (BC.west) node[midway, above, font=\scriptsize\itshape, gray!70] {usa};
+      %
+      %% ── Etichette Superiori ───────────────────────────────────────────────
+      \node[font=\small\bfseries, blue!60!black, above=2ex of BT] {Test nativi (D0--D7)};
+      \node[font=\small\bfseries, green!55!black, above=2ex of ETT] {Test esterni};
+      \node[font=\small\bfseries, violet!60!black, above=2ex of BC] {Connettori};
+      %
+    \end{tikzpicture}
+  }%
+  \caption{Gerarchia duale \texttt{BaseTest}/\texttt{ExternalToolTest} (D1.P4) e gerarchia dei connettori Library/Subprocess (D1.P5).}
+  \label{fig:class-hierarchy}
+\end{figure}

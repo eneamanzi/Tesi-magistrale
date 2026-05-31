@@ -1,0 +1,77 @@
+\begin{figure}[ht]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        % Stili Gold Standard: proporzioni uniformi e testi centrati
+        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small},%
+        stage/.style={base, ag-blue, minimum width=15em, minimum height=3.5ex},%
+        redact/.style={base, ag-red, minimum width=7em, minimum height=3.5ex},%
+        pass/.style={base, ag-green, minimum width=7em, minimum height=3.5ex},%
+        % Il rombo viene allargato leggermente per far respirare il testo senza esplodere in altezza
+        decision/.style={ag-diamond, minimum width=5em, align=center, inner sep=2pt, font=\small},%
+      ]
+      %
+      %% ── Asse Centrale (Dati in ingresso e Stadi) ──────────────────────────
+      \node[base, ag-gray, minimum width=15em] (inp) {Record grezzo (\texttt{dict})\\{\scriptsize output connector / transazione HTTP}};
+      %
+      \node[stage, below=4ex of inp] (s1) {Stadio~1: Key-pattern regex\\{\scriptsize 11 pattern: password, token, api\_key, ...}};
+      \node[stage, below=11ex of s1] (s2) {Stadio~2: \gls{JWT} heuristic\\{\scriptsize stringa con 2 punti + base64}};
+      \node[stage, below=11ex of s2] (s3) {Stadio~3: Header prefix\\{\scriptsize Authorization, X-API-Key, ...}};
+      \node[base, ag-violet, minimum width=15em, below=11ex of s3] (out) {\texttt{EvidenceStore.pin\_artifact()}\\{\scriptsize record sanitizzato scritto su JSONL}};
+      %
+      %% ── Diramazioni Stadio 1 ──────────────────────────────────────────────
+      \node[decision, right=3em of s1] (d1) {match?};
+      \node[redact, right=2.5em of d1] (r1) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d1] (p1) {chiave pulita};
+      %
+      %% ── Diramazioni Stadio 2 ──────────────────────────────────────────────
+      \node[decision, right=3em of s2] (d2) {match?};
+      \node[redact, right=2.5em of d2] (r2) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d2] (p2) {valore pulito};
+      %
+      %% ── Diramazioni Stadio 3 ──────────────────────────────────────────────
+      \node[decision, right=3em of s3] (d3) {match?};
+      \node[redact, right=2.5em of d3] (r3) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d3] (p3) {header pulito};
+      %
+      %% ── Routing Input -> S1 ───────────────────────────────────────────────
+      \draw[ag-arr] (inp) -- (s1);
+      %
+      %% ── Routing Logico Stadio 1 ───────────────────────────────────────────
+      \draw[ag-arr] (s1.east) -- (d1.west);
+      \draw[ag-arr] (d1.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r1.west);
+      \draw[ag-arr] (d1.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p1.north);
+      % Ritorno a Bus per alimentare lo Stadio 2
+      \coordinate (m1) at ([yshift=2ex]s2.north);
+      \draw[gray!70, semithick] (r1.south) |- (m1);
+      \draw[gray!70, semithick] (p1.south) |- (m1);
+      \fill[gray!70] (m1) circle (1.5pt);
+      \draw[ag-arr] (m1) -- (s2.north);
+      %
+      %% ── Routing Logico Stadio 2 ───────────────────────────────────────────
+      \draw[ag-arr] (s2.east) -- (d2.west);
+      \draw[ag-arr] (d2.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r2.west);
+      \draw[ag-arr] (d2.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p2.north);
+      % Ritorno a Bus per alimentare lo Stadio 3
+      \coordinate (m2) at ([yshift=2ex]s3.north);
+      \draw[gray!70, semithick] (r2.south) |- (m2);
+      \draw[gray!70, semithick] (p2.south) |- (m2);
+      \fill[gray!70] (m2) circle (1.5pt);
+      \draw[ag-arr] (m2) -- (s3.north);
+      %
+      %% ── Routing Logico Stadio 3 ───────────────────────────────────────────
+      \draw[ag-arr] (s3.east) -- (d3.west);
+      \draw[ag-arr] (d3.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r3.west);
+      \draw[ag-arr] (d3.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p3.north);
+      % Ritorno a Bus per l'Output finale
+      \coordinate (m3) at ([yshift=2ex]out.north);
+      \draw[gray!70, semithick] (r3.south) |- (m3);
+      \draw[gray!70, semithick] (p3.south) |- (m3);
+      \fill[gray!70] (m3) circle (1.5pt);
+      \draw[ag-arr] (m3) -- (out.north);
+      %
+    \end{tikzpicture}
+  }%
+  \caption{Sanitizzazione a imbuto dell'evidenza (D4.P2): key-pattern, \gls{JWT} heuristic e header prefix in sequenza.}
+  \label{fig:sanitization-funnel}
+\end{figure}

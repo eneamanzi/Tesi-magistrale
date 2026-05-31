@@ -1,0 +1,27 @@
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabular}{@{}clp{0.52\textwidth}@{}}
+    \toprule
+    \textbf{Dominio} & \textbf{Titolo}                   & \textbf{Ambito di verifica}                                                                                                   \\
+    \midrule
+    D0               & API Discovery                     & Inventario degli endpoint esposti; rilevazione di Shadow API non documentate nella specifica.                                 \\
+    \addlinespace
+    D1               & Identity \& Authentication        & Meccanismi di riconoscimento del chiamante; robustezza del trasporto delle credenziali; ciclo di vita e revoca dei \gls{JWT}. \\
+    \addlinespace
+    D2               & Authorization                     & Logiche di controllo degli accessi; difetti di segregazione orizzontale e verticale (\gls{RBAC}, \gls{BOLA}).                 \\
+    \addlinespace
+    D3               & Data Integrity                    & Coerenza strutturale dei payload; implementazione delle firme crittografiche (\gls{HMAC}).                                    \\
+    \addlinespace
+    D4               & Availability \& Resilience        & Difese contro l'esaurimento delle risorse; audit di circuit breaker e soglie di rate limiting.                                \\
+    \addlinespace
+    D5               & Observability                     & Qualità e tempestività della telemetria generata dal sistema. \textit{(Milestone~2)}                                          \\
+    \addlinespace
+    D6               & Configuration \& Hardening        & Rafforzamento della configurazione del gateway; policy di routing; header di sicurezza \gls{HTTP}.                            \\
+    \addlinespace
+    D7               & Business Logic \& Sensitive Flows & Falle semantiche complesse: elusione dei vincoli di processo, \gls{SSRF}, race condition su operazioni critiche.              \\
+    \bottomrule
+  \end{tabular}
+  \caption{Domini di Assurance di APIGuard Assurance.}
+  \label{tab:domini}
+\end{table}

@@ -1,0 +1,18 @@
+\begin{table}[ht]
+  \centering \small
+  \begin{tabularx}{\textwidth}{@{} l C C C C @{}}
+    \toprule
+    \textbf{Paradigma}                & \textbf{Conoscenza contratto} & \textbf{Oracle formale} & \textbf{Riproducibilità} & \textbf{Copertura semantica} \\
+    \midrule
+    SAST                              & Sorgente                      & Nessuno                 & Alta                     & Bassa                        \\
+    \addlinespace
+    DAST (ZAP)                        & Nessuna                       & Nessuno                 & Media                    & Bassa                        \\
+    \addlinespace
+    Fuzzer OAS (RESTler/Schemathesis) & Spec OAS                      & Parziale                & Media                    & Media                        \\
+    \addlinespace
+    \textbf{APIGuard Assurance}       & \textbf{Spec OAS + config}    & \textbf{OAS formale}    & \textbf{Alta}            & \textbf{Alta}                \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Confronto tra paradigmi di security testing per \gls{API} REST: oracle, riproducibilità e copertura semantica.}
+  \label{tab:testing-comparison}
+\end{table}

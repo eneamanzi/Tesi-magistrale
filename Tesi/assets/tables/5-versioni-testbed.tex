@@ -1,0 +1,29 @@
+\begin{table}[ht]
+  \centering
+  \small
+  \begin{tabularx}{\textwidth}{l l X}
+    \toprule
+    \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                                                                  \\
+    \midrule
+    \texttt{apiguard-assurance} & 0.1.0                 & Tool sotto validazione                                                                                      \\
+    \addlinespace
+    Python                      & 3.12.3                & Interprete del tool                                                                                         \\
+    \addlinespace
+    Forgejo                     & 14.0.3 (gitea-1.22.0) & Target applicativo: \gls{API} REST con specifica OpenAPI nativa                                             \\
+    \addlinespace
+    PostgreSQL                  & 15-alpine             & Backend di persistenza di Forgejo (dipendenza funzionale, non componente autonomo)                          \\
+    \addlinespace
+    Kong                        & 3.9 DB-less           & \gls{API} Gateway: proxy \gls{HTTP}/\gls{HTTPS}, instradamento verso Forgejo, Admin \gls{API} su porta 8001 \\
+    \addlinespace
+    \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow \gls{API} discovery (test \texttt{ext.0.1})                                         \\
+    \addlinespace
+    \texttt{nuclei-templates}   & 10.4.3                & Base di template di scansione versioned: garantisce che lo stesso set di firme venga usato in ogni run      \\
+    \addlinespace
+    \texttt{testssl.sh}         & 3.2.3                 & Analisi \gls{TLS} black-box (test \texttt{ext.1.5.testssl})                                                 \\
+    \addlinespace
+    sslyze                      & (libreria Python)     & Analisi \gls{TLS} via libreria Python (test \texttt{ext.1.5.sslyze})                                        \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Componenti e versioni dell'ambiente di test.}
+  \label{tab:versioni-testbed}
+\end{table}

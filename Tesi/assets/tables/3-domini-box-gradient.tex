@@ -1,0 +1,26 @@
+\begin{table}[ht]
+  \centering \small
+  \begin{tabularx}{\textwidth}{@{} l L C C C @{}}
+    \toprule
+    \textbf{Dominio}   & \textbf{Oggetto di verifica}          & \textbf{Strategia} & \textbf{Priorità} & \textbf{Implementato}  \\
+    \midrule
+    D0: Discovery      & Inventario endpoint, Shadow \gls{API} & BLACK/GREY         & P0--P1            & \cmark                 \\
+    \addlinespace
+    D1: Authentication & Autenticazione, lifecycle token       & BLACK/GREY         & P0--P1            & \cmark                 \\
+    \addlinespace
+    D2: Authorization  & \gls{RBAC}, \gls{BOLA}, \gls{BFLA}    & GREY               & P1--P2            & \cmark                 \\
+    \addlinespace
+    D3: Data Integrity & Schema, Mass Assignment               & GREY               & P2                & \cmark                 \\
+    \addlinespace
+    D4: Availability   & Rate limiting, circuit breaking       & GREY/WHITE         & P1--P2            & \cmark                 \\
+    \addlinespace
+    D5: Observability  & Log, tracing, audit trail             & WHITE              & P3                & \xmark{} (pianificato) \\
+    \addlinespace
+    D6: Hardening      & Security headers, config. gateway     & WHITE              & P2--P3            & \cmark                 \\
+    \addlinespace
+    D7: Business Logic & Flussi sensibili, \gls{SSRF}          & GREY               & P2                & \cmark                 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Tassonomia degli otto domini di assurance: strategia di testing (Box Gradient D3.P3), priorità e stato implementativo nella versione corrente.}
+  \label{tab:domini-box-gradient}
+\end{table}

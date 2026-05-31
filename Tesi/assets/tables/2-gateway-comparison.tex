@@ -1,0 +1,38 @@
+\begin{table}[ht]
+  \centering \small
+  \begin{tabularx}{\textwidth}{@{} p{3.0cm} p{1.8cm} X X X @{}}
+    \toprule
+    \textbf{Modello}
+     & \textbf{Traffico presidiato}
+     & \textbf{Enforcement policy}
+     & \textbf{Accesso al piano di configurazione}
+     & \textbf{Verifica \texttt{WHITE\_BOX}}           \\
+    \midrule
+    Gateway \gls{API} Dedicato (es.\ Kong, Apigee)
+     & Nord-sud
+     & Centralizzato in un unico strato ispezionabile
+     & Admin \gls{API} diretta
+     & Nativa                                          \\
+    \addlinespace
+    Kubernetes Ingress / Gateway \gls{API}
+     & Nord-sud
+     & Parziale: annotation controller-specifiche
+     & \texttt{kubectl} / Kubernetes \gls{API}
+     & Controller-dipendente                           \\
+    \addlinespace
+    Service Mesh (es.\ Istio)
+     & Est-ovest
+     & Distribuito per sidecar proxy
+     & Control plane (istiod)
+     & Fuori perimetro nord-sud                        \\
+    \addlinespace
+    Gateway Managed Cloud (AWS, Azure, GCP)
+     & Nord-sud
+     & Centralizzato: gestito interamente dal provider
+     & \gls{SDK} / \gls{API} del cloud provider
+     & Richiede adapter dedicato                       \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Confronto dei quattro modelli di esposizione in rete lungo le dimensioni rilevanti per il security assessment: il gateway \gls{API} dedicato è l'unico con Admin \gls{API} diretta e verifica \texttt{WHITE\_BOX} nativa.}
+  \label{tab:modelli-esposizione}
+\end{table}
