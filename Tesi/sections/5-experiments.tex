@@ -39,9 +39,9 @@ La scelta dell'ambiente target è derivata dalla matrice di copertura della suit
 
 \subsection{Composizione e Connettività dell'Ambiente di Test}\label{subsec:architettura-testbed}
 
-L'ambiente di test è composto da quattro servizi che comunicano all'interno di un network Docker dedicato (\texttt{lab-net}): Forgejo\footnote{Forgejo è un servizio di hosting Git self-hosted, derivato da Gitea, con \gls{API} REST documentata tramite specifica OpenAPI nativa. Espone repository, utenti, token e webhook tramite un'interfaccia \gls{HTTP} standardizzata.}~14 come applicazione target, Kong~3.9 in modalità DB-less come gateway che riceve e instrada tutto il traffico verso Forgejo, PostgreSQL~15-alpine come backend di persistenza richiesto da Forgejo, e un container \texttt{forgejo-setup} che crea gli account al primo avvio e poi termina. Il traffico del tool parte dall'host, raggiunge Kong attraverso le porte mappate sul sistema, e Kong lo inoltrata a Forgejo attraverso un upstream dichiarato nel file di configurazione \texttt{kong.yml}. L'intero ambiente è dichiarato in un singolo file Docker Compose ed eseguito su host di sviluppo, senza hardware dedicato né virtualizzazione separata. La Tabella~\ref{tab:versioni-testbed} riporta le versioni fissate.
+L'ambiente di test è composto da quattro servizi che comunicano all'interno di un network Docker dedicato (\texttt{lab-net}), come illustrato nella Figura~\ref{fig:testbed-topology}: Forgejo\footnote{Forgejo è un servizio di hosting Git self-hosted, derivato da Gitea, con \gls{API} REST documentata tramite specifica OpenAPI nativa. Espone repository, utenti, token e webhook tramite un'interfaccia \gls{HTTP} standardizzata.}~14 come applicazione target, Kong~3.9 in modalità DB-less come gateway che riceve e instrada tutto il traffico verso Forgejo, PostgreSQL~15-alpine come backend di persistenza richiesto da Forgejo, e un container \texttt{forgejo-setup} che crea gli account al primo avvio e poi termina. Il traffico del tool parte dall'host, raggiunge Kong attraverso le porte mappate sul sistema, e Kong lo inoltrata a Forgejo attraverso un upstream dichiarato nel file di configurazione \texttt{kong.yml}. L'intero ambiente è dichiarato in un singolo file Docker Compose ed eseguito su host di sviluppo, senza hardware dedicato né virtualizzazione separata. La Tabella~\ref{tab:versioni-testbed} riporta le versioni fissate.
 
-% TODO: inserire figura con diagramma architetturale del testbed (Kong, Forgejo, PostgreSQL, tool, lab-net, porte)
+\input{assets/figures/5-testbed-topology.tex}
 
 \input{assets/tables/5-versioni-testbed.tex}
 
@@ -154,7 +154,6 @@ La suite di analisi statica della codebase è composta da cinque strumenti con r
   \item \texttt{pip-audit} verifica le dipendenze dichiarate contro i database pubblici di vulnerabilità note.
 \end{itemize}
 
-
 \input{assets/tables/5-analisi-statica.tex}
 
 L'analisi statica con mypy verifica che i tipi dichiarati tra moduli siano consistenti: se \texttt{execute()} dichiara di restituire \texttt{TestResult} e un punto di chiamata la tratta come \texttt{str}, mypy lo intercetta prima dell'esecuzione. Ciò che mypy non copre è il confine con l'esterno: un file \texttt{config.yaml} caricato da disco o l'output grezzo di un connector esterno entrano nel sistema come strutture non ancora tipizzate, e nessuna verifica statica può garantirne la forma. Quel secondo livello è trattato nella Sezione~\ref{subsec:dual-layer-type-safety}.
@@ -179,7 +178,7 @@ La prima è la copertura della documentazione interna: tutti i 292 simboli pubbl
 
 La seconda è la riproducibilità della build: due esecuzioni consecutive di \texttt{hatch~build~-{}-target~wheel}\footnote{\texttt{hatch} è il build backend del progetto. Il comando produce un file \texttt{.whl} (\emph{wheel}), il formato standard di distribuzione per i package Python: installabile con \texttt{pip} senza compilazione, non dipende dalla piattaforma e non richiede estensioni native. Il tag \texttt{py3-none-any} nel nome lo conferma.} producono un artefatto con hash SHA-256 identico (451\,261~byte). Una build non deterministica introdurrebbe variabilità tra versioni nominalmente identiche, rendendo impossibile garantire che il tool in produzione corrisponda esattamente all'artefatto verificato.
 
-La terza riguarda l'installabilità in ambienti puliti. Il pacchetto generato dalla build può essere installato in un ambiente virtuale Python privo di dipendenze preinstallate con \texttt{pip~install}; al termine, \texttt{apiguard~version} restituisce \texttt{0.1.0} e il tool è operativo. La verifica conferma che l'installazione non richiede dipendenze di sistema non dichiarate e che il comportamento del tool non dipende da pacchetti preinstallati nell'ambiente dell'esecutore, condizione descritta nella Sezione~\ref{subsec:zero-state}.
+La terza riguarda l'installabilità in ambienti puliti. Il pacchetto generato dalla build può essere installato in un ambiente virtuale Python privo di dipendenze preinstallate con \texttt{pip~install}; al termine, \texttt{apiguard~version} restituisce \texttt{0.1.0} e il tool è operativo. La verifica conferma che l'installazione non richiede dipendenze di sistema non dichiarate e che il comportamento del tool non dipende da pacchetti preinstallati nell'ambiente dell'esecutore, condizione descritta nella Sezione~\ref{subsec:zero-state}. I risultati delle verifiche sono riportati nella Tabella~\ref{tab:verdetto-release}.
 
 \input{assets/tables/5-verdetto-release.tex}
 
@@ -199,14 +198,15 @@ I test che creano risorse sul target, le interrogano e poi le eliminano introduc
 
 Le due esecuzioni sono state condotte in sequenza nella stessa giornata contro lo stesso testbed, senza alcun intervento manuale tra l'una e l'altra. Questa sezione analizza i risultati per dominio (Sezione~\ref{subsec:analisi-domini}) e verifica la stabilità dell'esecuzione e il corretto cleanup delle risorse (Sezione~\ref{subsec:idempotenza-teardown}).
 
-\input{assets/tables/5-idempotenza-kpi.tex}
-
-\input{assets/tables/5-risultati-per-test.tex}
-
 
 \subsection{Analisi dei Risultati per Dominio}\label{subsec:analisi-domini}
 
-L'assessment ha prodotto 98 finding distribuiti su 7 \texttt{FAIL}, 9 \texttt{PASS} e 2 \texttt{SKIP}, riportati per test nella Tabella~\ref{tab:risultati-per-test}. Prima di analizzare i risultati per dominio, è utile presentare una lettura trasversale dei tre esiti.
+\input{assets/tables/5-risultati-per-test.tex}
+
+La Figura~\ref{fig:coverage-map} riporta la mappa di copertura dell'assessment di validazione.L'assessment ha prodotto 98 finding, distribuiti come mostrato nella Figura~\ref{fig:finding-distribution}, su 7 \texttt{FAIL}, 9 \texttt{PASS} e 2 \texttt{SKIP}, riportati per test nella Tabella~\ref{tab:risultati-per-test}. Prima di analizzare i risultati per dominio, è utile presentare una lettura trasversale dei tre esiti.
+
+\input{assets/figures/5-coverage-map.tex}
+\input{assets/figures/5-finding-distribution.tex}
 
 I 7 \texttt{FAIL}, con il dettaglio dei finding per test nella Tabella~\ref{tab:risultati-per-test}, corrispondono alle condizioni configurate nel testbed descritte nella Sezione~\ref{subsec:configurazione-testbed}. Il test~1.1 da solo produce 74 dei 98 finding totali (75.5\%): quegli endpoint di Forgejo che il campo \texttt{security} della specifica marca come autenticati, ma che rispondono \texttt{2xx} a richieste prive di credenziali, sono finding corretti dal punto di vista del contratto tra specifica e comportamento osservato, come discusso nella Sezione~\ref{subsec:configurazione-testbed}. I restanti 24 finding sono distribuiti su test~0.1 (16), test~0.2 (1), test~4.1 (2), test~7.2 (1), \texttt{ext.1.5.sslyze} (1) e \texttt{ext.1.5.testssl} (3).
 
@@ -218,6 +218,8 @@ I 9 \texttt{PASS} coprono le configurazioni correttamente applicate nel testbed:
 \subsection{Idempotenza e Validazione del Teardown}\label{subsec:idempotenza-teardown}
 
 La Tabella~\ref{tab:idempotenza-kpi} riporta i \gls{KPI} aggregati delle due esecuzioni. I contatori di finding, gli status per-test, il codice di uscita e il \texttt{pass\_rate\_pct} sono byte-identici tra i due run: la parte deterministica del risultato non mostra alcuna variazione. Il delta sul wall-clock è di 0.67~secondi su una durata di circa 290~secondi, pari allo 0.23\% della durata totale; questa variazione rientra nella fluttuazione attesa delle latenze di rete \gls{HTTP} verso il target e non è attribuibile a comportamento non deterministico della pipeline.
+
+\input{assets/tables/5-idempotenza-kpi.tex}
 
 Il teardown, descritto nella Sezione~\ref{subsec:teardown}, costituisce la precondizione dell'idempotenza: senza un cleanup completo delle risorse create durante la prima esecuzione, la seconda troverebbe uno stato alterato e produrrebbe risultati diversi. La verifica condotta dopo ciascuna delle due esecuzioni ha confermato che la Phase~6 ha drenato il registro \gls{LIFO} senza lasciare risorse residue: nessun token con prefisso \texttt{"apiguard"} sull'account \texttt{thesis-admin} e nessuna repository con prefisso \texttt{"apiguard"} sull'account \texttt{user-a} erano presenti al termine di ciascuna esecuzione. Zero risorse residue su due esecuzioni indipendenti è la conferma empirica che la pipeline si comporta nel modo dichiarato in presenza di stato reale.
 

@@ -1,76 +1,80 @@
+% ─── FIGURA B (8.1) -- Il Combinatorial Wall ─────────────────────────────────
 \begin{figure}[ht]
   \centering
   % NIENTE \resizebox: il diagramma rientra nei margini fisici grazie 
-  % all'uso di \footnotesize come font di base, che restringe proporzionalmente 
-  % tutte le misure in 'em' mantenendole nitidissime.
-  \begin{tikzpicture}[
-      % Distanza orizzontale generale ottimizzata a 2.5em per recuperare spazio
-      node distance=4ex and 2.5em,
-      %
-      % STILE BASE: Altezza fissa per tutti (3em) e larghezza dinamica in base al testo.
-      base/.style={draw, rounded corners=1.5pt, inner sep=4pt, align=center, font=\footnotesize, minimum height=3em},
-      %
-      % Stili per Via A (Fuzzer - Rosso)
-      viaA/.style={base, fill=red!6, draw=red!50},
-      invis/.style={base, fill=gray!6, draw=gray!40, dashed, text=gray!70!black},
-      %
-      % Stili per Via B (Engine - Verde)
-      viaB/.style={base, fill=green!7, draw=green!45},
-      vis/.style={base, fill=green!7, draw=green!50!black},
-      %
-      % Etichette di corsia
-      lbl/.style={font=\footnotesize\bfseries, inner sep=1pt},
-      %
-      % Frecce ortogonali
-      arrA/.style={-latex, semithick, red!60!black},
-      arrB/.style={-latex, semithick, green!50!black},
-      arr-wall/.style={-latex, semithick, dashed, gray!60},
-      %
-      % Note sulle frecce
-      note/.style={font=\scriptsize\itshape, text=gray!70!black, align=center, inner sep=1.5pt}
-    ]
+  % all'uso di \footnotesize come font di base.
+  % L'uso di \makebox[\textwidth][c] forza la centratura assoluta rispetto 
+  % alla pagina, annullando lo slittamento a destra dovuto a micro-sbordamenti.
+  \makebox[\textwidth][c]{%
+    \begin{tikzpicture}[
+        % Distanza orizzontale generale ottimizzata a 2.5em per recuperare spazio
+        node distance=4ex and 2.5em,
+        %
+        % STILE BASE: Altezza fissa per tutti (3em) e larghezza dinamica in base al testo.
+        base/.style={draw, rounded corners=1.5pt, inner sep=4pt, align=center, font=\footnotesize, minimum height=3em},
+        %
+        % Stili per Via A (Fuzzer - Rosso)
+        viaA/.style={base, fill=red!6, draw=red!50},
+        invis/.style={base, fill=gray!6, draw=gray!40, dashed, text=gray!70!black},
+        %
+        % Stili per Via B (Engine - Verde)
+        viaB/.style={base, fill=green!7, draw=green!45},
+        vis/.style={base, fill=green!7, draw=green!50!black},
+        %
+        % Etichette di corsia
+        lbl/.style={font=\footnotesize\bfseries, inner sep=1pt},
+        %
+        % Frecce ortogonali
+        arrA/.style={-latex, semithick, red!60!black},
+        arrB/.style={-latex, semithick, green!50!black},
+        arr-wall/.style={-latex, semithick, dashed, gray!60},
+        %
+        % Note sulle frecce
+        note/.style={font=\scriptsize\itshape, text=gray!70!black, align=center, inner sep=1.5pt}
+      ]
 
-    %% ── Via A: Fuzzer sintattico (Riga Superiore) ─────────────────────────
-    \node[viaA] (a1) {Fuzzer\\sintattico};
-    \node[viaA, right=of a1] (a2) {Payload casuali\\malformati};
-    \node[viaA, right=of a2] (a3) {\texttt{400 Bad Request}};
+      %% ── Via A: Fuzzer sintattico (Riga Superiore) ─────────────────────────
+      \node[viaA] (a1) {Fuzzer\\sintattico};
+      \node[viaA, right=of a1] (a2) {Payload casuali\\malformati};
+      \node[viaA, right=of a2] (a3) {\texttt{400 Bad Request}};
 
-    % Gap specifico fortemente maggiorato (6em) per contenere interamente la parola "combinatorio"
-    \node[invis, right=6em of a3] (a4) {Logica applicativa\\{\scriptsize [invisibile]}};
+      % Gap specifico fortemente maggiorato (6em) per contenere interamente la parola "combinatorio"
+      \node[invis, right=6em of a3] (a4) {Logica applicativa\\{\scriptsize [invisibile]}};
 
-    %% ── Via B: Engine contract-driven (Riga Inferiore) ────────────────────
-    % L'uso nativo di 'below=6ex' assicura un corridoio vuoto di 6ex netti tra i bordi.
-    \node[viaB, below=6ex of a1] (b1) {Engine\\contract-driven};
+      %% ── Via B: Engine contract-driven (Riga Inferiore) ────────────────────
+      % L'uso nativo di 'below=6ex' assicura un corridoio vuoto di 6ex netti tra i bordi.
+      \node[viaB, below=6ex of a1] (b1) {Engine\\contract-driven};
 
-    % Gli altri nodi si ancorano all'asse X dei gemelli sopra (a2, a3, a4) 
-    % e all'asse Y del primo nodo di riga (b1). Garantisce assi verticali perfetti.
-    \node[viaB] (b2) at (a2 |- b1) {Payload validi\\dalla spec \gls{OAS}};
-    \node[viaB] (b3) at (a3 |- b1) {\texttt{2xx} / \texttt{4xx} semantici};
-    \node[vis]  (b4) at (a4 |- b1) {Logica applicativa\\{\scriptsize [visibile]}};
+      % Gli altri nodi si ancorano all'asse X dei gemelli sopra (a2, a3, a4) 
+      % e all'asse Y del primo nodo di riga (b1). Garantisce assi verticali perfetti.
+      \node[viaB] (b2) at (a2 |- b1) {Payload validi\\dalla spec \gls{OAS}};
+      \node[viaB] (b3) at (a3 |- b1) {\texttt{2xx} / \texttt{4xx} semantici};
+      \node[vis]  (b4) at (a4 |- b1) {Logica applicativa\\{\scriptsize [visibile]}};
 
-    %% ── Etichette di corsia ────────────────────────────────────────────────
-    % Allineate a 2.5em per mantenere la simmetria con i corridoi interni
-    \node[lbl, text=red!70!black, left=2.5em of a1] (lblA) {Via~A};
+      %% ── Etichette di corsia ────────────────────────────────────────────────
+      % Allineate a 2.5em per mantenere la simmetria con i corridoi interni
+      \node[lbl, text=red!70!black, left=2.5em of a1] (lblA) {Via~A};
 
-    % Allineamento cartesiano puro: asse X di lblA, asse Y di b1.
-    \node[lbl, text=green!60!black] (lblB) at (lblA |- b1) {Via~B};
+      % Allineamento cartesiano puro: asse X di lblA, asse Y di b1.
+      \node[lbl, text=green!60!black] (lblB) at (lblA |- b1) {Via~B};
 
-    %% ── Frecce Via A ───────────────────────────────────────────────────────
-    \draw[arrA] (a1) -- (a2);
-    \draw[arrA] (a2) -- (a3);
-    \draw[arr-wall] (a3) -- node[midway, above, note] {muro\\combinatorio} (a4);
+      %% ── Frecce Via A ───────────────────────────────────────────────────────
+      \draw[arrA] (a1) -- (a2);
+      \draw[arrA] (a2) -- (a3);
+      \draw[arr-wall] (a3) -- node[midway, above, note] {muro\\combinatorio} (a4);
 
-    %% ── Frecce Via B ───────────────────────────────────────────────────────
-    \draw[arrB] (b1) -- (b2);
-    \draw[arrB] (b2) -- (b3);
-    \draw[arrB] (b3) -- (b4);
+      %% ── Frecce Via B ───────────────────────────────────────────────────────
+      \draw[arrB] (b1) -- (b2);
+      \draw[arrB] (b2) -- (b3);
+      \draw[arrB] (b3) -- (b4);
 
-    %% ── Linea di Separazione Orizzontale (Centrata dinamicamente) ──────────
-    % Si posiziona a -3ex dalla Via A (esattamente a metà del vuoto di 6ex)
-    \path (a1.south) ++(0, -3ex) coordinate (mid-y);
-    \draw[gray!40, dashed, thick] ([xshift=-1.5em]lblA.west |- mid-y) -- ([xshift=1.5em]a4.east |- mid-y);
+      %% ── Linea di Separazione Orizzontale (Centrata dinamicamente) ──────────
+      % Si posiziona a -3ex dalla Via A (esattamente a metà del vuoto di 6ex)
+      \path (a1.south) ++(0, -3ex) coordinate (mid-y);
+      \draw[gray!40, dashed, thick] ([xshift=-1.5em]lblA.west |- mid-y) -- ([xshift=1.5em]a4.east |- mid-y);
 
-  \end{tikzpicture}
+    \end{tikzpicture}%
+  }
   \caption{Il \emph{combinatorial wall}: fuzzer sintattico (Via~A) vs.\ approccio contract-driven \gls{OAS} (Via~B).}
   \label{fig:combinatorial-wall}
 \end{figure}

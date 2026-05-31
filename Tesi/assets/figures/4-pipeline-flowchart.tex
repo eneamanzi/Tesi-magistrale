@@ -97,6 +97,6 @@
     \draw[arr-warn] (p6.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {cleanup\\parziale} (w6.west);
 
   \end{tikzpicture}
-  \caption{Flusso della pipeline a sette fasi (D4.P3, D4.P4): la zona di startup (Fasi~1-4) è bloccante, un errore in una qualsiasi di esse interrompe l'avvio; la zona di esecuzione (Fasi~5-7) è non bloccante, ogni malfunzionamento è recuperato localmente senza invalidare i risultati già prodotti. Frecce continue: percorso nominale; frecce tratteggiate: errori recuperati con \texttt{WARNING}.}
+  \caption{Pipeline a sette fasi: startup bloccante (Fasi~1--4) ed esecuzione non bloccante (Fasi~5--7).}
   \label{fig:pipeline-flowchart}
 \end{figure}
