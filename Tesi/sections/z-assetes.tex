@@ -118,103 +118,232 @@ uml-compose/.style = {-{Diamond}, semithick},
     \texttt{Azione:} inserire dopo la tabella \texttt{tab:domini} già presente nel testo, come tabella complementare con strategia e stato. }
 \end{table}
 
+\begin{table}[ht]
+  \centering \small
+  \begin{tabularx}{\textwidth}{@{} p{3.0cm} p{1.8cm} X X X @{}}
+    \toprule
+    \textbf{Modello}
+     & \textbf{Traffico presidiato}
+     & \textbf{Enforcement policy}
+     & \textbf{Accesso al piano di configurazione}
+     & \textbf{Verifica \texttt{WHITE\_BOX}}           \\
+    \midrule
+    Gateway \gls{API} Dedicato (es.\ Kong, Apigee)
+     & Nord-sud
+     & Centralizzato in un unico strato ispezionabile
+     & Admin \gls{API} diretta
+     & Nativa                                          \\
+    \addlinespace
+    Kubernetes Ingress / Gateway \gls{API}
+     & Nord-sud
+     & Parziale: annotation controller-specifiche
+     & \texttt{kubectl} / Kubernetes \gls{API}
+     & Controller-dipendente                           \\
+    \addlinespace
+    Service Mesh (es.\ Istio)
+     & Est-ovest
+     & Distribuito per sidecar proxy
+     & Control plane (istiod)
+     & Fuori perimetro nord-sud                        \\
+    \addlinespace
+    Gateway Managed Cloud (AWS, Azure, GCP)
+     & Nord-sud
+     & Centralizzato: gestito interamente dal provider
+     & \gls{SDK} / \gls{API} del cloud provider
+     & Richiede adapter dedicato                       \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Confronto dei quattro modelli di esposizione in rete lungo le dimensioni rilevanti per il security assessment: il gateway \gls{API} dedicato è l'unico con Admin \gls{API} diretta e verifica \texttt{WHITE\_BOX} nativa.}
+  \label{tab:modelli-esposizione}
+\end{table}
+
 \section*{B: Figure}
 
 % ─── FIGURA B (8.1) -- Il Combinatorial Wall ─────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[node distance=0.6cm and 1.6cm]
-      %% Via A: Fuzzer sintattico (riga superiore)
-      \node[ag-red] (a1) {Fuzzer\\sintattico};
-      \node[ag-red, right=of a1] (a2) {Payload casuali\\malformati};
-      \node[ag-red, right=of a2] (a3) {\texttt{400 Bad Request}};
-      \node[ag-gray, right=5em of a3, draw=gray!40, dashed] (a4) {Logica applicativa\\{\scriptsize [invisibile]}};
-      \draw[ag-arr, red!60] (a1) -- (a2);
-      \draw[ag-arr, red!60] (a2) -- (a3);
-      \draw[ag-darr, gray!60] (a3) -- (a4) node[midway, above, ag-note, align=center] {muro\\combinatorio};
-      %% Via B: Engine contract-driven (riga inferiore)
-      \node[ag-green, below=2.2cm of a1] (b1) {Engine\\contract-driven};
-      \node[ag-green, right=of b1] (b2) {Payload validi\\dalla spec OAS};
-      \node[ag-green, right=of b2] (b3) {\texttt{2xx} / \texttt{4xx}\\semantici};
-      \node[ag-green, right=of b3] (b4) {Logica applicativa\\{\scriptsize [visibile]}};
-      \draw[ag-arr, green!55!black] (b1) -- (b2);
-      \draw[ag-arr, green!55!black] (b2) -- (b3);
-      \draw[ag-arr, green!55!black] (b3) -- (b4);
-      %% Etichette di corsia
-      \node[ag-lane, red!70, left=0.5cm of a1] {Via~A};
-      \node[ag-lane, green!55!black, left=0.5cm of b1] {Via~B};
-      %% Separatore
-      \draw[gray!40, dashed] ([yshift=-1.1cm]a1.south west) -- ([yshift=-1.1cm]a4.south east);
-    \end{tikzpicture}
-  }%
+  % NIENTE \resizebox: il diagramma rientra nei margini fisici grazie 
+  % all'uso di \footnotesize come font di base, che restringe proporzionalmente 
+  % tutte le misure in 'em' mantenendole nitidissime.
+  \begin{tikzpicture}[
+      % Distanza orizzontale generale ottimizzata a 2.5em per recuperare spazio
+      node distance=4ex and 2.5em,
+      %
+      % STILE BASE: Altezza fissa per tutti (3em) e larghezza dinamica in base al testo.
+      base/.style={draw, rounded corners=1.5pt, inner sep=4pt, align=center, font=\footnotesize, minimum height=3em},
+      %
+      % Stili per Via A (Fuzzer - Rosso)
+      viaA/.style={base, fill=red!6, draw=red!50},
+      invis/.style={base, fill=gray!6, draw=gray!40, dashed, text=gray!70!black},
+      %
+      % Stili per Via B (Engine - Verde)
+      viaB/.style={base, fill=green!7, draw=green!45},
+      vis/.style={base, fill=green!7, draw=green!50!black},
+      %
+      % Etichette di corsia
+      lbl/.style={font=\footnotesize\bfseries, inner sep=1pt},
+      %
+      % Frecce ortogonali
+      arrA/.style={-latex, semithick, red!60!black},
+      arrB/.style={-latex, semithick, green!50!black},
+      arr-wall/.style={-latex, semithick, dashed, gray!60},
+      %
+      % Note sulle frecce
+      note/.style={font=\scriptsize\itshape, text=gray!70!black, align=center, inner sep=1.5pt}
+    ]
+
+    %% ── Via A: Fuzzer sintattico (Riga Superiore) ─────────────────────────
+    \node[viaA] (a1) {Fuzzer\\sintattico};
+    \node[viaA, right=of a1] (a2) {Payload casuali\\malformati};
+    \node[viaA, right=of a2] (a3) {\texttt{400 Bad Request}};
+
+    % Gap specifico fortemente maggiorato (6em) per contenere interamente la parola "combinatorio"
+    \node[invis, right=6em of a3] (a4) {Logica applicativa\\{\scriptsize [invisibile]}};
+
+    %% ── Via B: Engine contract-driven (Riga Inferiore) ────────────────────
+    % L'uso nativo di 'below=6ex' assicura un corridoio vuoto di 6ex netti tra i bordi.
+    \node[viaB, below=6ex of a1] (b1) {Engine\\contract-driven};
+
+    % Gli altri nodi si ancorano all'asse X dei gemelli sopra (a2, a3, a4) 
+    % e all'asse Y del primo nodo di riga (b1). Garantisce assi verticali perfetti.
+    \node[viaB] (b2) at (a2 |- b1) {Payload validi\\dalla spec \gls{OAS}};
+    \node[viaB] (b3) at (a3 |- b1) {\texttt{2xx} / \texttt{4xx} semantici};
+    \node[vis]  (b4) at (a4 |- b1) {Logica applicativa\\{\scriptsize [visibile]}};
+
+    %% ── Etichette di corsia ────────────────────────────────────────────────
+    % Allineate a 2.5em per mantenere la simmetria con i corridoi interni
+    \node[lbl, text=red!70!black, left=2.5em of a1] (lblA) {Via~A};
+
+    % Allineamento cartesiano puro: asse X di lblA, asse Y di b1.
+    \node[lbl, text=green!60!black] (lblB) at (lblA |- b1) {Via~B};
+
+    %% ── Frecce Via A ───────────────────────────────────────────────────────
+    \draw[arrA] (a1) -- (a2);
+    \draw[arrA] (a2) -- (a3);
+    \draw[arr-wall] (a3) -- node[midway, above, note] {muro\\combinatorio} (a4);
+
+    %% ── Frecce Via B ───────────────────────────────────────────────────────
+    \draw[arrB] (b1) -- (b2);
+    \draw[arrB] (b2) -- (b3);
+    \draw[arrB] (b3) -- (b4);
+
+    %% ── Linea di Separazione Orizzontale (Centrata dinamicamente) ──────────
+    % Si posiziona a -3ex dalla Via A (esattamente a metà del vuoto di 6ex)
+    \path (a1.south) ++(0, -3ex) coordinate (mid-y);
+    \draw[gray!40, dashed, thick] ([xshift=-1.5em]lblA.west |- mid-y) -- ([xshift=1.5em]a4.east |- mid-y);
+
+  \end{tikzpicture}
   \caption{Il \emph{combinatorial wall}: fuzzer sintattico (Via~A) vs.\ approccio contract-driven \gls{OAS} (Via~B).}
   \label{fig:combinatorial-wall}
   \par\smallskip
   {\small \noindent\textbf{Mini-guida: Figura~\ref{fig:combinatorial-wall}.}\\
     \texttt{Label:} \verb|\label{subsec:asimmetria-box-gradient}| (\S2.4.2) oppure inizio \S2.4.1\\
-    \texttt{Azione:} inserire nella sottosezione \S2.4.1, dopo il paragrafo che introduce il muro combinatorio. }
+    \texttt{Azione:} inserire nella sottosezione \S2.4.1, dopo il paragrafo che introduce il muro combinatorio.}
 \end{figure}
 
 % ─── FIGURA D (8.2) -- Architettura APIGuard ─────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[
-        node distance=1.5ex and 4em,
-        % Variabili locali per la simmetria
-        col-in/.style={minimum width=13em},
-        col-mid/.style={minimum width=15em},
-        col-out/.style={minimum width=9em}
-      ]
+  % NIENTE \resizebox: il diagramma è ottimizzato per rientrare nella pagina
+  % garantendo che i font \footnotesize vengano stampati alla loro vera grandezza.
+  \begin{tikzpicture}[
+      node distance=1.5ex and 2.5em,
+      %
+      % Stili di base Gold Standard
+      base/.style={draw, rounded corners=1.5pt, inner sep=5pt, align=center, font=\small},
+      %
+      % Colonne snellite e uniformate (minimum height=3em per i blocchi principali)
+      col-in/.style={base, fill=gray!10, draw=gray!50, minimum width=10em},
+      col-mid-blue/.style={base, fill=blue!7, draw=blue!40, minimum width=14em, minimum height=3em},
+      col-mid-green/.style={base, fill=green!7, draw=green!45, minimum width=14em, minimum height=3em},
+      col-mid-gold/.style={base, fill=orange!10, draw=orange!50, minimum width=14em, minimum height=2.5em},
+      col-mid-violet/.style={base, fill=violet!7, draw=violet!40, minimum width=14em, minimum height=3em},
+      col-out/.style={base, fill=gray!8, draw=gray!50, minimum width=9.5em},
+      %
+      % Frecce ortogonali pulite
+      arr/.style={-latex, semithick, gray!80!black},
+      darr/.style={-latex, semithick, dashed, gray!80!black},
+      barr/.style={latex-latex, semithick, gray!80!black},
+      %
+      % Etichette sulle frecce
+      lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=3pt},
+      %
+      % Sfondo per raggruppamento dinamico
+      bg-engine/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=10pt}
+    ]
 
-      %% Input (colonna sinistra)
-      \node[ag-gray, col-in] (cfg) {\texttt{config.yaml}\\{\scriptsize credenziali, URL, parametri}};
-      \node[ag-gray, col-in, below=of cfg] (oas) {\texttt{openapi.yaml}\\{\scriptsize spec formale del target}};
+    %% ── Engine (Colonna Centrale) Fissato per primo ──────────────────────
+    % Altezza normalizzata tramite lo stile col-mid-blue
+    \node[col-mid-blue] (tc) {\textbf{\texttt{TargetContext}} {\footnotesize[frozen]}\\{\footnotesize base\_url | attack\_surface | creds}};
 
-      %% TargetContext (immutabile)
-      \node[ag-blue, col-mid, right=5em of cfg, minimum height=3em] (tc) {\textbf{\texttt{TargetContext}} \quad {\small[frozen]}\\ {\scriptsize base\_url \textbar{} attack\_surface \textbar{} credentials}};
+    \node[col-mid-green, below=of tc] (tx) {\textbf{\texttt{TestContext}} {\footnotesize[mutable]}\\{\footnotesize token | teardown | shared\_data}};
+    \node[col-mid-gold, below=of tx] (dag) {\textbf{DAG Scheduler}\\{\footnotesize ordinamento, batch sequenziali}};
 
-      %% TestContext (mutabile)
-      \node[ag-green, col-mid, below=of tc, minimum height=3em] (tx) {\textbf{\texttt{TestContext}} \quad {\small[mutable]}\\ {\scriptsize token \textbar{} teardown\_queue \textbar{} shared\_data}};
+    %% Box di raggruppamento dinamico (Assessment Engine)
+    \begin{scope}[on background layer]
+      \node[bg-engine, fit=(tc)(tx)(dag)] (engine) {};
+    \end{scope}
 
-      %% DAG Scheduler
-      \node[ag-gold, col-mid, below=of tx, minimum height=2.5em] (dag) {\textbf{DAG Scheduler}\\ {\scriptsize ordinamento topologico, batch sequenziali}};
+    % Etichetta agganciata in alto a sinistra
+    \node[font=\footnotesize\bfseries, text=blue!70!black, anchor=south east, shift={(-1em, 0.5ex)}]
+    at (engine.north) {Assessment Engine};
 
-      %% Box Engine
-      \begin{scope}[on background layer]
-        \node[ag-group, fit=(tc)(tx)(dag), label={[font=\small\bfseries, blue!60!black]above:Assessment Engine}] (engine) {};
-      \end{scope}
+    %% ── Input (Colonna Sinistra) Ancorati matematicamente ────────────────
+    % Config.yaml: Allineato esattamente col tetto dell'engine (che ora si è abbassato proporzionalmente)
+    \node[col-in, anchor=north east] (cfg) at ([xshift=-2.5em]tc.west |- engine.north) {\textbf{\texttt{config.yaml}}\\{\footnotesize credenziali, URL, param.}};
 
-      %% Target (colonna destra)
-      \node[ag-gray, col-out, right=7.5em of tc] (kong) {Kong Gateway\\{\scriptsize :8000 / :8443 / :8001}};
-      \node[ag-gray, col-out, below=of kong] (forgejo) {Forgejo\\{\scriptsize target applicativo}};
+    % OpenAPI.yaml: Più in basso
+    \node[col-in, anchor=east] (oas) at ([xshift=-2.5em, yshift=-7ex]tc.west) {\textbf{\texttt{openapi.yaml}}\\{\footnotesize spec formale target}};
 
-      %% EvidenceStore
-      \node[ag-violet, col-mid, below=3ex of dag, minimum height=3em] (ev) {\textbf{EvidenceStore} \quad {\small[JSONL streaming]}\\ {\scriptsize \texttt{evidence.json} \textbar{} \texttt{assessment\_report.html}}};
+    %% ── Target (Colonna Destra) ────────────────────────────────────────────
+    \node[col-out, right=6em of tc] (kong) {\textbf{Kong Gateway}\\{\footnotesize :8000 / :8443 / :8001}};
 
-      %% -----------------------------------------------------------
-      %% FRECCE
-      %% -----------------------------------------------------------
+    % Forgejo abbassato ulteriormente (8.5ex) per fare molto spazio all'etichetta Admin API
+    \node[col-out, below=8.5ex of kong] (forgejo) {\textbf{Forgejo}\\{\footnotesize target applicativo}};
 
-      %% Frecce input -> engine
-      \draw[ag-arr] (cfg.east) -- (tc.west);
-      \draw[ag-arr] (oas.east) -- ++(2.5em, 0) |- ([yshift=-1ex]tc.west);
+    %% ── EvidenceStore (Sotto l'Engine) ─────────────────────────────────────
+    \node[col-mid-violet, below=4ex of dag] (ev) {\textbf{EvidenceStore} {\footnotesize[JSONL]}\\{\footnotesize \texttt{evidence.json} | \texttt{report.html}}};
 
-      %% Probe HTTP: tc -> kong
-      \draw[ag-arr] ([yshift=1.5ex]tc.east) -- ([yshift=1.5ex]kong.west) node[midway, above, ag-note] {probe \gls{HTTP}};
-      \draw[ag-barr] (kong.south) -- (forgejo.north);
+    %% ── FRECCE E COLLEGAMENTI ──────────────────────────────────────────────
 
-      %% DAG -> TestContext e EvidenceStore
-      \draw[ag-arr] (dag.north) -- (tx.south);
-      \draw[ag-arr] (dag.south) -- (ev.north);
+    %% Input -> Engine
+    % config.yaml: Nessuna curva. Va dritto al TargetContext.
+    \draw[arr] (cfg.east) -- (tc.west |- cfg.east);
 
-      %% Admin API
-      \draw[ag-darr] ([yshift=-3.5ex]engine.east) -- ++(5em,0)
-      node[midway, above, ag-note, align=center] {Admin \gls{API}\\{\tiny WHITE\_BOX}}
-      |- ([yshift=-1.5ex]kong.west);
-    \end{tikzpicture}
-  }%
+    % openapi.yaml: Esce dall'alto, sale e curva entrando nella metà inferiore del TargetContext (-2ex)
+    \draw[arr] (oas.north) |- ([yshift=-2ex]tc.west);
+
+    %% Engine -> Target (Probe HTTP su due righe)
+    \path (tc.east) ++(0, 1.5ex) coordinate (probe-start);
+    \path (kong.west) ++(0, 1.5ex) coordinate (probe-end);
+    \draw[arr] (probe-start) -- node[midway, above, align=center, lbl] {probe\\\gls{HTTP}} (probe-end);
+
+    \draw[barr] (kong.south) -- (forgejo.north);
+
+    %% Interne Engine -> Evidence
+    \draw[arr] (dag.north) -- (tx.south);
+    \draw[arr] (dag.south) -- (ev.north);
+
+    %% Engine -> Target (Admin API - WHITE_BOX)
+    \path (tx.east) ++(0, -1ex) coordinate (admin-start);
+    \path (kong.west) ++(0, -1.5ex) coordinate (admin-end);
+
+    % Punto di svolta inferiore (a 2.5em da TestContext)
+    \path (admin-start) ++(2.5em, 0) coordinate (admin-turn1);
+
+    % Punto di svolta superiore (l'angolo a 90° prima di entrare in Kong)
+    \coordinate (admin-turn2) at (admin-turn1 |- admin-end);
+
+    % Freccia strutturale pulita
+    \draw[darr] (admin-start) -- (admin-turn1) -- (admin-turn2) -- (admin-end);
+
+    % Etichetta posizionata incastonata nello spazio vuoto.
+    % Spostata più in basso (yshift=-2ex) e leggermente più a sinistra (xshift=0.2em)
+    \node[lbl, align=left, anchor=north west]
+    at ([xshift=0.2em, yshift=-2ex]admin-turn2)
+    {Admin \gls{API}\\{\footnotesize WHITE\_BOX}};
+
+  \end{tikzpicture}
   \caption{Architettura di alto livello di APIGuard Assurance: input, Engine con Split State (D1.P3), DAG Scheduler (D2.P2) ed EvidenceStore (D4.P1).}
   \label{fig:architettura-apiguard}
   \par\smallskip
@@ -227,77 +356,110 @@ uml-compose/.style = {-{Diamond}, semithick},
 % ─── FIGURA E (8.3) -- DAG ───────────────────────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[
-        node distance=1.5ex and 0.8em,
-        % Variabili locali per la simmetria (Principio DRY)
-        test-node/.style={minimum width=5em},
-        ext-node/.style={minimum width=7.5em},
-        phB-node/.style={minimum width=6em}
-      ]
+  % NIENTE \resizebox: il diagramma usa font \footnotesize integrati e spazi 
+  % calibrati per rientrare perfettamente nei margini mantenendo i testi nitidi.
+  \begin{tikzpicture}[
+      node distance=1.5ex and 1em,
+      %
+      % Stili dei Nodi (indipendenti dal preambolo)
+      tst/.style={draw=orange!55, fill=yellow!18, rounded corners=1.5pt, minimum width=4.5em, minimum height=3.5ex, font=\footnotesize\ttfamily, align=center},
+      tst-hl/.style={tst, draw=orange!70, fill=yellow!35, thick},
+      ext/.style={tst, minimum width=6.5em, font=\scriptsize\ttfamily},
+      %
+      phB/.style={draw=blue!40, fill=blue!7, rounded corners=1.5pt, minimum width=5.5em, minimum height=3.5ex, font=\footnotesize\ttfamily, align=center},
+      phC/.style={draw=gray!40, fill=gray!8, dashed, rounded corners=1.5pt, minimum width=7em, minimum height=4.5ex, font=\footnotesize, align=center},
+      %
+      % Stili dei Riquadri di Sfondo
+      bg-A/.style={draw=orange!50, fill=yellow!6, dashed, rounded corners=3pt, inner sep=12pt},
+      bg-B/.style={draw=blue!40, fill=blue!4, dashed, rounded corners=3pt, inner sep=10pt},
+      %
+      % Frecce native
+      arr/.style={-latex, semithick, blue!60},
+      darr/.style={-latex, semithick, dashed, gray!60}
+    ]
 
-      %% Phase A: 16 test organizzati per dominio, una riga per dominio
-      %% D0: 0.1, 0.2, 0.3
-      \node[ag-gold, test-node] (d0a) {\texttt{0.1}};
-      \node[ag-gold, test-node, right=of d0a] (d0b) {\texttt{0.2}};
-      \node[ag-gold, test-node, right=of d0b] (d0c) {\texttt{0.3}};
+    %% ── Phase A: 16 test (Griglia compatta) ───────────────────────────────
+    % D0
+    \node[tst] (d0a) {0.1};
+    \node[tst, right=of d0a] (d0b) {0.2};
+    \node[tst, right=of d0b] (d0c) {0.3};
 
-      %% D1: 1.5, 1.6, poi 1.1 al bordo destro
-      \node[ag-gold, test-node, below=of d0a] (d1a) {\texttt{1.5}};
-      \node[ag-gold, test-node, right=of d1a] (d1b) {\texttt{1.6}};
-      \node[ag-gold, draw=orange!70, fill=yellow!35, test-node, right=of d1b] (a11) {\textbf{\texttt{1.1}}};
+    % D1 (ORDINE CORRETTO: 1.1 evidenziato a sinistra)
+    \node[tst-hl, below=of d0a] (a11) {\textbf{1.1}};
+    \node[tst, right=of a11] (d1b) {1.5};
+    \node[tst, right=of d1b] (d1c) {1.6};
 
-      %% D3: 3.3
-      \node[ag-gold, test-node, below=of d1a] (d3a) {\texttt{3.3}};
+    % D3 (Gap maggiorato a 3.5ex per creare un "tunnel" orizzontale)
+    \node[tst, below=3.5ex of a11] (d3a) {3.3};
 
-      %% D4: 4.1, 4.2, 4.3
-      \node[ag-gold, test-node, below=of d3a] (d4a) {\texttt{4.1}};
-      \node[ag-gold, test-node, right=of d4a] (d4b) {\texttt{4.2}};
-      \node[ag-gold, test-node, right=of d4b] (d4c) {\texttt{4.3}};
+    % D4
+    \node[tst, below=of d3a] (d4a) {4.1};
+    \node[tst, right=of d4a] (d4b) {4.2};
+    \node[tst, right=of d4b] (d4c) {4.3};
 
-      %% D6: 6.2, 6.4
-      \node[ag-gold, test-node, below=of d4a] (d6a) {\texttt{6.2}};
-      \node[ag-gold, test-node, right=of d6a] (d6b) {\texttt{6.4}};
+    % D6
+    \node[tst, below=of d4a] (d6a) {6.2};
+    \node[tst, right=of d6a] (d6b) {6.4};
 
-      %% D7: 7.2
-      \node[ag-gold, test-node, below=of d6a] (d7a) {\texttt{7.2}};
+    % D7
+    \node[tst, below=of d6a] (d7a) {7.2};
 
-      %% External tests
-      %% Allineamento a sinistra: agganciamo il bordo sx di ex0 al bordo sx di d7a
-      \node[ag-gold, ext-node, below=of d7a.south west, anchor=north west] (ex0) {\texttt{ext.0.1.nuclei}};
-      \node[ag-gold, ext-node, right=of ex0] (ex1) {\texttt{ext.1.5.sslyze}};
-      \node[ag-gold, ext-node, right=of ex1] (ex2) {\texttt{ext.1.5.testssl}};
+    % External tests: MANDATI A CAPO per contenere la larghezza totale di Phase A
+    \node[ext, below=of d7a.south west, anchor=north west] (ex0) {ext.0.1.nuclei};
+    \node[ext, below=of ex0.south west, anchor=north west] (ex1) {ext.1.5.sslyze};
+    \node[ext, right=of ex1] (ex2) {ext.1.5.testssl};
 
-      %% Box Phase A
-      \begin{scope}[on background layer]
-        \node[ag-group, draw=orange!50, fill=yellow!6,
-          fit=(d0a)(d0b)(d0c)(d1a)(d1b)(a11)(d3a)(d4a)(d4b)(d4c)(d6a)(d6b)(d7a)(ex0)(ex1)(ex2),
-          label={[font=\small\bfseries, orange!70!black]above:Phase~A (16 test, nessuna dipendenza)}]
-        (phaseA) {};
-      \end{scope}
+    %% Box Phase A (Includiamo d1c per garantire che abbracci l'estrema destra)
+    \begin{scope}[on background layer]
+      \node[bg-A, fit=(d0a)(d0c)(a11)(d1c)(d7a)(ex1)(ex2)] (phaseA) {};
+    \end{scope}
 
-      %% Phase B: solo 1.4 e 2.1 
-      %% Distanziata di 13em per far passare agevolmente la scatola Phase A che si è allargata a destra
-      \node[ag-blue, phB-node, right=13em of a11] (b14) {\texttt{1.4}};
-      \node[ag-blue, phB-node, below=of b14] (b21) {\texttt{2.1}};
-      \begin{scope}[on background layer]
-        \node[ag-group, draw=blue!40, fill=blue!4,
-        fit=(b14)(b21),
-        label={[font=\small\bfseries, blue!60!black]above:Phase~B (\texttt{depends\_on=["1.1"]})}]
-        (phaseB) {};
-      \end{scope}
+    % Etichetta Phase A ancorata sopra senza toccare il tratteggio
+    \node[font=\footnotesize\bfseries, text=orange!80!black, anchor=south west]
+    at ([xshift=1ex, yshift=0.5ex]phaseA.north west) {Phase A (16 test, nessuna dipendenza)};
 
-      %% Phase C: pianificata
-      \node[ag-gray, minimum width=8em, right=4em of phaseB, draw=gray!40, dashed] (c) {\textit{Phase~C}\\{\scriptsize (pianificata)}};
+    %% ── Snodo e Phase B (Biforcazione Simmetrica Esterna) ─────────────────
+    % 1. Calcolo del tunnel: scendiamo a metà esatta del gap (1.75ex sotto a 1.1)
+    \path (a11.south) ++(0, -1.75ex) coordinate (bus-y);
 
-      %% Frecce e biforcazioni (coordinate dinamiche calcolate per uscire dal box giallo)
-      \coordinate (jA) at ([xshift=10em]a11.east);
-      \draw[ag-arr, blue!50] (a11.east) -- node[pos=0.6, above, ag-note] {\texttt{1.1} $\rightarrow$} (jA) |- (b14.west);
-      \draw[ag-arr, blue!50] (jA) |- (b21.west);
+    % 2. Punto di uscita dal box giallo
+    \path (phaseA.east |- bus-y) coordinate (exitA);
 
-      \draw[ag-darr, gray!50] (phaseB.east) -- (c.west) node[midway, above, ag-note] {\texttt{ext.1.2}};
-    \end{tikzpicture}
-  }%
+    % 3. Snodo matematico: 3.5em di distanza a destra del box giallo
+    \path (exitA) ++(3.5em, 0) coordinate (split);
+
+    % I due test di Phase B allineati verticalmente allo snodo
+    \node[phB] (b14) at ([xshift=5.5em, yshift=3ex]split) {1.4};
+    \node[phB] (b21) at ([xshift=5.5em, yshift=-3ex]split) {2.1};
+
+    %% Box Phase B
+    \begin{scope}[on background layer]
+      \node[bg-B, fit=(b14)(b21)] (phaseB) {};
+    \end{scope}
+
+    % Etichetta Phase B ancorata pulita
+    \node[font=\footnotesize\bfseries, text=blue!80!black, anchor=south west]
+    at ([xshift=1ex, yshift=0.5ex]phaseB.north west) {Phase B (\texttt{depends\_on=["1.1"]})};
+
+    %% ── Phase C: pianificata ──────────────────────────────────────────────
+    % Allineata esattamente all'asse centrale del blocco Phase B
+    \node[phC, right=1em of phaseB] (phaseC) at ([xshift=5em]phaseB.east |- split) {\textit{Phase C}\\{\scriptsize (pianificata)}};
+
+    %% ── Frecce di Collegamento e Routing ──────────────────────────────────
+
+    % Il tronco principale: da 1.1.south fa un angolo retto verso il tunnel (|-), 
+    % attraversa tutto il box giallo fino all'uscita, e continua fino allo snodo.
+    \draw[blue!60, semithick] (a11.south) |- (exitA) --
+    node[above, font=\scriptsize\itshape, text=gray!80!black] {\texttt{1.1} $\rightarrow$} (split);
+
+    % Biforcazioni dallo snodo verso i test in Phase B
+    \draw[arr] (split) |- (b14.west);
+    \draw[arr] (split) |- (b21.west);
+
+    % Freccia verso Phase C (con etichetta generica)
+    \draw[darr] (phaseB.east |- split) -- node[above, font=\scriptsize\itshape, text=gray!80!black] {dipendenze} (phaseC.west |- split);
+
+  \end{tikzpicture}
   \caption{Topologia del \gls{DAG} nel ciclo di assessment corrente: Phase~A (nessuna dipendenza), Phase~B (\texttt{depends\_on=["1.1"]}) e Phase~C (pianificata).}
   \label{fig:dag-topology}
   \par\smallskip
@@ -577,54 +739,60 @@ uml-compose/.style = {-{Diamond}, semithick},
 % ─── FIGURA J (8.7) -- Topologia Testbed ─────────────────────────────────────
 \begin{figure}[ht]
   \centering
-  \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[
-        % Stili Gold Standard
-        cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
-        %
-        % Host e Kong larghi (14.5em)
-        host/.style={cls, fill=orange!10, draw=orange!50, minimum width=14.5em},
-        infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=14.5em},
-        %
-        % Forgejo, Postgres e Utenti uniformati a 10em per simmetria perfetta
-        app/.style={cls, fill=green!7, draw=green!45, minimum width=10em},
-        backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=10em},
-        users/.style={cls, fill=gray!8, draw=gray!50, minimum width=10em},
-        %
-        group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
-      ]
+  % NIENTE \resizebox: larghezze calibrate per impedire il downscaling ottico
+  \begin{tikzpicture}[
+      % Stili Gold Standard
+      node distance=4ex and 2.5em,
       %
-      %% ── Asse Centrale ─────────────────────────────────────────────────────
-      \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
+      cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
       %
-      \node[infra, below=9ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HTTP proxy)}\\{\footnotesize :8443 (HTTPS proxy)}\\{\footnotesize :8001 (Admin \gls{API})}};
+      % Larghezze ottimizzate (13.5em per i centrali, 9.5em per i laterali)
+      host/.style={cls, fill=orange!10, draw=orange!50, minimum width=13.5em},
+      infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=13.5em},
       %
-      %% ── Ali Laterali (Spazio portato a 4em per far respirare i testi) ─────
-      \node[app, right=4em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target applicativo}};
+      app/.style={cls, fill=green!7, draw=green!45, minimum width=9.5em},
+      backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=9.5em},
+      users/.style={cls, fill=gray!8, draw=gray!50, minimum width=9.5em},
       %
-      \node[users, left=4em of kong] (rbac) {{\footnotesize \textbf{Utenti RBAC}}\\{\footnotesize thesis-admin}\\{\footnotesize user-a (std.)}\\{\footnotesize user-b (GREY\_BOX~\#2)}};
+      group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
       %
-      %% ── Backend ───────────────────────────────────────────────────────────
-      \node[backend, below=5ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize backend Forgejo}};
-      %
-      %% ── Container Group (Docker Compose network) ──────────────────────────
-      \begin{scope}[on background layer]
-        \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
-      \end{scope}
-      \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
-      %
-      %% ── Frecce ────────────────────────────────────────────────────────────
-      \draw[ag-arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
-      %
-      % Scritta di nuovo su una riga sola, ora che c'è spazio
-      \draw[ag-arr] (kong.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {proxy/route} (forgejo.west);
-      %
-      \draw[ag-barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
-      %
-      \draw[ag-arr, dashed] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
-      %
-    \end{tikzpicture}
-  }%
+      % Frecce native
+      arr/.style={-latex, semithick, gray!80!black},
+      darr/.style={-latex, semithick, dashed, gray!80!black},
+      barr/.style={latex-latex, semithick, gray!80!black},
+    ]
+
+    %% ── Asse Centrale ─────────────────────────────────────────────────────
+    \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
+
+    % Spazio verticale ridotto a 7ex per compattare
+    \node[infra, below=7ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HTTP proxy)}\\{\footnotesize :8443 (HTTPS proxy)}\\{\footnotesize :8001 (Admin \gls{API})}};
+
+    %% ── Ali Laterali (Distanza 2.5em per restare nei margini) ─────────────
+    \node[app, right=2.5em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target applicativo}};
+
+    \node[users, left=2.5em of kong] (rbac) {\textbf{Utenti RBAC}\\{\footnotesize thesis-admin}\\{\footnotesize user-a (std.)}\\{\footnotesize user-b (GREY\_BOX~\#2)}};
+
+    %% ── Backend ───────────────────────────────────────────────────────────
+    \node[backend, below=4ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize backend Forgejo}};
+
+    %% ── Container Group (Docker Compose network) ──────────────────────────
+    \begin{scope}[on background layer]
+      \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
+    \end{scope}
+    \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
+
+    %% ── Frecce ────────────────────────────────────────────────────────────
+    \draw[arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
+
+    % Testo spezzato su due righe tramite align=center e \\
+    \draw[arr] (kong.east) -- node[midway, above, align=center, font=\footnotesize\itshape, text=gray!70!black] {proxy/ \\route} (forgejo.west);
+
+    \draw[barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
+
+    \draw[darr] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
+
+  \end{tikzpicture}
   \caption{Topologia dell'ambiente di validazione sperimentale (Forgejo~14.0.3 + Kong~3.9 DB-less, Docker Compose).}
   \label{fig:testbed-topology}
   \par\smallskip
@@ -1166,4 +1334,109 @@ uml-compose/.style = {-{Diamond}, semithick},
     \texttt{Label:} \verb|\label{subsec:exception-hierarchy}| (\S4.1.2)\\
     \texttt{Ctrl+F:} \texttt{Tutte le eccezioni del tool ereditano da ToolBaseError}\\
     \texttt{Azione:} inserire prima o dopo la Tabella~\ref{tab:exception-hierarchy}, come complemento visivo alla struttura piatta della tabella. }
+\end{figure}
+
+
+% ─── FIGURA (Pipeline Flow) ──────────────────────────────────────────────────
+\begin{figure}[ht]
+  \centering
+  % NIENTE \resizebox: ottimizzato orizzontalmente per far rientrare la grafica 
+  % nei margini e lasciare che i font \footnotesize si renderizzino alla loro grandezza reale.
+  \begin{tikzpicture}[
+      % Distanza orizzontale compatta per accorciare le frecce laterali
+      node distance=3.5ex and 4.5em,
+      %
+      % Stili di base
+      base/.style={draw, rounded corners=1.5pt, inner sep=5pt, align=center, font=\small, minimum height=4.5ex},
+      %
+      % Stili Fasi (Colonna Sinistra)
+      phase-startup/.style={base, fill=blue!7, draw=blue!40, minimum width=13.5em},
+      phase-exec/.style={base, fill=green!7, draw=green!45, minimum width=13.5em},
+      %
+      % Stili Errori (Colonna Destra)
+      err-stop/.style={base, fill=red!6, draw=red!50, minimum width=12.5em},
+      err-warn/.style={base, fill=orange!8, draw=orange!50, minimum width=12.5em},
+      %
+      % Terminali (Inizio/Fine)
+      term/.style={draw=gray!50, fill=gray!15, ellipse, minimum height=3.5ex, inner sep=5pt, align=center, font=\footnotesize\ttfamily},
+      %
+      % Testi secondari sulle frecce (inner sep=3pt aggiunto per distaccarle dai fili)
+      lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=3pt},
+      %
+      % Frecce ortogonali
+      arr-ok/.style={-latex, semithick, gray!70!black},
+      arr-ko/.style={-latex, semithick, red!60!black},
+      arr-warn/.style={-latex, semithick, dashed, orange!80!black},
+      %
+      % Sfondi per raggruppamento dinamico (Libreria fit)
+      bg-startup/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=10pt},
+      bg-exec/.style={draw=green!35, fill=green!2, dashed, rounded corners=3pt, inner sep=10pt}
+    ]
+
+    %% ── Terminale di avvio ─────────────────────────────────────────────────
+    \node[term] (start) {apiguard run};
+
+    %% ── Fasi 1-4 (zona startup, bloccanti) ─────────────────────────────────
+    % Spazio a 8ex per creare il corridoio d'ingresso
+    \node[phase-startup, below=8ex of start] (p1) {\textbf{Fase~1:} Inizializzazione\\{\footnotesize\texttt{config/loader.py}}};
+    \node[phase-startup, below=of p1]    (p2) {\textbf{Fase~2:} OpenAPI Discovery\\{\footnotesize\texttt{discovery/openapi.py}}};
+    \node[phase-startup, below=of p2]    (p3) {\textbf{Fase~3:} Costruzione Contesti\\{\footnotesize\texttt{engine.py}}};
+    \node[phase-startup, below=of p3]    (p4) {\textbf{Fase~4:} Test Discovery e \gls{DAG}\\{\footnotesize\texttt{registry.py, dag.py}}};
+
+    %% ── Fasi 5-7 (zona esecuzione, non bloccanti) ──────────────────────────
+    % GAP ridotto: spazio a 9ex (lascia 5ex netti tra i due box di background)
+    \node[phase-exec, below=9ex of p4] (p5) {\textbf{Fase~5:} Esecuzione (per test)\\{\footnotesize\texttt{engine.py}}};
+    \node[phase-exec, below=of p5]   (p6) {\textbf{Fase~6:} Teardown \gls{LIFO}\\{\footnotesize\texttt{core/context.py}}};
+    \node[phase-exec, below=of p6]   (p7) {\textbf{Fase~7:} Report\\{\footnotesize\texttt{report/renderer.py}}};
+
+    %% ── Terminale di uscita ────────────────────────────────────────────────
+    \node[term, below=5ex of p7] (end) {exit code: 0 / 1 / 2 / 10};
+
+    %% ── Rami KO → STOP (fasi bloccanti) posizionati prima degli sfondi ─────
+    \node[err-stop, right=4.5em of p1] (s1) {\texttt{ConfigurationError}\\{\footnotesize avvio interrotto}};
+    \node[err-stop, right=4.5em of p2] (s2) {\texttt{OpenAPILoadError}\\{\footnotesize avvio interrotto}};
+    \node[err-stop, right=4.5em of p4] (s4) {\texttt{DAGCycleError}\\{\footnotesize avvio interrotto}};
+
+    %% ── Rami errore recuperabile (fasi 5, 6) ───────────────────────────────
+    \node[err-warn, right=4.5em of p5] (w5) {\texttt{TestResult(ERROR)}\\{\footnotesize isolato, pipeline prosegue}};
+    \node[err-warn, right=4.5em of p6] (w6) {\texttt{TeardownError}\\{\footnotesize \texttt{WARNING} strutturato}};
+
+    %% ── Sfondi per le due zone ─────────────────────────────────────────────
+    \begin{scope}[on background layer]
+      \node[bg-startup, fit=(p1)(p2)(p3)(p4)] (grp-startup) {};
+      \node[bg-exec, fit=(p5)(p6)(p7)] (grp-exec) {};
+    \end{scope}
+
+    %% ── ETICHETTE DI GRUPPO (Avvicinate all'asse e centrate in Y) ──────────
+    % xshift=-0.6em le avvicina notevolmente alla freccia centrale
+    % yshift=3ex solleva la prima etichetta al centro matematico del gap superiore.
+    \node[font=\footnotesize\bfseries, text=blue!70!black, anchor=east]
+    at ([xshift=-0.6em, yshift=3ex]grp-startup.north) {Fasi 1-4 (bloccanti)};
+
+    % yshift=2.5ex solleva la seconda etichetta al centro matematico del gap centrale di 5ex netti.
+    \node[font=\footnotesize\bfseries, text=green!70!black, anchor=east]
+    at ([xshift=-0.6em, yshift=2.5ex]grp-exec.north) {Fasi 5-7 (non bloccanti)};
+
+    %% ── Frecce asse principale ─────────────────────────────────────────────
+    \draw[arr-ok] (start) -- (p1);
+    \draw[arr-ok] (p1) -- node[midway, right, lbl] {OK} (p2);
+    \draw[arr-ok] (p2) -- node[midway, right, lbl] {OK} (p3);
+    \draw[arr-ok] (p3) -- node[midway, right, lbl] {OK} (p4);
+    \draw[arr-ok] (p4) -- node[midway, right, lbl] {OK} (p5);
+    \draw[arr-ok] (p5) -- (p6);
+    \draw[arr-ok] (p6) -- node[midway, right, lbl] {OK} (p7);
+    \draw[arr-ok] (p7) -- (end);
+
+    %% ── Frecce Laterali (Centrate nello spazio vuoto ricalibrato a pos=0.55) 
+    % Il valore 0.55 arretra i testi rispetto al 0.65 precedente, staccandoli dai riquadri di destra
+    \draw[arr-ko] (p1.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s1.west);
+    \draw[arr-ko] (p2.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s2.west);
+    \draw[arr-ko] (p4.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s4.west);
+
+    \draw[arr-warn] (p5.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {eccezione\\interna} (w5.west);
+    \draw[arr-warn] (p6.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {cleanup\\parziale} (w6.west);
+
+  \end{tikzpicture}
+  \caption{Flusso della pipeline a sette fasi (D4.P3, D4.P4): la zona di startup (Fasi~1-4) è bloccante, un errore in una qualsiasi di esse interrompe l'avvio; la zona di esecuzione (Fasi~5-7) è non bloccante, ogni malfunzionamento è recuperato localmente senza invalidare i risultati già prodotti. Frecce continue: percorso nominale; frecce tratteggiate: errori recuperati con \texttt{WARNING}.}
+  \label{fig:pipeline-flow}
 \end{figure}
