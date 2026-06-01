@@ -1,13 +1,13 @@
-\begin{figure}[ht]
+\begin{figure}[htbp]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \begin{adjustbox}{max width=\textwidth}
     \begin{tikzpicture}[
-        % Distanze compatte per fermare il downscaling di resizebox
-        node distance=1.2ex and 1em,
+        % Gap ristretto a 0.8em
+        node distance=1.2ex and 0.8em,
         %
         % Intestazione del canale
         ch-hdr/.style={draw=green!60!black, fill=green!18, rounded corners=1.5pt,
-            minimum width=11.5em, font=\small\bfseries, align=center},
+            minimum width=11.5em, minimum height=2.5em, font=\small\bfseries, align=center},
         %
         % Riga di metodo/dato dentro il canale
         ch-row/.style={draw=green!50!black, fill=green!7, rounded corners=1.5pt,
@@ -16,11 +16,11 @@
         %
         % Blocco API
         ch-api/.style={draw=gray!40, fill=gray!10, rounded corners=1.5pt,
-            minimum width=11.5em, inner sep=4pt, font=\footnotesize, align=left},
+            minimum width=11.5em, minimum height=3.8em, inner sep=3pt, font=\footnotesize, align=left},
         %
-        % Badge di fase (quando il canale viene usato)
+        % Badge di fase
         ph-badge/.style={draw=gray!50, fill=gray!15, rounded corners=1.5pt,
-            minimum width=11.5em, inner sep=3pt, font=\footnotesize\bfseries, align=center},
+            minimum width=11.5em, minimum height=3.5em, inner sep=3pt, font=\small, align=center},
       ]
 
       %% ─────────────────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@
         \texttt{has\_token(role) \textrightarrow{} bool}
       };
 
-      \node[ph-badge, below=1.2ex of tok-api] (tok-ph) {Fase~5: test autenticati\\scrivono e leggono};
+      \node[ph-badge, below=1.2ex of tok-api] (tok-ph) {\textbf{Fase~5:} test autenticati\\scrivono e leggono};
 
       %% ─────────────────────────────────────────────────────────────────────
       %% Canale Teardown LIFO (centro)
@@ -55,7 +55,7 @@
       \texttt{fn\_A \textrightarrow{} fn\_B \textrightarrow{} fn\_C}
       };
 
-      \node[ph-badge, below=1.2ex of td-api] (td-ph) {Fase~5: push\\Fase~6: drain inv.};
+      \node[ph-badge, below=1.2ex of td-api] (td-ph) {\textbf{Fase~5:} push\\\textbf{Fase~6:} drain inv.};
 
       %% ─────────────────────────────────────────────────────────────────────
       %% Canale Shared Data (destra)
@@ -72,27 +72,29 @@
         \texttt{~~\textrightarrow{} v}
       };
 
-      \node[ph-badge, below=1.2ex of sh-api] (sh-ph) {Fase~5: produttore scrive\\batch successivi leggono};
+      \node[ph-badge, below=1.2ex of sh-api] (sh-ph) {\textbf{Fase~5:} produttore scrive\\batch successivi leggono};
 
       %% ── Sfondo per i tre canali ──────────────────────────────────────────
       \begin{scope}[on background layer]
-        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=6pt,
+        % Impostando inner sep=0.4em (esattamente la metà di 0.8em), 
+        % i bordi delle colonne si toccano geometricamente senza sovrapporsi.
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
           fit=(tok-hdr)(tok-r1)(tok-r2)(tok-r3)(tok-api)(tok-ph)] {};
-        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=6pt,
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
           fit=(td-hdr)(td-r1)(td-r2)(td-r3)(td-api)(td-ph)] {};
-        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=6pt,
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
           fit=(sh-hdr)(sh-r1)(sh-r2)(sh-r3)(sh-api)(sh-ph)] {};
       \end{scope}
 
       %% ── Intestazione globale (TestContext) ───────────────────────────────
-      % Larghezza dinamica usando il fit tra il primo e l'ultimo header per centratura perfetta
+      % La larghezza è esattamente 36.1em + 0.8em (margini esterni) = 36.9em.
       \node[draw=green!60!black, fill=green!25, rounded corners=2pt,
-        minimum width=36.5em, font=\small\bfseries, align=center,
+        minimum width=36.9em, font=\small\bfseries, align=center,
         above=3ex of td-hdr.north] (tc-master)
       {\texttt{TestContext} [mutable]: tre canali tipizzati con responsabilità distinte};
 
     \end{tikzpicture}
-  }%
+  \end{adjustbox}
   \caption{Struttura interna del \texttt{TestContext} (D1.P3): canali Token, Teardown \gls{LIFO} e Shared Data.}
   \label{fig:testcontext-channels}
 \end{figure}

@@ -1,6 +1,6 @@
-\begin{figure}[ht]
+\begin{figure}[htbp]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \begin{adjustbox}{max width=\textwidth}
     \begin{tikzpicture}[
         % Stili Gold Standard: proporzioni uniformi e testi centrati
         base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small},%
@@ -71,7 +71,7 @@
       \draw[ag-arr] (m3) -- (out.north);
       %
     \end{tikzpicture}
-  }%
+  \end{adjustbox}
   \caption{Sanitizzazione a imbuto dell'evidenza (D4.P2): key-pattern, \gls{JWT} heuristic e header prefix in sequenza.}
   \label{fig:sanitization-funnel}
 \end{figure}

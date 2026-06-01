@@ -1,102 +1,96 @@
-\begin{figure}[ht]
+\begin{figure}[htbp]
   \centering
-  % NIENTE \resizebox: ottimizzato orizzontalmente per far rientrare la grafica 
-  % nei margini e lasciare che i font \footnotesize si renderizzino alla loro grandezza reale.
-  \begin{tikzpicture}[
-      % Distanza orizzontale compatta per accorciare le frecce laterali
-      node distance=3.5ex and 4.5em,
-      %
-      % Stili di base
-      base/.style={draw, rounded corners=1.5pt, inner sep=5pt, align=center, font=\small, minimum height=4.5ex},
-      %
-      % Stili Fasi (Colonna Sinistra)
-      phase-startup/.style={base, fill=blue!7, draw=blue!40, minimum width=13.5em},
-      phase-exec/.style={base, fill=green!7, draw=green!45, minimum width=13.5em},
-      %
-      % Stili Errori (Colonna Destra)
-      err-stop/.style={base, fill=red!6, draw=red!50, minimum width=12.5em},
-      err-warn/.style={base, fill=orange!8, draw=orange!50, minimum width=12.5em},
-      %
-      % Terminali (Inizio/Fine)
-      term/.style={draw=gray!50, fill=gray!15, ellipse, minimum height=3.5ex, inner sep=5pt, align=center, font=\footnotesize\ttfamily},
-      %
-      % Testi secondari sulle frecce (inner sep=3pt aggiunto per distaccarle dai fili)
-      lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=3pt},
-      %
-      % Frecce ortogonali
-      arr-ok/.style={-latex, semithick, gray!70!black},
-      arr-ko/.style={-latex, semithick, red!60!black},
-      arr-warn/.style={-latex, semithick, dashed, orange!80!black},
-      %
-      % Sfondi per raggruppamento dinamico (Libreria fit)
-      bg-startup/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=10pt},
-      bg-exec/.style={draw=green!35, fill=green!2, dashed, rounded corners=3pt, inner sep=10pt}
-    ]
+  \begin{adjustbox}{max width=\textwidth}
+    \begin{tikzpicture}[
+        % Distanza orizzontale ridotta a 4em per assorbire lo spostamento a destra
+        node distance=3.2ex and 4em,
+        %
+        % Stili di base
+        base/.style={draw, rounded corners=1.5pt, inner sep=3pt, align=center, font=\small, minimum height=3.5ex},
+        %
+        % Stili Fasi (Colonna Sinistra)
+        phase-startup/.style={base, fill=blue!7, draw=blue!40, minimum width=13.5em},
+        phase-exec/.style={base, fill=green!7, draw=green!45, minimum width=13.5em},
+        %
+        % Stili Errori (Colonna Destra) - Ridotti a 11.5em come richiesto
+        err-stop/.style={base, fill=red!6, draw=red!50, minimum width=11.5em},
+        err-warn/.style={base, fill=orange!8, draw=orange!50, minimum width=11.5em},
+        %
+        % Terminali (Inizio/Fine)
+        term/.style={draw=gray!50, fill=gray!15, ellipse, minimum height=2.5ex, inner sep=3pt, align=center, font=\footnotesize\ttfamily},
+        %
+        % Testi secondari sulle frecce
+        lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=2pt},
+        %
+        % Frecce ortogonali
+        arr-ok/.style={-latex, semithick, gray!70!black},
+        arr-ko/.style={-latex, semithick, red!60!black},
+        arr-warn/.style={-latex, semithick, dashed, orange!80!black},
+        %
+        % Sfondi
+        bg-startup/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=8pt},
+        bg-exec/.style={draw=green!35, fill=green!2, dashed, rounded corners=3pt, inner sep=8pt}
+      ]
 
-    %% ── Terminale di avvio ─────────────────────────────────────────────────
-    \node[term] (start) {apiguard run};
+      %% ── Terminale di avvio ─────────────────────────────────────────────────
+      \node[term] (start) {apiguard run};
 
-    %% ── Fasi 1-4 (zona startup, bloccanti) ─────────────────────────────────
-    % Spazio a 8ex per creare il corridoio d'ingresso
-    \node[phase-startup, below=8ex of start] (p1) {\textbf{Fase~1:} Inizializzazione\\{\footnotesize\texttt{config/loader.py}}};
-    \node[phase-startup, below=of p1]    (p2) {\textbf{Fase~2:} OpenAPI Discovery\\{\footnotesize\texttt{discovery/openapi.py}}};
-    \node[phase-startup, below=of p2]    (p3) {\textbf{Fase~3:} Costruzione Contesti\\{\footnotesize\texttt{engine.py}}};
-    \node[phase-startup, below=of p3]    (p4) {\textbf{Fase~4:} Test Discovery e \gls{DAG}\\{\footnotesize\texttt{registry.py, dag.py}}};
+      %% ── Fasi 1-4 (zona startup, bloccanti) ─────────────────────────────────
+      \node[phase-startup, below=3.5ex of start] (p1) {\textbf{Fase~1:} Inizializzazione\\{\footnotesize\texttt{config/loader.py}}};
+      \node[phase-startup, below=of p1]    (p2) {\textbf{Fase~2:} OpenAPI Discovery\\{\footnotesize\texttt{discovery/openapi.py}}};
+      \node[phase-startup, below=of p2]    (p3) {\textbf{Fase~3:} Costruzione Contesti\\{\footnotesize\texttt{engine.py}}};
+      \node[phase-startup, below=of p3]    (p4) {\textbf{Fase~4:} Test Discovery e \gls{DAG}\\{\footnotesize\texttt{registry.py, dag.py}}};
 
-    %% ── Fasi 5-7 (zona esecuzione, non bloccanti) ──────────────────────────
-    % GAP ridotto: spazio a 9ex (lascia 5ex netti tra i due box di background)
-    \node[phase-exec, below=9ex of p4] (p5) {\textbf{Fase~5:} Esecuzione (per test)\\{\footnotesize\texttt{engine.py}}};
-    \node[phase-exec, below=of p5]   (p6) {\textbf{Fase~6:} Teardown \gls{LIFO}\\{\footnotesize\texttt{core/context.py}}};
-    \node[phase-exec, below=of p6]   (p7) {\textbf{Fase~7:} Report\\{\footnotesize\texttt{report/renderer.py}}};
+      %% ── Fasi 5-7 (zona esecuzione, non bloccanti) ──────────────────────────
+      \node[phase-exec, below=6.5ex of p4] (p5) {\textbf{Fase~5:} Esecuzione (per test)\\{\footnotesize\texttt{engine.py}}};
+      \node[phase-exec, below=of p5]   (p6) {\textbf{Fase~6:} Teardown \gls{LIFO}\\{\footnotesize\texttt{core/context.py}}};
+      \node[phase-exec, below=of p6]   (p7) {\textbf{Fase~7:} Report\\{\footnotesize\texttt{report/renderer.py}}};
 
-    %% ── Terminale di uscita ────────────────────────────────────────────────
-    \node[term, below=5ex of p7] (end) {exit code: 0 / 1 / 2 / 10};
+      %% ── Terminale di uscita ────────────────────────────────────────────────
+      \node[term, below=3.5ex of p7] (end) {exit code: 0 / 1 / 2 / 10};
 
-    %% ── Rami KO → STOP (fasi bloccanti) posizionati prima degli sfondi ─────
-    \node[err-stop, right=4.5em of p1] (s1) {\texttt{ConfigurationError}\\{\footnotesize avvio interrotto}};
-    \node[err-stop, right=4.5em of p2] (s2) {\texttt{OpenAPILoadError}\\{\footnotesize avvio interrotto}};
-    \node[err-stop, right=4.5em of p4] (s4) {\texttt{DAGCycleError}\\{\footnotesize avvio interrotto}};
+      %% ── Rami KO → STOP (fasi bloccanti) ────────────────────────────────────
+      \node[err-stop, right=4em of p1] (s1) {\texttt{ConfigurationError}\\{\footnotesize avvio interrotto}};
+      \node[err-stop, right=4em of p2] (s2) {\texttt{OpenAPILoadError}\\{\footnotesize avvio interrotto}};
+      \node[err-stop, right=4em of p4] (s4) {\texttt{DAGCycleError}\\{\footnotesize avvio interrotto}};
 
-    %% ── Rami errore recuperabile (fasi 5, 6) ───────────────────────────────
-    \node[err-warn, right=4.5em of p5] (w5) {\texttt{TestResult(ERROR)}\\{\footnotesize isolato, pipeline prosegue}};
-    \node[err-warn, right=4.5em of p6] (w6) {\texttt{TeardownError}\\{\footnotesize \texttt{WARNING} strutturato}};
+      %% ── Rami errore recuperabile (fasi 5, 6) ───────────────────────────────
+      \node[err-warn, right=4em of p5] (w5) {\texttt{TestResult(ERROR)}\\{\footnotesize isolato, pipeline prosegue}};
+      \node[err-warn, right=4em of p6] (w6) {\texttt{TeardownError}\\{\footnotesize \texttt{WARNING} strutturato}};
 
-    %% ── Sfondi per le due zone ─────────────────────────────────────────────
-    \begin{scope}[on background layer]
-      \node[bg-startup, fit=(p1)(p2)(p3)(p4)] (grp-startup) {};
-      \node[bg-exec, fit=(p5)(p6)(p7)] (grp-exec) {};
-    \end{scope}
+      %% ── Sfondi per le due zone ─────────────────────────────────────────────
+      \begin{scope}[on background layer]
+        \node[bg-startup, fit=(p1)(p2)(p3)(p4)] (grp-startup) {};
+        \node[bg-exec, fit=(p5)(p6)(p7)] (grp-exec) {};
+      \end{scope}
 
-    %% ── ETICHETTE DI GRUPPO (Avvicinate all'asse e centrate in Y) ──────────
-    % xshift=-0.6em le avvicina notevolmente alla freccia centrale
-    % yshift=3ex solleva la prima etichetta al centro matematico del gap superiore.
-    \node[font=\footnotesize\bfseries, text=blue!70!black, anchor=east]
-    at ([xshift=-0.6em, yshift=3ex]grp-startup.north) {Fasi 1-4 (bloccanti)};
+      %% ── ETICHETTE DI GRUPPO (Spostate a sinistra) ──────────────────────────
+      \node[font=\footnotesize\bfseries, text=blue!70!black, align=right, anchor=east]
+      at ([xshift=-0.5em]grp-startup.west) {Fasi 1-4\\(bloccanti)};
 
-    % yshift=2.5ex solleva la seconda etichetta al centro matematico del gap centrale di 5ex netti.
-    \node[font=\footnotesize\bfseries, text=green!70!black, anchor=east]
-    at ([xshift=-0.6em, yshift=2.5ex]grp-exec.north) {Fasi 5-7 (non bloccanti)};
+      \node[font=\footnotesize\bfseries, text=green!70!black, align=right, anchor=east]
+      at ([xshift=-0.5em]grp-exec.west) {Fasi 5-7\\(non bloccanti)};
 
-    %% ── Frecce asse principale ─────────────────────────────────────────────
-    \draw[arr-ok] (start) -- (p1);
-    \draw[arr-ok] (p1) -- node[midway, right, lbl] {OK} (p2);
-    \draw[arr-ok] (p2) -- node[midway, right, lbl] {OK} (p3);
-    \draw[arr-ok] (p3) -- node[midway, right, lbl] {OK} (p4);
-    \draw[arr-ok] (p4) -- node[midway, right, lbl] {OK} (p5);
-    \draw[arr-ok] (p5) -- (p6);
-    \draw[arr-ok] (p6) -- node[midway, right, lbl] {OK} (p7);
-    \draw[arr-ok] (p7) -- (end);
+      %% ── Frecce asse principale ─────────────────────────────────────────────
+      \draw[arr-ok] (start) -- (p1);
+      \draw[arr-ok] (p1) -- node[midway, right, lbl] {OK} (p2);
+      \draw[arr-ok] (p2) -- node[midway, right, lbl] {OK} (p3);
+      \draw[arr-ok] (p3) -- node[midway, right, lbl] {OK} (p4);
+      \draw[arr-ok] (p4) -- node[midway, right, lbl] {OK} (p5);
+      \draw[arr-ok] (p5) -- (p6);
+      \draw[arr-ok] (p6) -- node[midway, right, lbl] {OK} (p7);
+      \draw[arr-ok] (p7) -- (end);
 
-    %% ── Frecce Laterali (Centrate nello spazio vuoto ricalibrato a pos=0.55) 
-    % Il valore 0.55 arretra i testi rispetto al 0.65 precedente, staccandoli dai riquadri di destra
-    \draw[arr-ko] (p1.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s1.west);
-    \draw[arr-ko] (p2.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s2.west);
-    \draw[arr-ko] (p4.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s4.west);
+      %% ── Frecce Laterali ────────────────────────────────────────────────────
+      \draw[arr-ko] (p1.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s1.west);
+      \draw[arr-ko] (p2.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s2.west);
+      \draw[arr-ko] (p4.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s4.west);
 
-    \draw[arr-warn] (p5.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {eccezione\\interna} (w5.west);
-    \draw[arr-warn] (p6.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {cleanup\\parziale} (w6.west);
+      \draw[arr-warn] (p5.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {eccezione\\interna} (w5.west);
+      \draw[arr-warn] (p6.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {cleanup\\parziale} (w6.west);
 
-  \end{tikzpicture}
+    \end{tikzpicture}
+  \end{adjustbox}
   \caption{Pipeline a sette fasi: startup bloccante (Fasi~1--4) ed esecuzione non bloccante (Fasi~5--7).}
   \label{fig:pipeline-flowchart}
 \end{figure}

@@ -1,10 +1,10 @@
-\begin{figure}[ht]
+\begin{figure}[htbp]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \begin{adjustbox}{max width=\textwidth}
     \begin{tikzpicture}[
         % Stili Gold Standard (niente dipendenze da classi esterne)
         base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
-        cmd/.style={base, fill=blue!5, draw=blue!40, font=\small\ttfamily, minimum width=18em},
+        cmd/.style={base, fill=blue!5, draw=blue!40, font=\small\ttfamily, minimum width=16em},
         decision/.style={draw, shape=diamond, aspect=2.5, inner sep=2pt, align=center, font=\small, fill=orange!10, draw=orange!50},
         %
         % Stili per gli Exit Codes (Larghezza fissa per allineamento a colonna)
@@ -14,10 +14,10 @@
         code10/.style={base, fill=gray!15, draw=gray!60!black, minimum width=8.5em},
         %
         % Stili per le Actions (Larghezza fissa e generosa)
-        act0/.style={base, fill=green!5, draw=green!40, minimum width=16em},
-        act1/.style={base, fill=red!5, draw=red!40, minimum width=16em},
-        act2/.style={base, fill=orange!5, draw=orange!40, minimum width=16em},
-        act10/.style={base, fill=gray!5, draw=gray!40, minimum width=16em},
+        act0/.style={base, fill=green!5, draw=green!40, minimum width=13em},
+        act1/.style={base, fill=red!5, draw=red!40, minimum width=13em},
+        act2/.style={base, fill=orange!5, draw=orange!40, minimum width=13em},
+        act10/.style={base, fill=gray!5, draw=gray!40, minimum width=13em},
       ]
 
       %% ── Asse Centrale (Runner -> Comando -> Decisione) ────────────────────
@@ -67,7 +67,7 @@
       \draw[-latex, semithick, gray!60!black] (e10.east) -- (a10.west);
 
     \end{tikzpicture}
-  }%
+  \end{adjustbox}
   \caption{Routing degli exit code semantici (D6.P1) nella pipeline \gls{CI/CD}: 0 clean, 1 fail, 2 error, 10 infra.}
   \label{fig:cicd-decision-tree}
 \end{figure}

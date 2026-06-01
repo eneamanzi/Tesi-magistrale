@@ -46,87 +46,87 @@ La Tabella~\ref{tab:pipeline-fasi} riporta il mapping tra fase e modulo responsa
 \input{assets/figures/4-src-layout.tex}
 
 \begin{enumerate}
-  \item \textbf{Fase~1: Inizializzazione} (Sezione~\ref{subsec:config-driven}). \texttt{config/loader.py} legge e
-        valida \texttt{config.yaml} contro lo schema Pydantic, interpola i segreti
-        da variabili d'ambiente e costruisce il modello \texttt{RuntimeConfig}.
-        \begin{itemize}
-          \item \textit{In caso di errore:} \texttt{ConfigurationError} interrompe
-                lo startup.
-          \item \textit{Perché bloccante:} senza configurazione valida non esistono
-                credenziali, \gls{URL} di target né parametri di esecuzione; qualsiasi
-                fase successiva opererebbe su basi non definite.
-        \end{itemize}
+      \item \textbf{Fase~1: Inizializzazione} (Sezione~\ref{subsec:config-driven}). \texttt{config/loader.py} legge e
+            valida \texttt{config.yaml} contro lo schema Pydantic, interpola i segreti
+            da variabili d'ambiente e costruisce il modello \texttt{RuntimeConfig}.
+            \begin{itemize}
+                  \item \textit{In caso di errore:} \texttt{ConfigurationError} interrompe
+                        lo startup.
+                  \item \textit{Perché bloccante:} senza configurazione valida non esistono
+                        credenziali, \gls{URL} di target né parametri di esecuzione; qualsiasi
+                        fase successiva opererebbe su basi non definite.
+            \end{itemize}
 
-  \item \textbf{Fase~2: OpenAPI Discovery} (Sezione~\ref{subsec:openapi-sot}). \texttt{discovery/openapi.py}
-        scarica la specifica OpenAPI del target, derefenzia i \texttt{\$ref}\footnote{Le specifiche OpenAPI usano \texttt{\$ref} per referenziare schemi riutilizzabili definiti altrove nel documento o in file esterni. La dereferenziazione sostituisce ogni \texttt{\$ref} con il contenuto del componente referenziato, producendo una specifica autonoma e navigabile senza dipendenze esterne.} tramite
-        \texttt{prance}, la valida con \texttt{openapi-spec-validator} e costruisce
-        l'\texttt{AttackSurface}: la mappa strutturata degli endpoint che ogni test
-        interroga per determinare il proprio scope.
-        \begin{itemize}
-          \item \textit{In caso di errore:} \texttt{OpenAPILoadError} interrompe
-                lo startup.
-          \item \textit{Perché bloccante:} la specifica OpenAPI è la sorgente esclusiva della conoscenza del target (Sezione~\ref{subsec:agnosticismo}); senza di essa nessun test può determinare su quali endpoint operare.
-        \end{itemize}
+      \item \textbf{Fase~2: OpenAPI Discovery} (Sezione~\ref{subsec:openapi-sot}). \texttt{discovery/openapi.py}
+            scarica la specifica OpenAPI del target, derefenzia i \texttt{\$ref}\footnote{Le specifiche OpenAPI usano \texttt{\$ref} per referenziare schemi riutilizzabili definiti altrove nel documento o in file esterni. La dereferenziazione sostituisce ogni \texttt{\$ref} con il contenuto del componente referenziato, producendo una specifica autonoma e navigabile senza dipendenze esterne.} tramite
+            \texttt{prance}, la valida con \texttt{openapi-spec-validator} e costruisce
+            l'\texttt{AttackSurface}: la mappa strutturata degli endpoint che ogni test
+            interroga per determinare il proprio scope.
+            \begin{itemize}
+                  \item \textit{In caso di errore:} \texttt{OpenAPILoadError} interrompe
+                        lo startup.
+                  \item \textit{Perché bloccante:} la specifica OpenAPI è la sorgente esclusiva della conoscenza del target (Sezione~\ref{subsec:agnosticismo}); senza di essa nessun test può determinare su quali endpoint operare.
+            \end{itemize}
 
-  \item \textbf{Fase~3: Costruzione Contesti.} \texttt{engine.py} istanzia i
-        tre oggetti di runtime condivisi: \texttt{TargetContext} (conoscenza del target frozen) e \texttt{TestContext} (stato dell'assessment mutabile),
-        descritti nella Sezione~\ref{subsec:split-state-impl}, e
-        \texttt{EvidenceStore} (streaming su disco), descritto nella Sezione~\ref{subsec:evidence-lifecycle}.
-        \begin{itemize}
-          \item \textit{In caso di errore:} nessuna eccezione prevista; la costruzione
-                dei contesti non produce fallimenti recuperabili.
-        \end{itemize}
+      \item \textbf{Fase~3: Costruzione Contesti.} \texttt{engine.py} istanzia i
+            tre oggetti di runtime condivisi: \texttt{TargetContext} (conoscenza del target frozen) e \texttt{TestContext} (stato dell'assessment mutabile),
+            descritti nella Sezione~\ref{subsec:split-state-impl}, e
+            \texttt{EvidenceStore} (streaming su disco), descritto nella Sezione~\ref{subsec:evidence-lifecycle}.
+            \begin{itemize}
+                  \item \textit{In caso di errore:} nessuna eccezione prevista; la costruzione
+                        dei contesti non produce fallimenti recuperabili.
+            \end{itemize}
 
-  \item \textbf{Fase~4: Test Discovery e \gls{DAG}.} \texttt{tests/registry.py} scopre
-        dinamicamente i test disponibili via \texttt{pkgutil} e applica i filtri di proprietà e strategia configurati (Sezione~\ref{subsec:discovery-impl}); la lista risultante
-        viene passata a \texttt{core/dag.py}, che costruisce il grafo delle
-        dipendenze e calcola l'ordinamento topologico in batch
-        (Sezione~\ref{subsec:dag-impl}).
-        \begin{itemize}
-          \item \textit{In caso di errore:} \texttt{DAGCycleError} interrompe
-                lo startup.
-          \item \textit{Perché bloccante:} un ciclo nelle dipendenze rende il grafo
-                non risolvibile; tentare l'esecuzione produrrebbe stallo o ordinamento
-                non deterministico.
-        \end{itemize}
+      \item \textbf{Fase~4: Test Discovery e \gls{DAG}.} \texttt{tests/registry.py} scopre
+            dinamicamente i test disponibili via \texttt{pkgutil} e applica i filtri di proprietà e strategia configurati (Sezione~\ref{subsec:discovery-impl}); la lista risultante
+            viene passata a \texttt{core/dag.py}, che costruisce il grafo delle
+            dipendenze e calcola l'ordinamento topologico in batch
+            (Sezione~\ref{subsec:dag-impl}).
+            \begin{itemize}
+                  \item \textit{In caso di errore:} \texttt{DAGCycleError} interrompe
+                        lo startup.
+                  \item \textit{Perché bloccante:} un ciclo nelle dipendenze rende il grafo
+                        non risolvibile; tentare l'esecuzione produrrebbe stallo o ordinamento
+                        non deterministico.
+            \end{itemize}
 
-  \item \textbf{Fase~5: Esecuzione.} \texttt{engine.py} itera sui \texttt{ScheduledBatch}
-        prodotti dalla fase precedente ed esegue i test in ordine topologico,
-        invocando \texttt{BaseTest.execute()} per i test nativi (Sezione~\ref{sec:basetest})
-        e \texttt{ExternalToolTest.execute()} per i test con tool esterni
-        (Sezione~\ref{sec:connectors}); il meccanismo di isolamento degli errori
-        è descritto nella Sezione~\ref{subsec:fail-safe}.
-        \begin{itemize}
-          \item \textit{In caso di errore:} le eccezioni interne a ogni test sono
-                catturate dal contratto di \texttt{execute()} e convertite in
-                \texttt{TestResult(ERROR)}; la pipeline prosegue con il test successivo.
-          \item \textit{Perché non-bloccante:} il fallimento di un singolo test è
-                un dato dell'assessment, non un motivo per invalidare i risultati degli
-                altri.
-        \end{itemize}
+      \item \textbf{Fase~5: Esecuzione.} \texttt{engine.py} itera sui \texttt{ScheduledBatch}
+            prodotti dalla fase precedente ed esegue i test in ordine topologico,
+            invocando \texttt{BaseTest.execute()} per i test nativi (Sezione~\ref{sec:basetest})
+            e \texttt{ExternalToolTest.execute()} per i test con tool esterni
+            (Sezione~\ref{sec:connectors}); il meccanismo di isolamento degli errori
+            è descritto nella Sezione~\ref{subsec:fail-safe}.
+            \begin{itemize}
+                  \item \textit{In caso di errore:} le eccezioni interne a ogni test sono
+                        catturate dal contratto di \texttt{execute()} e convertite in
+                        \texttt{TestResult(ERROR)}; la pipeline prosegue con il test successivo.
+                  \item \textit{Perché non-bloccante:} il fallimento di un singolo test è
+                        un dato dell'assessment, non un motivo per invalidare i risultati degli
+                        altri.
+            \end{itemize}
 
-  \item \textbf{Fase~6: Teardown.} \texttt{core/context.py} drena il registro
-        delle risorse create durante l'esecuzione e tenta la loro rimozione in
-        ordine \gls{LIFO} tramite \texttt{SecurityClient}; il meccanismo è
-        descritto nella Sezione~\ref{subsec:teardown}.
-        \begin{itemize}
-          \item \textit{In caso di errore:} \texttt{TeardownError} registrato come
-                \texttt{WARNING} strutturato; non invalida i risultati dell'assessment.
-          \item \textit{Perché non-bloccante:} il mancato cleanup è un avvertimento
-                operativo, non un'invalidazione scientifica dei finding già prodotti.
-        \end{itemize}
+      \item \textbf{Fase~6: Teardown.} \texttt{core/context.py} drena il registro
+            delle risorse create durante l'esecuzione e tenta la loro rimozione in
+            ordine \gls{LIFO} tramite \texttt{SecurityClient}; il meccanismo è
+            descritto nella Sezione~\ref{subsec:teardown}.
+            \begin{itemize}
+                  \item \textit{In caso di errore:} \texttt{TeardownError} registrato come
+                        \texttt{WARNING} strutturato; non invalida i risultati dell'assessment.
+                  \item \textit{Perché non-bloccante:} il mancato cleanup è un avvertimento
+                        operativo, non un'invalidazione scientifica dei finding già prodotti.
+            \end{itemize}
 
-  \item \textbf{Fase~7: Report.} \texttt{report/builder.py} aggrega i
-        \texttt{TestResult} in un \texttt{ReportData} e produce tre output:
-        \texttt{evidence.json} (archivio forense), \texttt{assessment\_report.html}
-        (report operativo con log completo delle transazioni) e
-        \texttt{apiguard\_report.json} (serializzazione strutturata per
-        \gls{CI/CD}), descritti nella Sezione~\ref{subsec:dual-audit-trail}.
-        \begin{itemize}
-          \item \textit{In caso di errore:} ogni sotto-operazione di~7 dispone di
-                un proprio blocco di gestione indipendente; un fallimento su un output
-                non impedisce la produzione degli altri.
-        \end{itemize}
+      \item \textbf{Fase~7: Report.} \texttt{report/builder.py} aggrega i
+            \texttt{TestResult} in un \texttt{ReportData} e produce tre output:
+            \texttt{evidence.json} (archivio forense), \texttt{assessment\_report.html}
+            (report operativo con log completo delle transazioni) e
+            \texttt{apiguard\_report.json} (serializzazione strutturata per
+            \gls{CI/CD}), descritti nella Sezione~\ref{subsec:dual-audit-trail}.
+            \begin{itemize}
+                  \item \textit{In caso di errore:} ogni sotto-operazione di~7 dispone di
+                        un proprio blocco di gestione indipendente; un fallimento su un output
+                        non impedisce la produzione degli altri.
+            \end{itemize}
 \end{enumerate}
 
 Il ruolo di \texttt{engine.py} è limitato all'orchestrazione pura: esegue le fasi nell'ordine corretto, trasferisce i contesti da una fase all'altra, e non contiene logica di dominio di nessun tipo (né regole di sicurezza, né criteri di valutazione, né conoscenza del formato della specifica OpenAPI). La scelta ha una ragione strutturale: un orchestratore che incorpora logica di dominio diventa il punto di concentrazione delle dipendenze, rendendo difficile testare i componenti in isolamento e trasformando ogni sostituzione di fase in un'operazione ad alto rischio di regressione. La coerenza con il principio del flusso monodirezionale (Sezione~\ref{subsec:dep-flow}) è verificabile per ispezione diretta: \texttt{engine.py} importa da \texttt{core/}, \texttt{discovery/}, \texttt{tests/} e \texttt{report/}, ma nessuno di questi moduli importa da \texttt{engine.py}. Il flusso completo della pipeline con le condizioni di errore per ciascuna fase è sintetizzato nella Figura~\ref{fig:pipeline-flowchart}.
@@ -183,11 +183,11 @@ Come stabilito nella Sezione~\ref{subsec:dag} e anticipato nella Fase~4 dell'ele
 Il \texttt{TestRegistry} in \texttt{src/tests/registry.py} scopre le classi concrete di test a runtime attraverso tre fasi sequenziali, denominate R1, R2 e R3, senza fare ricorso ad alcun elenco di registrazione manuale:
 
 \begin{enumerate}
-  \item \textbf{Phase~R1: Scansione del package.} La scansione del package \texttt{src.tests} è affidata a \texttt{pkgutil.walk\_packages()}, che ne attraversa l'intera struttura importando tutti i moduli il cui nome finale rispetta il prefisso \texttt{test\_}. Il meccanismo è indipendente dall'organizzazione delle sottodirectory: qualsiasi directory di \texttt{src/tests/} configurata come package Python con il proprio \texttt{\_\_init\_\_.py} viene inclusa automaticamente, a prescindere dal nome. Per convenzione, i test sono organizzati in directory \texttt{domain\_N/}, una per ciascun dominio di assurance, ma il registry non vincola questa struttura. Ogni file di test adotta la convenzione \texttt{test\_N\_M\_description.py}, dove \texttt{N} è il numero di dominio, \texttt{M} il numero progressivo del test all'interno del dominio e \texttt{description} una label in \texttt{snake\_case}; il \texttt{test\_id} dichiarato nella \texttt{ClassVar} segue il formato puntato corrispondente \texttt{N.M}. Errori di importazione nei singoli moduli vengono catturati e registrati come \texttt{WARNING} strutturato senza interrompere la scansione degli altri.
+      \item \textbf{Phase~R1: Scansione del package.} La scansione del package \texttt{src.tests} è affidata a \texttt{pkgutil.walk\_packages()}, che ne attraversa l'intera struttura importando tutti i moduli il cui nome finale rispetta il prefisso \texttt{test\_}. Il meccanismo è indipendente dall'organizzazione delle sottodirectory: qualsiasi directory di \texttt{src/tests/} configurata come package Python con il proprio \texttt{\_\_init\_\_.py} viene inclusa automaticamente, a prescindere dal nome. Per convenzione, i test sono organizzati in directory \texttt{domain\_N/}, una per ciascun dominio di assurance, ma il registry non vincola questa struttura. Ogni file di test adotta la convenzione \texttt{test\_N\_M\_description.py}, dove \texttt{N} è il numero di dominio, \texttt{M} il numero progressivo del test all'interno del dominio e \texttt{description} una label in \texttt{snake\_case}; il \texttt{test\_id} dichiarato nella \texttt{ClassVar} segue il formato puntato corrispondente \texttt{N.M}. Errori di importazione nei singoli moduli vengono catturati e registrati come \texttt{WARNING} strutturato senza interrompere la scansione degli altri.
 
-  \item \textbf{Phase~R2: Estrazione delle classi concrete.} Dai moduli importati vengono estratte le sottoclassi concrete di \texttt{BaseTest} tramite \texttt{inspect.getmembers()}, scartando la classe base stessa, le sottoclassi astratte con metodi non implementati, e le classi prive dei \texttt{ClassVar} obbligatori verificati da \texttt{has\_required\_metadata()}.
+      \item \textbf{Phase~R2: Estrazione delle classi concrete.} Dai moduli importati vengono estratte le sottoclassi concrete di \texttt{BaseTest} tramite \texttt{inspect.getmembers()}, scartando la classe base stessa, le sottoclassi astratte con metodi non implementati, e le classi prive dei \texttt{ClassVar} obbligatori verificati da \texttt{has\_required\_metadata()}.
 
-  \item \textbf{Phase~R3: Filtraggio per priorità e strategia.} Vengono trattenuti i test la cui \texttt{priority} non supera la soglia \texttt{min\_priority} e la cui \texttt{strategy} è inclusa nell'insieme delle strategie abilitate in \texttt{config.yaml}. Il filtraggio avviene per classe, prima dell'istanziazione, e ogni test escluso viene registrato a livello \texttt{DEBUG} con il motivo dell'esclusione.
+      \item \textbf{Phase~R3: Filtraggio per priorità e strategia.} Vengono trattenuti i test la cui \texttt{priority} non supera la soglia \texttt{min\_priority} e la cui \texttt{strategy} è inclusa nell'insieme delle strategie abilitate in \texttt{config.yaml}. Il filtraggio avviene per classe, prima dell'istanziazione, e ogni test escluso viene registrato a livello \texttt{DEBUG} con il motivo dell'esclusione.
 \end{enumerate}
 
 Il meccanismo ha una conseguenza diretta sull'estensibilità del sistema: aggiungere un test richiede la creazione di un file nella directory di dominio corretta rispettando la convenzione \texttt{test\_N\_M\_description.py} e implementare il contratto di \texttt{BaseTest} con i \texttt{ClassVar} obbligatori; nessun altro file deve essere modificato, nessuna registrazione manuale è necessaria.
@@ -207,7 +207,7 @@ Il vincolo su C è già catturato dalla dipendenza di B su C, e \texttt{Topologi
 
 \texttt{ScheduledBatch} è un \texttt{dataclass(frozen=True)} con due campi: \texttt{batch\_index} (intero che indica il livello topologico incrementando a partire da zero) e \texttt{test\_ids} (lista ordinata di stringhe). L'immutabilità garantisce che l'engine non possa alterare un batch durante l'esecuzione. Il determinismo all'interno di ogni batch, requisito discusso nella Sezione~\ref{subsec:reproducibility}, dipende da una singola riga: \texttt{ready\_nodes~=~sorted(sorter.get\_ready())}. \texttt{graphlib.TopologicalSorter.get\_ready()} restituisce i nodi pronti senza garantire nessun ordine sull'insieme estratto: a parità di grafo e di dipendenze dichiarate, l'ordine di iterazione può variare tra run, versioni di Python o piattaforme. L'ordinamento lessicografico esplicito sul \texttt{test\_id} è l'unica fonte di ordine deterministico all'interno di un batch: due run con le stesse dipendenze dichiarate producono sempre la stessa sequenza di esecuzione, condizione necessaria perché D3.P4 sia verificabile empiricamente e non solo enunciabile. La topologia concreta prodotta dal \texttt{DAGScheduler} nell'assessment di validazione, con la sequenza di Phase~A e Phase~B risultante, è illustrata nella Figura~\ref{fig:dag-topology}.
 
-\input{assets/figures/3-dag-topology.tex}
+\input{assets/figures/4-dag-topology.tex}
 
 Un caso limite, documentato nella Sezione~\ref{subsec:dag} a livello architetturale, è gestito dalla stall detection: \texttt{is\_active()} restituisce \texttt{True} ma \texttt{get\_ready()} non produce nodi, segnalando che il sorter è in uno stato irrecuperabile nonostante l'assenza di cicli dichiarati. Il \texttt{DAGScheduler} calcola in questo caso l'insieme dei \texttt{test\_id} mai estratti, li registra in un \texttt{ERROR} strutturato con il campo \texttt{unscheduled\_test\_ids}, e interrompe il drain. Il log fornisce all'operatore l'elenco esatto dei test coinvolti senza richiedere la lettura di un traceback generico.
 
@@ -233,8 +233,8 @@ Dal punto di vista dell'engine, la distinzione è quasi invisibile: entrambe le 
 Il contratto che \texttt{BaseTest} impone a ogni implementazione concreta si articola in due livelli:
 
 \begin{itemize}
-  \item \textbf{Dichiarazione statica via \texttt{ClassVar}}: ogni test deve dichiarare \texttt{test\_id} (identificatore univoco corrispondente all'ID nella metodologia), \texttt{domain} (dominio di assurance 0-7), \texttt{priority} (P0-P3), \texttt{strategy} (\texttt{BLACK\_BOX}, \texttt{GREY\_BOX}, \texttt{WHITE\_BOX}), \texttt{depends\_on} (lista di \texttt{test\_id} predecessori per il \gls{DAG}), \texttt{cwe\_id} e \texttt{tags} (riferimenti normativi). \texttt{has\_required\_metadata()} scarta le classi con \texttt{ClassVar} incompleti prima che vengano istanziate, così le implementazioni parziali non raggiungono mai la pipeline.
-  \item \textbf{Implementazione di \texttt{execute(target, ctx, store)}}: il metodo che garantisce le due invarianti discusse nella Sezione~\ref{subsec:fail-safe}: restituire sempre un \texttt{TestResult} e non propagare mai eccezioni verso l'engine.
+      \item \textbf{Dichiarazione statica via \texttt{ClassVar}}: ogni test deve dichiarare \texttt{test\_id} (identificatore univoco corrispondente all'ID nella metodologia), \texttt{domain} (dominio di assurance 0-7), \texttt{priority} (P0-P3), \texttt{strategy} (\texttt{BLACK\_BOX}, \texttt{GREY\_BOX}, \texttt{WHITE\_BOX}), \texttt{depends\_on} (lista di \texttt{test\_id} predecessori per il \gls{DAG}), \texttt{cwe\_id} e \texttt{tags} (riferimenti normativi). \texttt{has\_required\_metadata()} scarta le classi con \texttt{ClassVar} incompleti prima che vengano istanziate, così le implementazioni parziali non raggiungono mai la pipeline.
+      \item \textbf{Implementazione di \texttt{execute(target, ctx, store)}}: il metodo che garantisce le due invarianti discusse nella Sezione~\ref{subsec:fail-safe}: restituire sempre un \texttt{TestResult} e non propagare mai eccezioni verso l'engine.
 \end{itemize}
 
 \subsection{Invarianti di \texttt{TestResult} a Livello di Tipo (D4.P9)}\label{subsec:testresult-invariants}
@@ -242,9 +242,9 @@ Il contratto che \texttt{BaseTest} impone a ogni implementazione concreta si art
 Ogni test produce un \texttt{TestResult}, il modello Pydantic che trasporta lo stato finale della verifica verso il report. La coerenza tra lo stato di un \texttt{TestResult} e il suo contenuto, se affidata alla disciplina distribuita di implementazioni indipendenti, è una proprietà che il sistema non può garantire strutturalmente: uno stato \texttt{FAIL} senza evidenza, uno \texttt{SKIP} senza motivazione, un \texttt{PASS} con findings allegati sono tutti costruibili sintatticamente senza che il sistema se ne accorga, producendo entry di report formalmente validi ma privi di significato verificabile. La soluzione adottata sposta l'enforcement a livello di tipo, tramite un \texttt{@model\_validator(mode="after")} in \texttt{src/core/models/results.py} che applica tre invarianti nel momento in cui ogni test costruisce il proprio risultato, ovvero alla chiamata di \texttt{\_make\_pass()}, \texttt{\_make\_fail()} o \texttt{\_make\_skip()}, prima che l'oggetto raggiunga qualsiasi consumer:
 
 \begin{enumerate}
-  \item \texttt{status=FAIL} richiede \texttt{findings} non vuoto. Un FAIL senza evidenza non è un FAIL: è un'asserzione.
-  \item \texttt{status=SKIP} richiede \texttt{skip\_reason} non \texttt{None}. Ogni SKIP deve essere documentabile e auditabile.
-  \item \texttt{status=PASS} richiede \texttt{findings} vuoto. Un PASS non può coesistere con violazioni dichiarate.
+      \item \texttt{status=FAIL} richiede \texttt{findings} non vuoto. Un FAIL senza evidenza non è un FAIL: è un'asserzione.
+      \item \texttt{status=SKIP} richiede \texttt{skip\_reason} non \texttt{None}. Ogni SKIP deve essere documentabile e auditabile.
+      \item \texttt{status=PASS} richiede \texttt{findings} vuoto. Un PASS non può coesistere con violazioni dichiarate.
 \end{enumerate}
 
 La centralizzazione in un singolo \texttt{model\_validator} ha un effetto architetturale preciso: il contratto tra stato e contenuto del \texttt{TestResult} è enforced nel punto in cui l'oggetto viene costruito, indipendentemente da quale test lo costruisce e da quale helper utilizza. Una violazione solleva \texttt{pydantic.ValidationError} nel punto in cui l'helper \texttt{\_make\_pass()}, \texttt{\_make\_fail()} o \texttt{\_make\_skip()} costruisce l'oggetto, con un traceback che punta direttamente alla riga incriminata nel test responsabile. Ogni nuova implementazione di test ottiene la verifica automaticamente: il validator intercetta risultati inconsistenti nel punto stesso della costruzione, senza che il test debba contenere logica di validazione propria.
@@ -273,9 +273,9 @@ Ogni test nativo che interroga un endpoint del target riceve una risposta \gls{H
 La policy adottata definisce un framework a tre esiti applicato a ogni probe \gls{HTTP} nei test nativi: ogni risposta è classificata come \textsc{enforced} (il controllo funziona), \textsc{bypassed} (il controllo è assente o mal configurato) o \textsc{inconclusive} (il risultato non è interpretabile con certezza sufficiente per produrre un \texttt{Finding}). Il mapping specifico degli status code a ciascun esito dipende dalla natura del test: per i test \texttt{BLACK\_BOX} che verificano l'enforcement dell'autenticazione, la forma è la seguente:
 
 \begin{enumerate}
-  \item \textbf{ENFORCED}: la risposta è \texttt{401} o \texttt{403}. Il gateway ha applicato un controllo di accesso sul chiamante non autenticato.
-  \item \textbf{BYPASSED}: la risposta è \texttt{2xx}. Il gateway non ha richiesto autenticazione. Il controllo è assente o mal configurato.
-  \item \textbf{INCONCLUSIVE}: qualsiasi altro status. Il risultato non è interpretabile con certezza sufficiente per produrre un \texttt{Finding} \footnote{Esempio osservato su Forgejo: senza path seed, il probe su \texttt{/api/v1/repos/\{owner\}/\{repo\}} usa il placeholder \texttt{"1"} per entrambi i parametri; Forgejo risponde \texttt{404} perché la risorsa non esiste, la richiesta non raggiunge il middleware di autenticazione e il risultato è \textsc{inconclusive}. Con seed configurato, la stessa richiesta produce \textsc{enforced} o \textsc{bypassed}.}.
+      \item \textbf{ENFORCED}: la risposta è \texttt{401} o \texttt{403}. Il gateway ha applicato un controllo di accesso sul chiamante non autenticato.
+      \item \textbf{BYPASSED}: la risposta è \texttt{2xx}. Il gateway non ha richiesto autenticazione. Il controllo è assente o mal configurato.
+      \item \textbf{INCONCLUSIVE}: qualsiasi altro status. Il risultato non è interpretabile con certezza sufficiente per produrre un \texttt{Finding} \footnote{Esempio osservato su Forgejo: senza path seed, il probe su \texttt{/api/v1/repos/\{owner\}/\{repo\}} usa il placeholder \texttt{"1"} per entrambi i parametri; Forgejo risponde \texttt{404} perché la risorsa non esiste, la richiesta non raggiunge il middleware di autenticazione e il risultato è \textsc{inconclusive}. Con seed configurato, la stessa richiesta produce \textsc{enforced} o \textsc{bypassed}.}.
 \end{enumerate}
 
 
@@ -321,8 +321,8 @@ La gerarchia dei connector si articola su tre livelli, ciascuno dei quali eredit
 Il secondo livello si biforca a seconda della natura del tool:
 
 \begin{itemize}
-  \item \texttt{BaseSubprocessConnector} serve i tool invocati come processo di sistema (\texttt{NucleiConnector}, \texttt{TestsslConnector}): fornisce implementazioni concrete di \texttt{is\_available()} e \texttt{get\_version()} basate su subprocess, e il metodo \texttt{\_run\_subprocess()} che gestisce esecuzione, timeout e parsing dell'output. La ricerca del binario avviene su tre canali, fermandosi alla primo soddisfatto, nel seguente ordine: binario locale nella directory \texttt{tools/} del progetto, poi \texttt{shutil.which()} sul PATH di sistema, infine una variabile d'ambiente per i deployment in cui il tool è esposto come microservizio \gls{HTTP}. Il medesimo connector funziona così senza modifiche in sviluppo locale, in CI/CD e in ambienti containerizzati.
-  \item \texttt{BaseLibraryConnector} serve i tool Python-native (\texttt{SslyzeConnector}): usa \texttt{importlib.util.find\_spec()} per verificare la disponibilità della libreria senza invocare alcun subprocess, e legge la versione tramite \texttt{importlib.metadata}. La disponibilità è determinata dalla presenza del package nell'ambiente Python, non da un binario sul filesystem.
+      \item \texttt{BaseSubprocessConnector} serve i tool invocati come processo di sistema (\texttt{NucleiConnector}, \texttt{TestsslConnector}): fornisce implementazioni concrete di \texttt{is\_available()} e \texttt{get\_version()} basate su subprocess, e il metodo \texttt{\_run\_subprocess()} che gestisce esecuzione, timeout e parsing dell'output. La ricerca del binario avviene su tre canali, fermandosi alla primo soddisfatto, nel seguente ordine: binario locale nella directory \texttt{tools/} del progetto, poi \texttt{shutil.which()} sul PATH di sistema, infine una variabile d'ambiente per i deployment in cui il tool è esposto come microservizio \gls{HTTP}. Il medesimo connector funziona così senza modifiche in sviluppo locale, in CI/CD e in ambienti containerizzati.
+      \item \texttt{BaseLibraryConnector} serve i tool Python-native (\texttt{SslyzeConnector}): usa \texttt{importlib.util.find\_spec()} per verificare la disponibilità della libreria senza invocare alcun subprocess, e legge la versione tramite \texttt{importlib.metadata}. La disponibilità è determinata dalla presenza del package nell'ambiente Python, non da un binario sul filesystem.
 \end{itemize}
 
 Le implementazioni concrete si limitano a dichiarare le \texttt{ClassVar} specifiche del tool\footnote{Per \texttt{BaseSubprocessConnector}: \texttt{TOOL\_NAME}, \texttt{BINARY\_NAME}, \texttt{LOCAL\_TOOLS\_SUBDIR} e \texttt{SERVICE\_ENV\_VAR}. Per \texttt{BaseLibraryConnector}: \texttt{TOOL\_NAME} e \texttt{LIBRARY\_NAME}.}
@@ -375,11 +375,11 @@ Il ciclo di vita dell'adapter si articola su due momenti distinti. In Fase~3, \t
 Un assessment eseguito in ambienti eterogenei incontra sistematicamente situazioni in cui parti dell'infrastruttura non sono disponibili: tool esterni non installati, Admin \gls{API} non esposta, integrazione con tool esterni disabilitata per policy. La risposta del sistema non è un errore a cascata, ma una degradazione controllata su tre livelli distinti che produce risultati parziali corretti con motivazioni esplicite in ogni caso.
 
 \begin{itemize}
-  \item \textbf{Livello~1 - master switch globale.} Il flag \texttt{external\_tools.enabled} in \texttt{config.yaml} disabilita l'intera gerarchia \texttt{ExternalToolTest} in un'unica operazione: l'\texttt{ExternalTestRegistry} restituisce una lista vuota senza scandagliare il filesystem né importare moduli, con zero overhead e zero \texttt{SKIP} nel log. Serve per ambienti in cui la presenza di tool esterni è impossibile per policy di sicurezza o di deployment.
+      \item \textbf{Livello~1 - master switch globale.} Il flag \texttt{external\_tools.enabled} in \texttt{config.yaml} disabilita l'intera gerarchia \texttt{ExternalToolTest} in un'unica operazione: l'\texttt{ExternalTestRegistry} restituisce una lista vuota senza scandagliare il filesystem né importare moduli, con zero overhead e zero \texttt{SKIP} nel log. Serve per ambienti in cui la presenza di tool esterni è impossibile per policy di sicurezza o di deployment.
 
-  \item \textbf{Livello~2 - tool esterno assente.} Quando il master switch è attivo ma un singolo tool non è disponibile, la Phase~R4 descritta nella Sezione~\ref{subsec:discovery-impl} imposta \texttt{\_skip\_reason\_from\_registry} su ogni test del gruppo: ogni test riceve \texttt{SKIP} con motivazione esplicita, e un solo \texttt{WARNING} viene emesso nel log per tool mancante.
+      \item \textbf{Livello~2 - tool esterno assente.} Quando il master switch è attivo ma un singolo tool non è disponibile, la Phase~R4 descritta nella Sezione~\ref{subsec:discovery-impl} imposta \texttt{\_skip\_reason\_from\_registry} su ogni test del gruppo: ogni test riceve \texttt{SKIP} con motivazione esplicita, e un solo \texttt{WARNING} viene emesso nel log per tool mancante.
 
-  \item \textbf{Livello~3 - Admin \gls{API} del gateway assente.} Se \texttt{gateway\_adapter} non è configurato in \texttt{config.yaml} oppure se \texttt{check\_connectivity()} fallisce in Phase~3, \texttt{TargetContext.gateway} rimane \texttt{None}. Ogni test \texttt{WHITE\_BOX} chiama \texttt{\_requires\_admin\_api(target)} come prima operazione e restituisce \texttt{SKIP} con testo esplicito senza eseguire alcuna logica di verifica. L'assessment copre in questo scenario i soli domini \texttt{BLACK\_BOX} e \texttt{GREY\_BOX}, con un numero di \texttt{SKIP} pari al numero di test \texttt{WHITE\_BOX} nel set attivo.
+      \item \textbf{Livello~3 - Admin \gls{API} del gateway assente.} Se \texttt{gateway\_adapter} non è configurato in \texttt{config.yaml} oppure se \texttt{check\_connectivity()} fallisce in Phase~3, \texttt{TargetContext.gateway} rimane \texttt{None}. Ogni test \texttt{WHITE\_BOX} chiama \texttt{\_requires\_admin\_api(target)} come prima operazione e restituisce \texttt{SKIP} con testo esplicito senza eseguire alcuna logica di verifica. L'assessment copre in questo scenario i soli domini \texttt{BLACK\_BOX} e \texttt{GREY\_BOX}, con un numero di \texttt{SKIP} pari al numero di test \texttt{WHITE\_BOX} nel set attivo.
 \end{itemize}
 
 In tutti e tre i casi, gli \texttt{SKIP} prodotti sono distinguibili nel report per motivazione (campo \texttt{skip\_reason}), permettendo all'operatore di separare le garanzie non verificate per impossibilità tecnica da quelle non verificate per prerequisiti mancanti.
@@ -414,9 +414,9 @@ Gli artifact dei tool esterni passano per \texttt{EvidenceStore.\_sanitize\_arti
 \input{assets/figures/4-sanitization-funnel.tex}
 
 \begin{enumerate}
-  \item \textbf{Key-pattern matching}: un'espressione regolare esamina ricorsivamente ogni chiave del dizionario rispetto a 11 pattern sensibili (\texttt{token}, \texttt{password}, \texttt{api\_key}, \texttt{apikey}, \texttt{authorization}, \texttt{bearer}, \texttt{secret}, \texttt{credential}, \texttt{auth}, \texttt{private\_key}, \texttt{access\_token}). Il confronto richiede l'esatta corrispondenza della stringa e ignora le sottostringhe: questa scelta previene falsi positivi ed evita la redazione involontaria di campi legittimi (ad esempio, una chiave \texttt{author} non viene censurata pur contenendo la sequenza \texttt{auth}). Qualsiasi chiave con corrispondenza vede il proprio valore sostituito con \texttt{[REDACTED]}, indipendentemente dal tipo.
-  \item \textbf{\gls{JWT} value detection}: la regex \texttt{\_SANITIZE\_JWT\_PATTERN} intercetta le stringhe che contengono la firma di un token \gls{JWT}\footnote{La struttura standard di un token \gls{JWT} si compone di tre parti distinte, denominate \textit{header}, \textit{payload} e \textit{signature}, codificate in Base64URL e separate da un punto.}, offuscando il valore indipendentemente dal nome della chiave che lo ospita; cattura quindi i token che appaiono come valori in chiavi con nomi arbitrari.
-  \item \textbf{Header prefix matching}: qualsiasi stringa che inizia con \texttt{"Bearer "}, \texttt{"Basic "}, \texttt{"Token "} o \texttt{"token "} viene redactata, intercettando i token che compaiono nei valori di header \gls{HTTP} inclusi nei record di evidenza.
+      \item \textbf{Key-pattern matching}: un'espressione regolare esamina ricorsivamente ogni chiave del dizionario rispetto a 11 pattern sensibili (\texttt{token}, \texttt{password}, \texttt{api\_key}, \texttt{apikey}, \texttt{authorization}, \texttt{bearer}, \texttt{secret}, \texttt{credential}, \texttt{auth}, \texttt{private\_key}, \texttt{access\_token}). Il confronto richiede l'esatta corrispondenza della stringa e ignora le sottostringhe: questa scelta previene falsi positivi ed evita la redazione involontaria di campi legittimi (ad esempio, una chiave \texttt{author} non viene censurata pur contenendo la sequenza \texttt{auth}). Qualsiasi chiave con corrispondenza vede il proprio valore sostituito con \texttt{[REDACTED]}, indipendentemente dal tipo.
+      \item \textbf{\gls{JWT} value detection}: la regex \texttt{\_SANITIZE\_JWT\_PATTERN} intercetta le stringhe che contengono la firma di un token \gls{JWT}\footnote{La struttura standard di un token \gls{JWT} si compone di tre parti distinte, denominate \textit{header}, \textit{payload} e \textit{signature}, codificate in Base64URL e separate da un punto.}, offuscando il valore indipendentemente dal nome della chiave che lo ospita; cattura quindi i token che appaiono come valori in chiavi con nomi arbitrari.
+      \item \textbf{Header prefix matching}: qualsiasi stringa che inizia con \texttt{"Bearer "}, \texttt{"Basic "}, \texttt{"Token "} o \texttt{"token "} viene redactata, intercettando i token che compaiono nei valori di header \gls{HTTP} inclusi nei record di evidenza.
 \end{enumerate}
 
 

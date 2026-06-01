@@ -1,6 +1,6 @@
-\begin{figure}[ht]
+\begin{figure}[htbp]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \begin{adjustbox}{max width=\textwidth}
     \begin{tikzpicture}[
         % Spaziatura compatta
         node distance=1.5ex and 0.4em,
@@ -9,7 +9,7 @@
         base/.style={draw, rounded corners=1.5pt, align=center, inner sep=4pt},
         %
         % Etichetta di dominio: Altezza aumentata a 5.2ex
-        dom/.style={base, fill=gray!10, draw=gray!50, minimum width=11.5em, minimum height=5.2ex, font=\footnotesize\bfseries},
+        dom/.style={base, fill=gray!10, draw=gray!50, minimum width=10em, minimum height=5.2ex, font=\footnotesize\bfseries},
         %
         % Stili Esiti
         pass/.style={fill=green!10, draw=green!50!black},
@@ -92,7 +92,7 @@
       \node[font=\footnotesize\itshape, text=gray!70!black, right=0.8em of lg-ext] {corsivo = test esterno tramite connector};
 
     \end{tikzpicture}
-  }%
+  \end{adjustbox}
   \caption{Mappa di copertura (v0.1.0): test attivi per dominio, strategia Box Gradient e esiti \texttt{PASS}/\texttt{FAIL}/\texttt{SKIP}.}
   \label{fig:coverage-map}
 \end{figure}

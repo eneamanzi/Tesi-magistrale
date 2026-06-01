@@ -1,6 +1,6 @@
-\begin{figure}[ht]
+\begin{figure}[htbp]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \begin{adjustbox}{max width=\textwidth}
     \begin{tikzpicture}[
         % Distanza puramente tipografica (Gold Standard): 5ex verticale, 3.5em orizzontale
         node distance=5ex and 3.5em,
@@ -12,8 +12,8 @@
         core/.style={base, fill=blue!8, draw=blue!45, minimum width=17em, thick},
         %
         % Moduli Satelliti
-        active/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
-        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=8.5em, font=\small\itshape},
+        active/.style={base, fill=green!10, draw=green!50!black, minimum width=7em},
+        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=7em, font=\small\itshape},
         %
         % Stili Frecce
         arr-active/.style={-latex, thick, green!50!black},
@@ -29,7 +29,7 @@
 
       %% ── Moduli Satelliti (A stella) ───────────────────────────────────────
       % Modulo attivo (Sopra)
-      \node[active, above=of core] (rest) {\textbf{REST / OAS}\\{\scriptsize (attivo)}};
+      \node[active, above=of core] (rest) {\textbf{REST (\gls{OAS})}\\{\scriptsize (attivo)}};
 
       % Moduli pianificati (Destra, Sotto, Sinistra)
       \node[planned, right=of core] (gql) {\textbf{GraphQL}\\{\scriptsize (pianificato)}};
@@ -50,7 +50,7 @@
       };
 
     \end{tikzpicture}
-  }%
+  \end{adjustbox}
   \caption{Evoluzione di APIGuard Assurance verso una piattaforma modulare: core immutabile e moduli di protocollo intercambiabili.}
   \label{fig:modular-platform}
 \end{figure}
