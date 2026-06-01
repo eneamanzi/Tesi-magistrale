@@ -159,6 +159,7 @@
             "controller-specifiche",
             "Controller",
             "coverage",
+            "count",
             "crash",
             "crAPI",
             "creazione-registrazione",
@@ -491,7 +492,20 @@
             "webhook",
             "White",
             "whitelist",
-            "workflow"
+            "workflow",
+            "Atlidakis",
+            "binding",
+            "black-box",
+            "checker",
+            "command",
+            "decompondo",
+            "exploitation",
+            "fault",
+            "namespace",
+            "parameter",
+            "parent",
+            "privilege",
+            "side-effect"
         ]
     },
 }
