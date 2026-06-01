@@ -1,7 +1,9 @@
 \begin{table}[ht]
   \centering
   \small
-  \begin{tabularx}{\textwidth}{l C C}
+  % Torniamo al tabular compatto. 
+  % Usiamo 2em di spazio tra le colonne per un'impaginazione ariosa ma non dispersiva.
+  \begin{tabular}{@{\hspace{0.5em}} l @{\hspace{2em}} c @{\hspace{2em}} c @{\hspace{0.5em}}}
     \toprule
     \textbf{Metrica}       & \textbf{Run~1}      & \textbf{Run~2}      \\
     \midrule
@@ -13,7 +15,7 @@
     \addlinespace
     Peak resident set size & 287\,MB             & 295\,MB             \\
     \bottomrule
-  \end{tabularx}
+  \end{tabular}
   \caption{Metriche di sistema sui due run.}
   \label{tab:performance-baseline}
 \end{table}

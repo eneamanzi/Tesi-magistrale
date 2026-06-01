@@ -91,7 +91,7 @@ La garanzia di riproducibilità non riguarda ogni componente dell'output: timest
 \section{Architettura dell'Assessment Engine}\label{sec:architettura}
 % ─────────────────────────────────────────────────────────────────────────────
 
-Le proprietà discusse nella sezione precedente costituiscono la base del sistema, i cui componenti principali e le loro relazioni sono illustrati nella Figura~\ref{fig:architettura-apiguard}. Le scelte di questa sezione si aggiungono a esse, ciascuna rispondendo a un'esigenza architetturale specifica che le proprietà fondamentali lasciano aperta.
+Le proprietà discusse nella sezione precedente costituiscono la base del sistema. La Figura~\ref{fig:architettura-apiguard} ne visualizza la struttura d'insieme: gli ingressi della pipeline sul lato sinistro (\texttt{config.yaml} e la \gls{OAS}) sono già stati introdotti nella Sezione~\ref{sec:principi-fondamentali}; i moduli interni dell'Engine al centro, ovvero il DAG Scheduler, la separazione di contesto e l'Evidence Store, sono trattati nelle sottosezioni che seguono; l'infrastruttura target a destra, Kong Gateway con Forgejo come applicativo sottostante, è descritta nel suo deployment concreto nella Sezione~\ref{sec:testbed}. Le scelte di questa sezione si aggiungono alle proprietà fondamentali, ciascuna rispondendo a un'esigenza architetturale specifica che queste ultime lasciano aperta.
 
 \input{assets/figures/3-architettura-apiguard.tex}
 

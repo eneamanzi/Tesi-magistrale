@@ -1,62 +1,32 @@
 \begin{table}[ht]
   \centering
   \small
-  \begin{tabular}{@{}lp{0.62\textwidth}@{}}
+  % Abbandoniamo tabularx. Usiamo l l per il dominio e p{22em} per le proprietà.
+  \begin{tabular}{@{} l l >{\raggedright\arraybackslash}p{22em} @{}}
     \toprule
-    \textbf{Dominio}                    & \textbf{Proprietà} \\
+    % Uniamo le prime due colonne solo per l'intestazione
+    \multicolumn{2}{@{}l}{\textbf{Dominio}} & \textbf{Proprietà}                                                                                                                                                                                                                                                                                                                             \\
     \midrule
-    D1: Architettura \& Design          &
-    \hyperref[subsec:agnosticismo]{\textbf{D1.P1}},
-    \hyperref[subsec:dep-flow]{\textbf{D1.P2}},
-    \hyperref[subsec:split-state]{\textbf{D1.P3}},
-    \hyperref[subsec:dual-hierarchy]{D1.P4},
-    \hyperref[subsec:connector-hierarchy]{D1.P5},
-    \hyperref[subsec:gateway-adapter]{\textbf{D1.P6}}        \\
+    \textbf{D1}                             & Architettura \& Design          &
+    \hyperref[subsec:agnosticismo]{\textbf{D1.P1}}, \hyperref[subsec:dep-flow]{\textbf{D1.P2}}, \hyperref[subsec:split-state]{\textbf{D1.P3}}, \hyperref[subsec:dual-hierarchy]{D1.P4}, \hyperref[subsec:connector-hierarchy]{D1.P5}, \hyperref[subsec:gateway-adapter]{\textbf{D1.P6}}                                                                                                      \\
     \addlinespace
-    D2: Estensibilità \& Manutenibilità &
-    \hyperref[subsec:discovery-impl]{D2.P1},
-    \hyperref[subsec:dag]{\textbf{D2.P2}},
-    \hyperref[subsec:connector-hierarchy]{D2.P3},
-    \hyperref[subsec:connector-injection]{D2.P4},
-    \hyperref[subsec:auth-layer]{D2.P5},
-    \hyperref[subsec:connector-classification]{D2.P6},
-    \hyperref[subsec:path-seed]{D2.P7},
-    \hyperref[subsec:payload-catalog]{D2.P8}                 \\
+    \textbf{D2}                             & Estensibilità \& Manutenibilità &
+    \hyperref[subsec:discovery-impl]{D2.P1}, \hyperref[subsec:dag]{\textbf{D2.P2}}, \hyperref[subsec:connector-hierarchy]{D2.P3}, \hyperref[subsec:connector-injection]{D2.P4}, \hyperref[subsec:auth-layer]{D2.P5}, \hyperref[subsec:connector-classification]{D2.P6}, \hyperref[subsec:path-seed]{D2.P7}, \hyperref[subsec:payload-catalog]{D2.P8}                                         \\
     \addlinespace
-    D3: Config \& Riproducibilità       &
-    \hyperref[subsec:config-driven]{\textbf{D3.P1}},
-    \hyperref[subsec:openapi-sot]{\textbf{D3.P2}},
-    \hyperref[subsec:box-gradient]{\textbf{D3.P3}},
-    \hyperref[subsec:reproducibility]{\textbf{D3.P4}},
-    \hyperref[subsec:zero-state]{\textbf{D3.P5}}             \\
+    \textbf{D3}                             & Config \& Riproducibilità       &
+    \hyperref[subsec:config-driven]{\textbf{D3.P1}}, \hyperref[subsec:openapi-sot]{\textbf{D3.P2}}, \hyperref[subsec:box-gradient]{\textbf{D3.P3}}, \hyperref[subsec:reproducibility]{\textbf{D3.P4}}, \hyperref[subsec:zero-state]{\textbf{D3.P5}}                                                                                                                                          \\
     \addlinespace
-    D4: Robustezza \& Sicurezza         &
-    \hyperref[subsec:evidence-store]{\textbf{D4.P1}},
-    \hyperref[subsec:sanitization]{D4.P2},
-    \hyperref[subsec:fail-safe]{D4.P3},
-    \hyperref[subsec:exception-hierarchy]{D4.P4},
-    \hyperref[subsec:graceful-degradation]{D4.P5},
-    \hyperref[subsec:teardown]{D4.P6},
-    \hyperref[subsec:probing-policy]{D4.P7},
-    \hyperref[subsec:fail-fast]{D4.P8},
-    \hyperref[subsec:testresult-invariants]{D4.P9}           \\
+    \textbf{D4}                             & Robustezza \& Sicurezza         &
+    \hyperref[subsec:evidence-store]{\textbf{D4.P1}}, \hyperref[subsec:sanitization]{D4.P2}, \hyperref[subsec:fail-safe]{D4.P3}, \hyperref[subsec:exception-hierarchy]{D4.P4}, \hyperref[subsec:graceful-degradation]{D4.P5}, \hyperref[subsec:teardown]{D4.P6}, \hyperref[subsec:probing-policy]{D4.P7}, \hyperref[subsec:fail-fast]{D4.P8}, \hyperref[subsec:testresult-invariants]{D4.P9} \\
     \addlinespace
-    D5: Qualità \& Osservabilità        &
-    \hyperref[subsec:traceability]{D5.P1},
-    \hyperref[subsec:traceability]{D5.P2},
-    \hyperref[subsec:payload-catalog]{D5.P3},
-    D5.P4,
-    \hyperref[subsec:dual-audit-trail]{D5.P5}                \\
+    \textbf{D5}                             & Qualità \& Osservabilità        &
+    \hyperref[subsec:traceability]{D5.P1}, \hyperref[subsec:traceability]{D5.P2}, \hyperref[subsec:payload-catalog]{D5.P3}, D5.P4, \hyperref[subsec:dual-audit-trail]{D5.P5}                                                                                                                                                                                                                 \\
     \addlinespace
-    D6: CI/CD \& DevEx                  &
-    \hyperref[subsec:exit-codes]{D6.P1},
-    D6.P2,
-    \hyperref[subsec:dual-layer-type-safety]{D6.P3}          \\
+    \textbf{D6}                             & CI/CD \& DevEx                  &
+    \hyperref[subsec:exit-codes]{D6.P1}, D6.P2, \hyperref[subsec:dual-layer-type-safety]{D6.P3}                                                                                                                                                                                                                                                                                              \\
     \addlinespace
-    D7: Packaging \& Deployment         &
-    \hyperref[subsec:connector-hierarchy]{D7.P1},
-    \hyperref[subsec:agpl-isolation]{D7.P2},
-    D7.P3                                                    \\
+    \textbf{D7}                             & Packaging \& Deployment         &
+    \hyperref[subsec:connector-hierarchy]{D7.P1}, \hyperref[subsec:agpl-isolation]{D7.P2}, D7.P3                                                                                                                                                                                                                                                                                             \\
     \bottomrule
   \end{tabular}
   \caption{Proprietà APIGuard Assurance per dominio.}

@@ -1,7 +1,8 @@
 \begin{table}[ht]
   \centering
   \small
-  \begin{tabularx}{\textwidth}{l l X}
+  % Aggiunti i margini invisibili @{} e il raggedright per la colonna X
+  \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
     \toprule
     \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                                                                  \\
     \midrule
@@ -21,7 +22,7 @@
     \addlinespace
     \texttt{testssl.sh}         & 3.2.3                 & Analisi \gls{TLS} black-box (test \texttt{ext.1.5.testssl})                                                 \\
     \addlinespace
-    sslyze                      & (libreria Python)     & Analisi \gls{TLS} via libreria Python (test \texttt{ext.1.5.sslyze})                                        \\
+    \texttt{sslyze}             & (libreria Python)     & Analisi \gls{TLS} via libreria Python (test \texttt{ext.1.5.sslyze})                                        \\
     \bottomrule
   \end{tabularx}
   \caption{Componenti e versioni dell'ambiente di test.}

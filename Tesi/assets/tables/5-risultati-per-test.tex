@@ -1,7 +1,8 @@
 \begin{table}[ht]
   \centering
   \small
-  \begin{tabularx}{\textwidth}{l l l C C}
+  % Tabular puro con margini di 0.5em. Allineamenti: left, left, center, center, center
+  \begin{tabular}{@{\hspace{0.5em}} l l c c c @{\hspace{0.5em}}}
     \toprule
     \textbf{Test ID}         & \textbf{Dominio}   & \textbf{Tipo} & \textbf{Status} & \textbf{Finding} \\
     \midrule
@@ -33,7 +34,7 @@
     \midrule
     \textbf{Totale}          &                    &               &                 & \textbf{98}      \\
     \bottomrule
-  \end{tabularx}
+  \end{tabular}
   \caption{Status e finding count per test.}
   \label{tab:risultati-per-test}
 \end{table}

@@ -2,18 +2,19 @@
   \centering
   \begin{adjustbox}{max width=\textwidth}
     \begin{tikzpicture}[
-        % Distanza puramente tipografica (Gold Standard): 5ex verticale, 3.5em orizzontale
-        node distance=5ex and 3.5em,
+        % Distanze calibrate
+        node distance=4.5ex and 2.5em,
         %
         % Stili di base
-        base/.style={draw, rounded corners=2pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
+        base/.style={draw, rounded corners=2pt, inner sep=8pt, align=center, font=\small},
         %
-        % Core (Blu)
-        core/.style={base, fill=blue!8, draw=blue!45, minimum width=17em, thick},
+        % Core invariante leggermente allargato a 22em per accogliere la nuova riga dei contratti
+        core/.style={base, fill=blue!8, draw=blue!45, minimum width=22em, thick},
+        % Plugin mantenuto proporzionale (2em in meno del core)
+        active/.style={base, fill=green!10, draw=green!50!black, minimum width=20em},
         %
         % Moduli Satelliti
-        active/.style={base, fill=green!10, draw=green!50!black, minimum width=7em},
-        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=7em, font=\small\itshape},
+        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=8em},
         %
         % Stili Frecce
         arr-active/.style={-latex, thick, green!50!black},
@@ -22,19 +23,26 @@
 
       %% ── Core immutabile (Centro) ──────────────────────────────────────────
       \node[core] (core) {
-      \textbf{Core: infrastruttura immutabile}\\
-      {\scriptsize Engine \textbar{} DAG Scheduler \textbar{} EvidenceStore}\\
-      {\scriptsize TargetContext \textbar{} BaseTest \textbar{} BaseConnector}
+      \textbf{Core: infrastruttura immutabile}\\[1.5ex]
+      {\footnotesize \texttt{Engine} \textbar{} \texttt{DAGScheduler} \textbar{} \texttt{EvidenceStore}}\\[0.8ex]
+      {\footnotesize \texttt{TestContext} \textbar{} \texttt{TargetContext}}\\[0.8ex]
+      {\footnotesize \texttt{BaseTest} \textbar{} \texttt{BaseConnector} \textbar{} \texttt{BaseGatewayAdapter}}\\[0.8ex]
+      {\footnotesize \texttt{TestResult} \textbar{} \texttt{Finding} \textbar{} \texttt{EvidenceRecord}}
       };
 
       %% ── Moduli Satelliti (A stella) ───────────────────────────────────────
       % Modulo attivo (Sopra)
-      \node[active, above=of core] (rest) {\textbf{REST (\gls{OAS})}\\{\scriptsize (attivo)}};
+      \node[active, above=of core] (rest) {
+      \textbf{Plugin REST (\gls{OAS})} \ {\footnotesize\itshape (attivo)}\\[1.5ex]
+      {\footnotesize \texttt{OpenAPI discovery} \textbar{} \texttt{AttackSurface}}\\[0.8ex]
+      {\footnotesize \texttt{SecurityClient} \textbar{} \texttt{KongGatewayAdapter}}\\[0.8ex]
+      {\footnotesize 18 Test nativi (Domini D0--D7)}
+      };
 
       % Moduli pianificati (Destra, Sotto, Sinistra)
-      \node[planned, right=of core] (gql) {\textbf{GraphQL}\\{\scriptsize (pianificato)}};
-      \node[planned, below=of core] (grpc) {\textbf{gRPC}\\{\scriptsize (pianificato)}};
-      \node[planned, left=of core] (ws) {\textbf{WebSocket}\\{\scriptsize (pianificato)}};
+      \node[planned, right=of core] (gql) {\textbf{GraphQL}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+      \node[planned, below=of core] (grpc) {\textbf{gRPC}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+      \node[planned, left=of core] (ws) {\textbf{WebSocket}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
 
       %% ── Frecce di Collegamento (Convergenti verso il Core) ────────────────
       \draw[arr-active] (rest.south) -- (core.north);
@@ -43,14 +51,13 @@
       \draw[arr-planned] (ws.east) -- (core.west);
 
       %% ── Legenda e Note ────────────────────────────────────────────────────
-      % Distanza puramente tipografica anche qui (4ex)
-      \node[font=\small, text=gray!80!black, below=4ex of grpc, align=center] (note) {
+      \node[font=\footnotesize, text=gray!80!black, below=4ex of grpc, align=center] (note) {
       frecce continue: modulo attivo \quad frecce tratteggiate: moduli pianificati\\[1ex]
       {\itshape Il discovery dinamico via \texttt{pkgutil} permette il caricamento trasparente di moduli di terze parti}
       };
 
     \end{tikzpicture}
   \end{adjustbox}
-  \caption{Evoluzione di APIGuard Assurance verso una piattaforma modulare: core immutabile e moduli di protocollo intercambiabili.}
+  \caption{Evoluzione di APIGuard Assurance verso una piattaforma modulare: separazione netta tra il core invariante e i plugin di protocollo.}
   \label{fig:modular-platform}
 \end{figure}

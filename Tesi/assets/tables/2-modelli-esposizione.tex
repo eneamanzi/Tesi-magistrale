@@ -1,38 +1,45 @@
 \begin{table}[ht]
   \centering \small
-  \begin{tabularx}{\textwidth}{@{} p{3.0cm} p{1.8cm} X X X @{}}
+  \begin{tabularx}{\textwidth}{@{}
+    % Colonne fisse basate su unità relative al font (em)
+    >{\raggedright\arraybackslash}p{11em}
+    >{\raggedright\arraybackslash}p{5em}
+    % Colonne X pesate proporzionalmente
+    >{\raggedright\arraybackslash\hsize=1.2\hsize}X
+    >{\raggedright\arraybackslash\hsize=0.9\hsize}X
+    >{\raggedright\arraybackslash\hsize=0.9\hsize}X @{}}
     \toprule
     \textbf{Modello}
      & \textbf{Traffico presidiato}
      & \textbf{Enforcement policy}
      & \textbf{Accesso al piano di configurazione}
-     & \textbf{Verifica \texttt{WHITE\_BOX}}           \\
+     & \textbf{Verifica \texttt{WHITE\_BOX}}       \\
     \midrule
-    Gateway \gls{API} Dedicato (es.\ Kong, Apigee)
+    Gateway \gls{API} Dedicato \newline {\footnotesize (es.\ Kong, Apigee)}
      & Nord-sud
-     & Centralizzato in un unico strato ispezionabile
+     & Centralizzato (singolo strato)
      & Admin \gls{API} diretta
-     & Nativa                                          \\
+     & Nativa                                      \\
     \addlinespace
     Kubernetes Ingress / Gateway \gls{API}
      & Nord-sud
-     & Parziale: annotation controller-specifiche
+     & Centralizzato (via K8s API)
      & \texttt{kubectl} / Kubernetes \gls{API}
-     & Controller-dipendente                           \\
+     & Controller-dipendente                       \\
     \addlinespace
-    Service Mesh (es.\ Istio)
+    Service Mesh \newline {\footnotesize (es.\ Istio)}
      & Est-ovest
      & Distribuito per sidecar proxy
      & Control plane (istiod)
-     & Fuori perimetro nord-sud                        \\
+     & N/A (est-ovest)                             \\
     \addlinespace
-    Gateway Managed Cloud (AWS, Azure, GCP)
+    Gateway Managed Cloud \newline {\footnotesize (AWS, Azure, GCP)}
      & Nord-sud
-     & Centralizzato: gestito interamente dal provider
+     & Centralizzato dal provider
      & \gls{SDK} / \gls{API} del cloud provider
-     & Richiede adapter dedicato                       \\
+     & Adapter dedicato                            \\
     \bottomrule
   \end{tabularx}
-  \caption{Confronto dei quattro modelli di esposizione gateway: traffico presidiato, enforcement policy e verificabilità \texttt{WHITE\_BOX}.}
+  \caption{Confronto dei quattro modelli di esposizione gateway.}
   \label{tab:modelli-esposizione}
 \end{table}

@@ -1,15 +1,17 @@
 \begin{table}[ht]
   \centering
   \small
-  \begin{tabularx}{\textwidth}{l l X}
+  % tabularx per mandare a capo i test.
+  % Cardinalità centrata (c) e allineamento a bandiera (raggedright) per evitare spazi dilatati
+  \begin{tabularx}{\textwidth}{@{\hspace{0.5em}} l c >{\raggedright\arraybackslash}X @{\hspace{0.5em}}}
     \toprule
-    \textbf{Fase DAG}                        & \textbf{Cardinalità} & \textbf{Test}                                                                                                                                                                                  \\
+    \textbf{Fase DAG}                        & \textbf{Cardinalità} & \textbf{Test}                                                                                                                                                                                                                                                                                           \\
     \midrule
     Phase~A (nessuna dipendenza)             & 16 test              &
-    \texttt{0.1}, \texttt{0.2}, \texttt{0.3}, \texttt{1.1}, \texttt{1.5}, \texttt{1.6}, \texttt{3.3}, \texttt{4.1}, \texttt{4.2}, \texttt{4.3}, \texttt{6.2}, \texttt{6.4}, \texttt{7.2}, \texttt{ext.0.1.nuclei}, \texttt{ext.1.5.testssl}, \texttt{ext.1.5.sslyze} \\
+    \texttt{0.1} $\cdot$ \texttt{0.2} $\cdot$ \texttt{0.3} $\cdot$ \texttt{1.1} $\cdot$ \texttt{1.5} $\cdot$ \texttt{1.6} $\cdot$ \texttt{3.3} $\cdot$ \texttt{4.1} $\cdot$ \texttt{4.2} $\cdot$ \texttt{4.3} $\cdot$ \texttt{6.2} $\cdot$ \texttt{6.4} $\cdot$ \texttt{7.2} $\cdot$ \texttt{ext.0.1.nuclei} $\cdot$ \texttt{ext.1.5.testssl} $\cdot$ \texttt{ext.1.5.sslyze} \\
     \addlinespace
     Phase~B (\texttt{depends\_on = ["1.1"]}) & 2 test               &
-    \texttt{1.4}, \texttt{2.1}                                                                                                                                                                                                                                       \\
+    \texttt{1.4} $\cdot$ \texttt{2.1}                                                                                                                                                                                                                                                                                                                                         \\
     \bottomrule
   \end{tabularx}
   \caption{Topologia del \gls{DAG} nell'assessment di validazione.}

@@ -1,26 +1,26 @@
-\begin{table}[ht]
+\begin{table}[htb]
   \centering
   \small
-  \begin{tabularx}{\textwidth}{l l X}
+  % Aggiunti i margini @{} e l'allineamento a sinistra (raggedright) per la colonna X
+  \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
     \toprule
-    \textbf{Tool}      & \textbf{Esito}               & \textbf{Note}         \\
+    \textbf{Tool}      & \textbf{Esito}                   & \textbf{Note}                                          \\
     \midrule
-    \texttt{ruff}      & 0 errori                     &
-    Ruleset \texttt{E/W/F/I/N/UP/B/S/ANN}                                     \\
+    \texttt{ruff}      & 0 errori                         &
+    Ruleset \texttt{E/W/F/I/N/UP/B/S/ANN}                                                                          \\
     \addlinespace
-    \texttt{mypy}      & 0 errori                     &
+    \texttt{mypy}      & 0 errori                         &
     Modalità \texttt{strict}: \texttt{no-implicit-optional},
-    \texttt{disallow-untyped-defs}, \texttt{warn-return-any}                  \\
+    \texttt{disallow-untyped-defs}, \texttt{warn-return-any}                                                       \\
     \addlinespace
-    \texttt{bandit}    & 0 finding severity medium$+$ &
-    3 Low (B404, S603$\times$2) soppressi con \texttt{\#~noqa} documentati:
-    invocazione subprocess controllata per design                             \\
+    \texttt{bandit}    & 0 finding severity $\geq$ medium &
+    3 Low (B404, S603x2) soppressi con \texttt{\# noqa} documentati: invocazione subprocess controllata per design \\
     \addlinespace
-    \texttt{vulture}   & 0 finding                    &
-    Confidence $\ge$80\%; metodi a dispatching dinamico esclusi via whitelist \\
+    \texttt{vulture}   & 0 finding                        &
+    Confidence $\ge$80\%; metodi a dispatching dinamico esclusi via whitelist                                      \\
     \addlinespace
-    \texttt{pip-audit} & 0 \gls{CVE}                  &
-    Nessuna vulnerabilità nota nelle dipendenze dichiarate                    \\
+    \texttt{pip-audit} & 0 \gls{CVE}                      &
+    Nessuna vulnerabilità nota nelle dipendenze dichiarate                                                         \\
     \bottomrule
   \end{tabularx}
   \caption{Risultati dell'analisi statica su APIGuard Assurance v0.1.0.}

@@ -1,7 +1,8 @@
 \begin{table}[ht]
   \centering
   \small
-  \begin{tabularx}{0.85\textwidth}{l C C C}
+  % Abbiamo iniettato 1.5em di spazio vuoto per distanziare le colonne interne
+  \begin{tabular}{@{\hspace{0.5em}} l @{\hspace{1.5em}} c @{\hspace{1.5em}} c @{\hspace{1.5em}} c @{\hspace{0.5em}}}
     \toprule
     \textbf{\gls{KPI}}                     & \textbf{Run~1}    & \textbf{Run~2}    & \textbf{$\Delta$} \\
     \midrule
@@ -15,7 +16,7 @@
     \addlinespace
     Exit code / label                      & 1 / \texttt{FAIL} & 1 / \texttt{FAIL} & identico          \\
     \bottomrule
-  \end{tabularx}
+  \end{tabular}
   \caption{KPI di idempotenza su due run indipendenti.}
   \label{tab:idempotenza-kpi}
 \end{table}
