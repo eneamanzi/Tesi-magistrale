@@ -3,7 +3,6 @@
 
 - [FASCIA A — RACCOMANDATO / RACCOMANDATO CON CORREZIONI](#fascia-a--raccomandato--raccomandato-con-correzioni)
   - [Capitolo 2 — Background e Stato dell'Arte](#capitolo-2--background-e-stato-dellarte)
-    - [\[A-07\] Rethinking Broken Object Level Authorization Attacks Under Zero Trust Principle (BoLAZ)](#a-07-rethinking-broken-object-level-authorization-attacks-under-zero-trust-principle-bolaz)
     - [\[A-23\] Break the Wall from Bottom: Automated Discovery of Protocol-Level Evasion Vulnerabilities in Web Application Firewalls (WAF Manis)](#a-23-break-the-wall-from-bottom-automated-discovery-of-protocol-level-evasion-vulnerabilities-in-web-application-firewalls-waf-manis)
   - [Capitolo 3 — Metodologia](#capitolo-3--metodologia)
     - [\[A-12\] Deriving Semantics-Aware Fuzzers from Web API Schemas (Schemathesis)](#a-12-deriving-semantics-aware-fuzzers-from-web-api-schemas-schemathesis)
@@ -24,7 +23,6 @@
 - [FASCIA B — TENERE CON RISERVA](#fascia-b--tenere-con-riserva)
   - [Capitolo 2 — Background e Stato dell'Arte](#capitolo-2--background-e-stato-dellarte-1)
     - [\[B-01\] Shepherd: Adaptive Detection of Suspicious API Interaction Flows in Microservices](#b-01-shepherd-adaptive-detection-of-suspicious-api-interaction-flows-in-microservices)
-    - [\[B-02\] A Model to Limit Batching Denial of Service Attacks on GraphQL](#b-02-a-model-to-limit-batching-denial-of-service-attacks-on-graphql)
     - [\[B-03\] WuppieFuzz: Coverage-Guided, Stateful REST API Fuzzing](#b-03-wuppiefuzz-coverage-guided-stateful-rest-api-fuzzing)
   - [Capitolo 3 — Metodologia](#capitolo-3--metodologia-1)
     - [\[B-04\] ORANalyst: Systematic Testing Framework for Open RAN Implementations](#b-04-oranalyst-systematic-testing-framework-for-open-ran-implementations)
@@ -49,39 +47,6 @@
 ---
 
 ### Capitolo 2 — Background e Stato dell'Arte
-
-
----
-
-#### [A-07] Rethinking Broken Object Level Authorization Attacks Under Zero Trust Principle (BoLAZ)
-
-**Metadati**
-- **Titolo**: Rethinking Broken Object Level Authorization Attacks Under Zero Trust Principle
-- **Autori**: Anbin Wu, Zhiyong Feng, Ruitao Feng, Zhenchang Xing, Yang Liu
-- **Sede**: arXiv preprint (arXiv:2507.02309) — sottomissione futura a journal/conference prevista
-- **Anno**: 2025
-- **DOI**: `10.48550/arXiv.2507.02309`
-- **Accesso aperto**: https://arxiv.org/pdf/2507.02309
-- **Stato**: Preprint non ancora pubblicato in sede peer-reviewed. Contenuto e autori verificati. Citare come `arXiv preprint`.
-
-**Rilevanza**
-BoLAZ propone un framework di difesa contro BOLA fondato su static taint tracking: analizza il flusso degli ID risorsa nel codice sorgente, identifica i punti di iniezione (endpoint consumer) e determina gli intervalli di autorizzazione leciti, impedendo che un ID "alieno" raggiunga il livello di query al database. L'approccio contrasta direttamente con il modello di difesa basato su policy statiche redatte manualmente, che il paper dimostra essere insufficienti, e rappresenta la formalizzazione accademica del principio Zero Trust applicato al livello di oggetto. Per la tesi, fornisce il supporto bibliografico per l'affermazione che BOLA non è rilevabile da strumenti perimetrali che non tracciano la propagazione degli ID nella logica applicativa, e che l'unica via è l'analisi della relazione tra il chiamante e la risorsa richiesta.
-
-**Punto di inserimento**
-§2.3.2 (`\subsec:categorie-fallimento`), nella parte dedicata a BOLA/IDOR, in supporto all'argomento che il WAF non può verificare la corrispondenza tra identità del chiamante e ID dell'oggetto richiesto.
-
-```bibtex
-@article{wu2025bolaz,
-  title={Rethinking Broken Object Level Authorization Attacks Under Zero
-         Trust Principle},
-  author={Wu, Anbin and Feng, Zhiyong and Feng, Ruitao and Xing, Zhenchang
-          and Liu, Yang},
-  journal={arXiv preprint arXiv:2507.02309},
-  year={2025},
-  doi={10.48550/arXiv.2507.02309}
-}
-```
-
 ---
 
 #### [A-23] Break the Wall from Bottom: Automated Discovery of Protocol-Level Evasion Vulnerabilities in Web Application Firewalls (WAF Manis)
@@ -574,32 +539,6 @@ Il paper propone un sistema basato su Graph Attention Network per rilevare in te
 
 ---
 
-#### [B-02] A Model to Limit Batching Denial of Service Attacks on GraphQL
-
-**Metadati**
-- **Titolo**: A Model to Limit Batching Denial of Service Attacks on GraphQL
-- **Autori**: Arno Möller, Sheunesu M. Makura, Hein S. Venter
-- **Sede**: 2024 IST-Africa Conference (IST-Africa), IEEE
-- **Anno**: 2024
-- **Limite**: Venue di profilo basso per la sicurezza informatica; nessun DOI canonico verificato.
-
-**Rilevanza**
-Analizza il meccanismo di batching in GraphQL come vettore per aggirare i controlli volumetrici e propone un modello ibrido di Query Cost Analysis. Complementare a WENDIGO [A-06], che affronta lo stesso problema con DRL. Se WENDIGO è già citato, questo paper aggiunge la prospettiva difensiva (limitazione lato server).
-
-**Punto di inserimento**
-§2.8 (GraphQL DoS), come riferimento secondario sulle difese, dopo WENDIGO [A-06].
-
-```bibtex
-@inproceedings{moller2024graphql,
-  title={A Model to Limit Batching Denial of Service Attacks on {GraphQL}},
-  author={M{\"o}ller, Arno and Makura, Sheunesu M. and Venter, Hein S.},
-  booktitle={2024 IST-Africa Conference (IST-Africa)},
-  year={2024},
-  organization={IEEE}
-}
-```
-
----
 
 #### [B-03] WuppieFuzz: Coverage-Guided, Stateful REST API Fuzzing
 

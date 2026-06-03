@@ -1,0 +1,22 @@
+\begin{table}[ht]
+  \centering
+  \small
+  % La prima colonna si stringe attorno ai nomi (l), le altre 3 si dividono lo spazio (X)
+  \begin{tabularx}{\textwidth}{@{\hspace{0.5em}} l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X @{\hspace{0.5em}}}
+    \toprule
+    \textbf{Tool}                                                     & \textbf{Uso della specifica OAS}                                                   & \textbf{Cosa verifica}                                                                      & \textbf{Limite dell'oracolo}                                                                          \\
+    \midrule
+    RESTler \cite{atlidakisRESTlerStatefulREST2019a}                  & Inferisce dipendenze produttore-consumatore per generare sequenze valide           & Crash del server                                                                            & Solo HTTP~500; nessuna verifica semantica                                                             \\
+    \addlinespace
+    Atlidakis et al. \cite{atlidakisCheckingSecurityProperties2020}   & Come RESTler, esteso con checker attivi                                            & Uso after free, resource leak, resource hierarchy, user namespace                           & Regole fisse; nessuna adattabilità alla configurazione del sistema                                    \\
+    \addlinespace
+    NAUTILUS \cite{dengNAUTILUSAutomatedRESTful2023}                  & Base per le annotazioni dinamiche delle dipendenze tra operazioni                  & SQL injection, XSS, command injection, privilege escalation                                 & Focalizzato sulle vulnerabilità da injection; non copre controllo d'accesso o config infrastrutturale \\
+    \addlinespace
+    Schemathesis \cite{schemathesisDerivingSemanticsawareFuzzers2022} & Genera casi di test tipizzati; deriva proprietà da OAS e RFC~7231                  & Conformità schema, status code non dichiarati, header mancanti o errati                     & Conformità strutturale dell'interfaccia; nessuna verifica delle garanzie di sicurezza del sistema     \\
+    \addlinespace
+    Sahin et al. \cite{sahinEnhancingRESTAPI2026}                     & Punto di partenza per il fuzzing; gli oracoli analizzano le risposte in post-proc. & Violazioni di autorizzazione e autenticazione, stack trace esposti, endpoint non dichiarati & Limitato al layer applicativo; non copre la configurazione del gateway                                \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Uso della specifica OpenAPI e dell'oracolo nei principali approcci contract-driven al testing delle \gls{API} REST.}
+  \label{tab:contract-driven-tools}
+\end{table}
