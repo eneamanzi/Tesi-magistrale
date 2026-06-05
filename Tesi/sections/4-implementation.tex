@@ -47,7 +47,7 @@ Ogni fase corrisponde a un modulo separato nel filesystem (Figura~\ref{fig:src-l
 
 \begin{enumerate}
       \item \textbf{Fase~1: Inizializzazione} (Sezione~\ref{subsec:config-driven}). \texttt{config/loader.py} legge e
-            valida \texttt{config.yaml} contro lo schema Pydantic, interpola i segreti
+            valida \texttt{config.yaml} contro lo schema Pydantic\footnote{\url{https://docs.pydantic.dev}}, interpola i segreti
             da variabili d'ambiente e costruisce il modello \texttt{RuntimeConfig}.
             \begin{itemize}
                   \item \textit{In caso di errore:} \texttt{ConfigurationError} interrompe
@@ -59,7 +59,7 @@ Ogni fase corrisponde a un modulo separato nel filesystem (Figura~\ref{fig:src-l
 
       \item \textbf{Fase~2: OpenAPI Discovery} (Sezione~\ref{subsec:openapi-sot}). \texttt{discovery/openapi.py}
             scarica la specifica OpenAPI del target, derefenzia i \texttt{\$ref}\footnote{Le specifiche OpenAPI usano \texttt{\$ref} per referenziare schemi riutilizzabili definiti altrove nel documento o in file esterni. La dereferenziazione sostituisce ogni \texttt{\$ref} con il contenuto del componente referenziato, producendo una specifica autonoma e navigabile senza dipendenze esterne.} tramite
-            \texttt{prance}, la valida con \texttt{openapi-spec-validator} e costruisce
+            \texttt{prance}\footnote{\url{https://pypi.org/project/prance/}}, la valida con \texttt{openapi-spec-validator}\footnote{\url{https://pypi.org/project/openapi-spec-validator/}} e costruisce
             l'\texttt{AttackSurface}: la mappa strutturata degli endpoint che ogni test
             interroga per determinare il proprio scope.
             \begin{itemize}
@@ -265,7 +265,7 @@ Il valore operativo della distinzione emerge con chiarezza nel test~4.3, che ver
 
 Ogni test nativo che interroga un endpoint del target riceve una risposta \gls{HTTP} che il tool deve interpretare e tradurre in un verdetto preciso. Il problema non è banale: uno status \texttt{404 Not Found} su un endpoint parametrico come \texttt{/users/\{id\}/repos} può significare che il gateway ha rifiutato la richiesta per mancanza di autenticazione, che il path non esiste per il valore di \texttt{\{id\}} usato nel probe, o che l'endpoint è genuinamente non protetto ma il path era errato. Interpretare un \texttt{404} come \texttt{FAIL} in tutti i casi genera falsi positivi inaccettabili in un assessment che si propone come affidabile.
 
-La policy adottata definisce un framework a tre esiti applicato a ogni probe \gls{HTTP} nei test nativi: ogni risposta è classificata come \textsc{enforced} (il controllo funziona), \textsc{bypassed} (il controllo è assente o mal configurato) o \textsc{inconclusive} (il risultato non è interpretabile con certezza sufficiente per produrre un \texttt{Finding}). Il mapping specifico degli status code a ciascun esito dipende dalla natura del test: per i test \texttt{BLACK\_BOX} che verificano l'enforcement dell'autenticazione, la forma è la seguente:
+La policy adottata definisce una codifica a tre esiti applicata a ogni probe \gls{HTTP} nei test nativi: ogni risposta è classificata come \textsc{enforced} (il controllo funziona), \textsc{bypassed} (il controllo è assente o mal configurato) o \textsc{inconclusive} (il risultato non è interpretabile con certezza sufficiente per produrre un \texttt{Finding}). Il mapping specifico degli status code a ciascun esito dipende dalla natura del test: per i test \texttt{BLACK\_BOX} che verificano l'enforcement dell'autenticazione, la forma è la seguente:
 
 \begin{enumerate}
       \item \textbf{ENFORCED}: la risposta è \texttt{401} o \texttt{403}. Il gateway ha applicato un controllo di accesso sul chiamante non autenticato.

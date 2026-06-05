@@ -77,7 +77,7 @@ Le condizioni che producono \texttt{FAIL} osservabili e attesi nell'assessment s
             tra ciò che la specifica dichiara e ciò che il target restituisce è
             esattamente la classe di anomalia che il contract-driven testing è
             progettato per rilevare. Questo caso illustra in modo concreto la dipendenza dall'oracolo
-            descritta nella Sezione~\ref{subsec:openapi-sot}: quando la specifica
+            descritta nella Sezione~\ref{subsec:oracle-design}: quando la specifica
             dichiara un requisito che il target non applica completamente, i finding
             prodotti sono corretti dal punto di vista contrattuale ma richiedono
             che l'analista valuti se la discrepanza sia una configurazione
@@ -143,15 +143,15 @@ Le verifiche coprono tre aree: l'analisi statica della codebase tramite una suit
 La suite di analisi statica della codebase è composta da cinque strumenti con responsabilità distinte e complementari, i cui risultati sono riassunti nella Tabella~\ref{tab:analisi-statica}:
 
 \begin{itemize}
-      \item \texttt{ruff} svolge l'analisi di lint\footnote{Con \emph{lint} si intende l'analisi statica automatica del codice sorgente volta a identificare errori, violazioni di stile, pattern rischiosi e codice non conforme alle convenzioni del progetto, senza eseguire il programma.}, l'ordinamento degli import, il rilevamento di pattern insicuri e la verifica della copertura delle annotazioni di tipo.
+      \item \texttt{ruff}\footnote{\url{https://github.com/astral-sh/ruff}} svolge l'analisi di lint\footnote{Con \emph{lint} si intende l'analisi statica automatica del codice sorgente volta a identificare errori, violazioni di stile, pattern rischiosi e codice non conforme alle convenzioni del progetto, senza eseguire il programma.}, l'ordinamento degli import, il rilevamento di pattern insicuri e la verifica della copertura delle annotazioni di tipo.
 
-      \item \texttt{mypy} verifica la coerenza dei tipi lungo l'intera catena di dipendenze in modalità \texttt{strict}, la configurazione più restrittiva disponibile. Il suo funzionamento è discusso in dettaglio nella Sezione~\ref{subsec:dual-layer-type-safety}.
+      \item \texttt{mypy}\footnote{\url{https://mypy-lang.org}} verifica la coerenza dei tipi lungo l'intera catena di dipendenze in modalità \texttt{strict}, la configurazione più restrittiva disponibile. Il suo funzionamento è discusso in dettaglio nella Sezione~\ref{subsec:dual-layer-type-safety}.
 
-      \item \texttt{bandit} analizza la codebase alla ricerca di pattern associati a vulnerabilità note. I tre finding di bassa severità rilevati in \texttt{connectors/base.py} riguardano l'invocazione di \texttt{subprocess.run()} e sono soppressi con annotazione documentata: il comando è costruito esclusivamente da \texttt{ClassVar} dichiarati nel sorgente e da valori già validati da Pydantic, senza mai includere input \gls{HTTP} grezzo dall'esterno.
+      \item \texttt{bandit}\footnote{\url{https://github.com/PyCQA/bandit}} analizza la codebase alla ricerca di pattern associati a vulnerabilità note. I tre finding di bassa severità rilevati in \texttt{connectors/base.py} riguardano l'invocazione di \texttt{subprocess.run()} e sono soppressi con annotazione documentata: il comando è costruito esclusivamente da \texttt{ClassVar} dichiarati nel sorgente e da valori già validati da Pydantic, senza mai includere input \gls{HTTP} grezzo dall'esterno.
 
-      \item \texttt{vulture} identifica simboli pubblici definiti ma mai invocati direttamente nel codice, con soglia di confidenza all'80\%. I metodi \texttt{execute()}, \texttt{model\_*} e \texttt{validator\_*} sono esclusi tramite whitelist: \texttt{execute()} è invocato dall'engine tramite \texttt{isinstance} check, mentre i validator Pydantic vengono attivati automaticamente dal framework al momento della costruzione di ogni oggetto, senza mai comparire come chiamate esplicite nel sorgente.
+      \item \texttt{vulture}\footnote{\url{https://github.com/jendrikseipp/vulture}} identifica simboli pubblici definiti ma mai invocati direttamente nel codice, con soglia di confidenza all'80\%. I metodi \texttt{execute()}, \texttt{model\_*} e \texttt{validator\_*} sono esclusi tramite whitelist: \texttt{execute()} è invocato dall'engine tramite \texttt{isinstance} check, mentre i validator Pydantic vengono attivati automaticamente dal tool al momento della costruzione di ogni oggetto, senza mai comparire come chiamate esplicite nel sorgente.
 
-      \item \texttt{pip-audit} verifica le dipendenze dichiarate contro i database pubblici di vulnerabilità note.
+      \item \texttt{pip-audit}\footnote{\url{https://pypi.org/project/pip-audit/}} verifica le dipendenze dichiarate contro i database pubblici di vulnerabilità note.
 \end{itemize}
 
 \input{assets/tables/5-analisi-statica.tex}

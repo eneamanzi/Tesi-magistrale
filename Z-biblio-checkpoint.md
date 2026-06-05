@@ -8,13 +8,18 @@ https://spec.openapis.org/oas/v3.2.0.html
 
 %TODO nel chap3: correggere, labbiamo definito semantica gap prendendolo dalal letteratura, non va bene tenerlo come combiantorail wall, idem nella fiura 2.1 va corretto
 
-TODO
-sbaglio o abbiamo citato tantissime cose sul fuzzing, ma è effettivmanete fuzzing uqello che fa il mi tool? cioè io non lo descriverei comeun fuzzer o sbaglio?
+# tabella 3.1
+questa la dobbiamoc ambiare per il refactoring non più bsato sulel propreità
 
-TODO
-dato che ora abbiamo itnrodotto la sezione sugli oracoli nelal 3 metodologia, dobbiamo scrivere da qualche aprte nel testo gia presente, inquesto o altri captioli, un rifeirmento a quesot cpaitolo? magari inaltri punti parlavamo di oracoli o cose
-
-TODO 
-aggiornare abella 2.4.3 mettendo tutti i paper/tool -> controlalre che ci siano tutti quelli di 2.4.3 con descrizion corretta
+# TODO
+sistemare le footnote, specialemtne quelle dei tool che riprotiamo
+coem mai alcuni li citiamo come pypi e altri con la rpo github? cosa ambia' cosa è corretto?
 
 
+# todo 
+perche mettiamo AWS api gateway nel paragrafo \paragraph{Gateway API Dedicato}?
+non dovremmo mettelro solo dentro Gateway Managed in Ambienti Cloud? cioè assicuriamoci bene che gli essempi che facciamo siano coerenti conle categorie che definiamo
+
+
+
+# TODO fianle - controlalre se ci sono rieptizioni eccessive o superflue tra sezioni, sub-sections e paragrafi

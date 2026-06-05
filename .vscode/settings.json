@@ -55,7 +55,8 @@
         "\\textit{}": "dummy",
         "\\section{}": "dummy",
         "\\subsection{}": "dummy",
-        "\\chapter{}": "dummy"
+        "\\chapter{}": "dummy",
+        "\\nameref{}": "dummy"
     },
     "ltex.disabledRules": {
         "it": [
@@ -505,7 +506,42 @@
             "parameter",
             "parent",
             "privilege",
-            "side-effect"
+            "side-effect",
+            "Availability",
+            "Barr",
+            "Du",
+            "Flows",
+            "Foundation",
+            "Hypothesis",
+            "Identity",
+            "Integrity",
+            "Logic",
+            "Resilience",
+            "Sahin",
+            "breaker",
+            "content-type",
+            "instrumenter",
+            "paper",
+            "post-processing",
+            "pre-runtime",
+            "segfault",
+            "shadow",
+            "survey",
+            "vulnerability",
+            "istiod",
+            "Availability",
+            "Flows",
+            "Identity",
+            "Integrity",
+            "Logic",
+            "Resilience",
+            "breaker",
+            "after",
+            "config",
+            "hierarchy",
+            "leak",
+            "post-proc",
+            "resource"
         ]
     },
 }
