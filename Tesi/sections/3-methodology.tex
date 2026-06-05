@@ -36,7 +36,8 @@ Il costo accettato è la dipendenza da una specifica valida. Una specifica obsol
 
 \textit{Quale fondamento formale governa la costruzione delle richieste e delimita la superficie di assessment?}
 
-La specifica OpenAPI è il fondamento contrattuale dell'intera pipeline: governa la costruzione delle richieste nel rispetto dei tipi, dei formati e dei parametri dichiarati, delimita la superficie di attacco agli endpoint documentati e fornisce il criterio di valutazione primario per le risposte ricevute. Per alcune classi di garanzie, la specifica è integrata da sorgenti aggiuntive, come la configurazione del gateway per i test WHITE\_BOX (Sezione~\ref{subsec:gateway-adapter}) o il confronto tra comportamenti osservati con identità distinte per i test GREY\_BOX (Sezione~\ref{subsec:box-gradient}): sorgenti che la specifica dell'interfaccia applicativa da sola non può esprimere.
+La specifica OpenAPI è il fondamento contrattuale dell'intera pipeline: governa la costruzione delle richieste nel rispetto dei tipi, dei formati e dei parametri dichiarati, delimita la superficie di attacco agli endpoint documentati e fornisce il criterio di valutazione primario per le risposte ricevute. Questa scelta coincide con il primo controllo pre-runtime obbligatorio identificato dal NIST SP 800-228~\cite{chandramouliGuidelinesAPIProtection2026}: i controlli REC-API-1 e REC-API-2 della Sezione~3.1.1 prescrivono che tutte le API siano descritte da una specifica formale con schema di request e response dichiarato, come condizione necessaria per qualsiasi sistema di verifica automatizzato.
+Per alcune classi di garanzie, la specifica è integrata da sorgenti aggiuntive, come la configurazione del gateway per i test WHITE\_BOX (Sezione~\ref{subsec:gateway-adapter}) o il confronto tra comportamenti osservati con identità distinte per i test GREY\_BOX (Sezione~\ref{subsec:box-gradient}): sorgenti che la specifica dell'interfaccia applicativa da sola non può esprimere.
 
 %TODO correggere, labbiamo definito semantica gap prendendolo dalal letteratura, non va bene tenerlo come combiantorail wall, idem nella fiura 2.1 va corretto
 Un fuzzer che genera payload senza conoscere il contratto affronta un ostacolo strutturale prima ancora di raggiungere la logica applicativa: una quota sostanziale delle richieste viene respinta con \texttt{HTTP~400} dal layer di validazione dell'input, perché i tipi, i formati e i vincoli enumerati nello schema non sono rispettati.
@@ -223,8 +224,8 @@ Le sezioni precedenti hanno definito le proprietà architetturali e strutturali 
 
 \subsection{Tassonomia degli Otto Domini di Assurance}\label{subsec:domini-tassonomia}
 
-La superficie di sicurezza di un'\gls{API} esposta tramite gateway non è omogenea. Alcune garanzie sono verificabili senza nessuna conoscenza del sistema, interrogando semplicemente gli endpoint esposti senza credenziali; altre richiedono uno stato autenticato; altre ancora diventano accessibili solo attraverso il piano di configurazione amministrativo del gateway. La tassonomia adottata riconosce questa struttura di precondizioni, organizzando le garanzie in domini che rispecchiano categorie semantiche distinte di rischio.
-
+La superficie di sicurezza di un'\gls{API} esposta tramite gateway non è omogenea: le garanzie che il sistema dichiara appartengono a famiglie semanticamente distinte, ciascuna con caratteristiche di verifica differenti. La tassonomia adottata organizza questa eterogeneità in otto domini di assurance, ciascuno corrispondente a una categoria di rischio specifica.
+Questa categorizzazione si allinea alle categorie di rischio per le API cloud-native e ai controlli runtime identificati, rispettivamente, nella Sezione~2 e nella Sezione~3.2.1 del NIST SP 800-228~\cite{chandramouliGuidelinesAPIProtection2026}.
 La Tabella~\ref{tab:domini} li riporta con il loro titolo e l'ambito di verifica che ciascuno racchiude.
 
 \input{assets/tables/3-domini.tex}
