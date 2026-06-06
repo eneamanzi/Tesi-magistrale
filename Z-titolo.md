@@ -15,4 +15,4 @@ Progettazione e Implementazione di un Tool API-Agnostico per il Security Assessm
 
 Progettazione e Implementazione di un Tool API-Agnostico per la Security Assurance: un Approccio Contract-Driven Basato su Oracoli Formali in Architetture a Microservizi
 
-
+Security Assessment Continuo basato su Oracoli Formali: Progettazione e Validazione di un Framework API-Agnostico per Architetture a Microservizi
