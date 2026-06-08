@@ -84,10 +84,10 @@ Lo stesso target, nella stessa configurazione, interrogato con lo stesso \texttt
 Il determinismo è ottenuto attraverso meccanismi distinti che si completano a vicenda:
 
 \begin{itemize}
-  \item Sezione~\ref{subsec:config-driven} (Config-Driven Development): se tutti i parametri decisionali sono fissi, la pipeline non ha sorgenti di variazione endogene.
-  \item Struttura del \gls{DAG}, trattata nella Sezione~\ref{subsec:dag}: un grafo aciclico orientato con risoluzione topologica deterministica produce sempre la stessa sequenza di batch, indipendentemente dall'ordine in cui i test vengono scoperti a runtime.
-  \item Ordinamento lessicografico dei test all'interno di ogni batch del \gls{DAG}: l'ordinamento topologico puro non garantisce stabilità tra test pronti allo stesso livello, e senza un criterio di tie-breaking esplicito la sequenza potrebbe variare tra esecuzioni; l'ordine lessicografico risolve questa ambiguità, garantendo che la sequenza sia sempre identica a parità di input.
-  \item Oracolo definito a priori per ogni verifica, come discusso nella Sezione~\ref{subsec:oracle-design}: a parità di risposta ricevuta dal sistema, il criterio di valutazione è fisso e il verdetto non dipende da generazione dinamica né da stato esterno all'esecuzione.
+      \item Sezione~\ref{subsec:config-driven} (Config-Driven Development): se tutti i parametri decisionali sono fissi, la pipeline non ha sorgenti di variazione endogene.
+      \item Struttura del \gls{DAG}, trattata nella Sezione~\ref{subsec:dag}: un grafo aciclico orientato con risoluzione topologica deterministica produce sempre la stessa sequenza di batch, indipendentemente dall'ordine in cui i test vengono scoperti a runtime.
+      \item Ordinamento lessicografico dei test all'interno di ogni batch del \gls{DAG}: l'ordinamento topologico puro non garantisce stabilità tra test pronti allo stesso livello, e senza un criterio di tie-breaking esplicito la sequenza potrebbe variare tra esecuzioni; l'ordine lessicografico risolve questa ambiguità, garantendo che la sequenza sia sempre identica a parità di input.
+      \item Oracolo definito a priori per ogni verifica, come discusso nella Sezione~\ref{subsec:oracle-design}: a parità di risposta ricevuta dal sistema, il criterio di valutazione è fisso e il verdetto non dipende da generazione dinamica né da stato esterno all'esecuzione.
 \end{itemize}
 
 La garanzia di riproducibilità non riguarda ogni componente dell'output: timestamp e identificatori univoci dei singoli record di evidenza variano per natura tra esecuzioni. Ciò che deve essere invariante sono i contatori aggregati (PASS, FAIL, SKIP), i verdetti per singolo test e la distribuzione dei finding per dominio. La validazione empirica, condotta su due run indipendenti che hanno prodotto contatori aggregati byte-equivalenti (\texttt{9~PASS\,/\,7~FAIL\,/\,2~SKIP\,/\,0~ERROR\,/\,98~finding}, con \texttt{diff status per-test = 0} e delta wall-clock inferiore allo 0,3\%), è discussa nella \hyperref[sec:coverage-idempotenza]{Sezione~\ref*{sec:coverage-idempotenza}}.
@@ -135,8 +135,8 @@ Il problema che questa struttura risolve non è solo di ordinamento, ma di corre
 Lo scheduler include due proprietà di correttezza strutturale:
 
 \begin{itemize}
-  \item Rilevazione statica dei cicli: se il grafo delle dipendenze contiene un ciclo, l'errore viene segnalato prima che un singolo test venga eseguito, impedendo che stati inconsistenti si propaghino silenziosamente nella pipeline.
-  \item Salvaguardia contro lo stallo: se il grafo risulta ancora attivo ma non riesce a estrarre nessun test pronto, il sistema emette un errore strutturato che elenca i test mai schedulati e interrompe l'esecuzione in modo controllato, fornendo all'operatore la diagnostica necessaria senza dover ricostruire lo stato interno del grafo.
+      \item Rilevazione statica dei cicli: se il grafo delle dipendenze contiene un ciclo, l'errore viene segnalato prima che un singolo test venga eseguito, impedendo che stati inconsistenti si propaghino silenziosamente nella pipeline.
+      \item Salvaguardia contro lo stallo: se il grafo risulta ancora attivo ma non riesce a estrarre nessun test pronto, il sistema emette un errore strutturato che elenca i test mai schedulati e interrompe l'esecuzione in modo controllato, fornendo all'operatore la diagnostica necessaria senza dover ricostruire lo stato interno del grafo.
 \end{itemize}
 
 L'ordinamento topologico puro non garantisce un ordine unico tra test pronti allo stesso livello: senza un criterio di tie-breaking\footnote{\textit{Tie-breaking}: regola di ordinamento applicata tra elementi a parità di livello topologico, per garantire una sequenza stabile e riproducibile tra esecuzioni.} esplicito la sequenza potrebbe variare tra esecuzioni. Lo scheduler risolve questa ambiguità ordinando lessicograficamente i test all'interno di ogni batch, convertendo la struttura parzialmente ordinata del grafo in una sequenza riproducibile, condizione necessaria per la proprietà di riproducibilità descritta nella Sezione~\ref{subsec:reproducibility}.
@@ -151,19 +151,19 @@ Durante l'esecuzione sequenziale dei test, due categorie di informazione coesist
 La soluzione è la separazione netta in due oggetti con caratteristiche opposte:
 
 \begin{itemize}
-  \item \textbf{TargetContext} - immutabile per costruzione: viene popolato una volta sola prima che la pipeline inizi e qualsiasi tentativo di modifica produce un errore immediato nel punto in cui viene effettuato. Raccoglie tutto ciò che si conosce del target prima dell'esecuzione:
-        \begin{itemize}
-          \item la specifica OpenAPI dereferenziata come mappa strutturata di endpoint, parametri e schemi;
-          \item i parametri di tuning specifici per ogni test ricavati dalla configurazione;
-          \item l'adapter del gateway iniettato prima dell'avvio della pipeline;
-          \item le credenziali, risolte dal loader a partire dal file \texttt{.env} e congelate nel \texttt{TargetContext} tramite la configurazione \texttt{frozen}.\footnote{L'accesso avviene esclusivamente tramite i campi tipizzati del modello Pydantic costruito a runtime: non esiste un dizionario libero né accesso diretto ai valori grezzi.}
-        \end{itemize}
-  \item \textbf{TestContext} - mutabile, raccoglie ciò che la pipeline produce. L'accesso è strutturato in tre canali tipizzati con responsabilità distinte, anziché in un dizionario ad accesso libero:
-        \begin{itemize}
-          \item canale dei token: organizza le credenziali per ruolo, con accesso tramite un identificatore definito dal contratto del sistema, non tramite chiavi stringa arbitrarie;
-          \item canale di teardown: mantiene un registro \gls{LIFO} delle risorse create durante la run, garantendo che il cleanup segua l'ordine inverso della creazione, come discusso nella Sezione~\ref{subsec:teardown};
-          \item canale dei dati condivisi: consente a test in batch successivi di consumare risultati prodotti da batch precedenti, senza che tra i moduli vengano introdotte dipendenze di importazione.
-        \end{itemize}
+      \item \textbf{TargetContext} - immutabile per costruzione: viene popolato una volta sola prima che la pipeline inizi e qualsiasi tentativo di modifica produce un errore immediato nel punto in cui viene effettuato. Raccoglie tutto ciò che si conosce del target prima dell'esecuzione:
+            \begin{itemize}
+                  \item la specifica OpenAPI dereferenziata come mappa strutturata di endpoint, parametri e schemi;
+                  \item i parametri di tuning specifici per ogni test ricavati dalla configurazione;
+                  \item l'adapter del gateway iniettato prima dell'avvio della pipeline;
+                  \item le credenziali, risolte dal loader a partire dal file \texttt{.env} e congelate nel \texttt{TargetContext} tramite la configurazione \texttt{frozen}.\footnote{L'accesso avviene esclusivamente tramite i campi tipizzati del modello Pydantic costruito a runtime: non esiste un dizionario libero né accesso diretto ai valori grezzi.}
+            \end{itemize}
+      \item \textbf{TestContext} - mutabile, raccoglie ciò che la pipeline produce. L'accesso è strutturato in tre canali tipizzati con responsabilità distinte, anziché in un dizionario ad accesso libero:
+            \begin{itemize}
+                  \item canale dei token: organizza le credenziali per ruolo, con accesso tramite un identificatore definito dal contratto del sistema, non tramite chiavi stringa arbitrarie;
+                  \item canale di teardown: mantiene un registro \gls{LIFO} delle risorse create durante la run, garantendo che il cleanup segua l'ordine inverso della creazione, come discusso nella Sezione~\ref{subsec:teardown};
+                  \item canale dei dati condivisi: consente a test in batch successivi di consumare risultati prodotti da batch precedenti, senza che tra i moduli vengano introdotte dipendenze di importazione.
+            \end{itemize}
 \end{itemize}
 
 L'implementazione concreta di questa separazione, inclusi i tipi e i meccanismi di accesso, è descritta nella Sezione~\ref{subsec:split-state-impl}.
@@ -253,3 +253,193 @@ I test \texttt{WHITE\_BOX} occupano una posizione metodologicamente distinta. Al
 
 
 In contesti industriali, la disponibilità delle credenziali e dell'accesso amministrativo varia da deployment a deployment. Un'organizzazione che non dispone di accesso amministrativo al gateway può eseguire l'intera suite \texttt{BLACK\_BOX} e \texttt{GREY\_BOX}, mentre i test \texttt{WHITE\_BOX} transitano a \texttt{SKIP} con motivazione esplicita. La Sezione~\ref{subsec:privilegio-deployment} descrive come questa variabilità si traduca in scenari concreti di deployment industriale.
+
+\subsection{Catalogo delle Verifiche di Sicurezza}\label{subsec:test-catalog}
+
+Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tassonomia} attraverso un insieme di verifiche concrete, ciascuna corrispondente a una garanzia specifica all'interno del proprio dominio. Nella notazione seguente, \texttt{BB}, \texttt{GB} e \texttt{WB} abbreviano rispettivamente \texttt{BLACK\_BOX}, \texttt{GREY\_BOX} e \texttt{WHITE\_BOX}, come definiti nella Sezione~\ref{subsec:box-gradient}. I criteri di valutazione specifici dei test implementati sono descritti nella Sezione~\ref{subsec:test-oracles}.
+
+\paragraph{Dominio~0: API Discovery e Inventory Management}
+\begin{description}
+      \item[\textbf{\texttt{0.1}}]
+            \textit{Shadow API Discovery} (superato da \texttt{ext.0.1.nuclei}). \texttt{BB}, P0.\\
+            Rileva endpoint attivi ma non documentati tramite fuzzing black-box su wordlist interna e confronto con la superficie contrattuale; mantenuto per compatibilità con deployment privi del connector.
+            (\gls{OWASP}~API9:2023\footnote{\gls{OWASP} API9:2023: \textit{Improper Inventory Management}~\cite{OWASPTop10}.}, \gls{CWE}-200\footnote{\textit{CWE-200: Exposure of Sensitive Information to an Unauthorized Actor}.})
+
+      \item[\textbf{\texttt{ext.0.1.nuclei}}]
+            \textit{Shadow API Discovery: scansione a template.} \texttt{BB}, P0.\\
+            Il tool impiega Nuclei~\cite{ProjectdiscoveryNuclei2026} come connector per rilevare esposizioni note sul target; finding di severity CRITICAL, HIGH o MEDIUM determinano \texttt{FAIL}; severity inferiore produce \texttt{PASS} con un avviso.
+            (\gls{OWASP}~API9:2023, \gls{CWE}-200)
+
+      \item[\textbf{\texttt{0.2}}]
+            \textit{Deny-by-Default.} \texttt{BB}, P0.\\
+            Verifica che il gateway risponda \texttt{404} a path non registrati nella propria configurazione di routing, rilevando route permissive che renderebbero raggiungibili endpoint non intenzionali.
+            (\gls{OWASP}~API9:2023, \gls{CWE}-284\footnote{\textit{CWE-284: Improper Access Control}.})
+
+      \item[\textbf{\texttt{0.3}}]
+            \textit{Deprecated API Enforcement.} \texttt{BB}, P0.\\
+            Verifica che gli endpoint marcati \texttt{deprecated:~true} nella specifica restituiscano \texttt{410~Gone} o includano un header \texttt{Sunset} conforme a \gls{RFC}~8594, confermando che le \gls{API} dismesse non rimangano operative rimangano operative oltre il ciclo di vita dichiarato.
+            (\gls{OWASP}~API9:2023, \gls{CWE}-200, \gls{RFC}~8594\footnote{\gls{RFC}~8594: \textit{The Sunset HTTP Header Field}, IETF.})
+\end{description}
+
+\paragraph{Dominio~1: Identità e Autenticazione}
+\begin{description}
+      \item[\textbf{\texttt{1.1}}]
+            \textit{Authentication Required.} \texttt{BB}, P0.\\
+            Verifica che ogni endpoint dichiarato autenticato dalla specifica respinga richieste prive di credenziali, rilevando endpoint che rispondono \texttt{2xx} in assenza di autenticazione.
+            (\gls{OWASP}~API2:2023\footnote{\gls{OWASP} API2:2023: \textit{Broken Authentication}~\cite{OWASPTop10}.}, \gls{CWE}-306\footnote{\textit{CWE-306: Missing Authentication for Critical Function}.})
+
+      \item[\textbf{\texttt{1.2}}]
+            \textit{JWT Validity.} \texttt{BB}, P0.\\
+            Verifica che i token \gls{JWT} presentino una firma crittograficamente valida e non siano soggetti ad algorithm confusion o token tampering.
+            (\gls{OWASP}~API2:2023, \gls{CWE}-347\footnote{\textit{CWE-347: Improper Verification of Cryptographic Signature}.})
+
+      \item[\textbf{\texttt{1.3}}]
+            \textit{Credential Expiry.} \texttt{BB}, P0.\\
+            Verifica che il gateway rifiuti token scaduti secondo le condizioni dichiarate nel payload \gls{JWT}.
+            (\gls{OWASP}~API2:2023, \gls{CWE}-613\footnote{\textit{CWE-613: Insufficient Session Expiration}.})
+
+      \item[\textbf{\texttt{1.4}}]
+            \textit{Token Revocation.} \texttt{GB}, P2.\\
+            Verifica che un token revocato esplicitamente venga immediatamente rifiutato, senza finestre di accettazione residua dopo la revoca.
+            (\gls{OWASP}~API2:2023, \gls{CWE}-613, \gls{RFC}~7009\footnote{\gls{RFC}~7009: \textit{OAuth 2.0 Token Revocation}, IETF (2013).})
+
+      \item[\textbf{\texttt{1.5}}]
+            \textit{Insecure Credential Transport.} \texttt{BB}, P2.\\
+            Verifica che le credenziali non transitino in chiaro, controllando redirect \gls{HTTP}$\to$\gls{HTTPS} e la presenza dell'header \gls{HSTS} con durata minima configurabile.
+            (\gls{OWASP}~API2:2023, \gls{CWE}-319\footnote{\textit{CWE-319: Cleartext Transmission of Sensitive Information}.}, \gls{NIST}~SP~800-52~Rev.~2\footnote{\gls{NIST} SP~800-52 Rev.~2: \textit{Guidelines for the Selection, Configuration, and Use of Transport Layer Security (TLS) Implementations}.})
+
+      \item[\textbf{\texttt{ext.1.5.testssl}}]
+            \textit{Analisi \gls{TLS}: testssl.sh.} \texttt{BB}, P2.\\
+            Il tool impiega testssl.sh~\cite{TestsslTestsslsh2026} come connector per verificare la configurazione \gls{TLS} del target rispetto ai requisiti di protocollo, cipher suite e validità del certificato.
+            (\gls{OWASP}~API2:2023, \gls{CWE}-319, \gls{NIST}~SP~800-52~Rev.~2)
+
+      \item[\textbf{\texttt{ext.1.5.sslyze}}]
+            \textit{Analisi \gls{TLS}: SSLyze.} \texttt{BB}, P2.\\
+            Il tool impiega SSLyze~\cite{diquetNablac0d3Sslyze2026} come connector per la stessa garanzia di \texttt{ext.1.5.testssl}, fornendo evidenza indipendente tramite ispezione programmatica dei parametri \gls{TLS}.
+            (\gls{OWASP}~API2:2023, \gls{CWE}-319, \gls{NIST}~SP~800-52~Rev.~2)
+
+      \item[\textbf{\texttt{1.6}}]
+            \textit{Secure Session Management.} \texttt{WB}, P3.\\
+            Verifica che i cookie di sessione presentino i flag di sicurezza obbligatori e che il session store del gateway sia configurato correttamente, prevenendo session hijacking e fixation.
+            (\gls{OWASP}~API2:2023, \gls{CWE}-384\footnote{\textit{CWE-384: Session Fixation}.})
+\end{description}
+
+\paragraph{Dominio~2: Autorizzazione e Controllo degli Accessi}
+\begin{description}
+      \item[\textbf{\texttt{2.1}}]
+            \textit{\gls{RBAC} Enforcement.} \texttt{GB}, P2.\\
+            Verifica che utenti con ruolo non privilegiato non possano accedere a una lista configurabile di endpoint riservati a ruoli superiori, rilevando bypass della \gls{BFLA}.
+            (\gls{OWASP}~API5:2023\footnote{\gls{OWASP} API5:2023: \textit{Broken Function Level Authorization}~\cite{OWASPTop10}.}, \gls{CWE}-285\footnote{\textit{CWE-285: Improper Authorization}.})
+
+      \item[\textbf{\texttt{2.2}}]
+            \textit{\gls{BOLA} Prevention.} \texttt{GB}, P1.\\
+            Verifica che ogni utente acceda esclusivamente alle risorse di propria titolarità, rilevando \gls{BOLA} tramite manipolazione degli identificatori di path con credenziali di un utente distinto.
+            (\gls{OWASP}~API1:2023\footnote{\gls{OWASP} API1:2023: \textit{Broken Object Level Authorization}~\cite{OWASPTop10}.}, \gls{CWE}-639\footnote{\textit{CWE-639: Authorization Bypass Through User-Controlled Key}.})
+
+      \item[\textbf{\texttt{2.3}}]
+            \textit{Destructive Operations Privilege Check.} \texttt{GB}, P1.\\
+            Verifica che operazioni distruttive quali \texttt{DELETE} e \texttt{PUT} sull'intero oggetto richiedano i privilegi appropriati e non siano eseguibili da ruoli non autorizzati.
+            (\gls{OWASP}~API5:2023, \gls{CWE}-285)
+
+      \item[\textbf{\texttt{2.4}}]
+            \textit{Authorization Policy Consistency.} \texttt{GB}, P1.\\
+            Verifica che le policy di autorizzazione siano applicate uniformemente su tutti gli endpoint della stessa risorsa, rilevando inconsistenze tra varianti dello stesso path o tra versioni \gls{API}.
+            (\gls{OWASP}~API5:2023, \gls{CWE}-285)
+
+      \item[\textbf{\texttt{2.5}}]
+            \textit{Excessive Data Exposure.} \texttt{GB}, P2.\\
+            Verifica che le risposte non restituiscano campi non dichiarati nello schema contrattuale, rilevando over-fetching rispetto al contratto \gls{OAS}.
+            (\gls{OWASP}~API3:2023\footnote{\gls{OWASP} API3:2023: \textit{Broken Object Property Level Authorization}~\cite{OWASPTop10}.}, \gls{CWE}-200)
+\end{description}
+
+\paragraph{Dominio~3: Integrità dei Dati}
+\begin{description}
+      \item[\textbf{\texttt{3.1}}]
+            \textit{Input Validation.} \texttt{BB}, P2.\\
+            Verifica che il gateway rifiuti payload malformati o con valori fuori dai vincoli dichiarati dalla specifica, rilevando assenza di validazione contrattuale dell'input.
+            (\gls{CWE}-20\footnote{\textit{CWE-20: Improper Input Validation}.})
+
+      \item[\textbf{\texttt{3.2}}]
+            Il numero è riservato: la garanzia originariamente pianificata come test~3.2 è stata incorporata nel test~6.1 durante il design della metodologia.
+
+      \item[\textbf{\texttt{3.3}}]
+            \textit{HMAC Configuration Audit.} \texttt{WB}, P3.\\
+            Verifica tramite Admin \gls{API} che il plugin \gls{HMAC} del gateway sia configurato con una finestra temporale di validazione del timestamp entro le soglie prescritte, prevenendo attacchi di replay su richieste firmate.
+            (\gls{NIST}~SP~800-107~Rev.~1\footnote{\gls{NIST} SP~800-107 Rev.~1: \textit{Recommendation for Applications Using Approved Hash Algorithms}.}, \gls{CWE}-347)
+\end{description}
+
+\paragraph{Dominio~4: Disponibilità e Resilienza}
+\begin{description}
+      \item[\textbf{\texttt{4.1}}]
+            \textit{Rate Limiting.} \texttt{BB}, P0.\\
+            Verifica che il gateway applichi rate limiting ai client, restituendo \texttt{429} al superamento della soglia configurata e resistendo a tentativi di bypass tramite \texttt{X-Forwarded-For} spoofing.
+            (\gls{OWASP}~API4:2023\footnote{\gls{OWASP} API4:2023: \textit{Unrestricted Resource Consumption}~\cite{OWASPTop10}.}, \gls{CWE}-400\footnote{\textit{CWE-400: Uncontrolled Resource Consumption}.})
+
+      \item[\textbf{\texttt{4.2}}]
+            \textit{Timeout Configuration Audit.} \texttt{WB}, P1.\\
+            Verifica tramite Admin \gls{API} che i timeout sugli upstream del gateway siano configurati entro soglie operative, prevenendo il blocco indefinito delle connessioni in caso di backend non funzionante.
+            (\gls{CWE}-400)
+
+      \item[\textbf{\texttt{4.3}}]
+            \textit{Circuit Breaker Audit.} \texttt{WB}, P1.\\
+            Verifica tramite Admin \gls{API} che il gateway disponga di un meccanismo di circuit breaking o di un compensating control equivalente per la degradazione controllata del servizio.
+            (\gls{CWE}-400)
+\end{description}
+
+\paragraph{Dominio~5: Visibilità e Auditing}
+\begin{description}
+      \item[\textbf{\texttt{5.1}}]
+            \textit{Audit Logging.} \texttt{WB}, P1.\\
+            Verifica che il gateway produca log strutturati per ogni richiesta con i metadata minimi per incident response e audit, con redazione dei dati sensibili. Richiede accesso al log aggregator.
+            (\gls{NIST}~SP~800-92\footnote{\gls{NIST} SP~800-92: \textit{Guide to Computer Security Log Management}.}, \gls{ASVS}~V16.2.1\footnote{\gls{OWASP} \gls{ASVS} v5.0.0: \textit{Application Security Verification Standard}.})
+
+      \item[\textbf{\texttt{5.2}}]
+            \textit{Security Alerting.} \texttt{WB}, P2.\\
+            Verifica che eventi security-anomali producano alert verso il sistema di monitoring configurato entro una latenza definita. Richiede accesso alla configurazione delle alert rules e a un canale di notifica controllato.
+            (\gls{NIST}~SP~800-61~Rev.~3\footnote{\gls{NIST} SP~800-61 Rev.~3: \textit{Computer Security Incident Handling Guide}.}, \gls{ASVS}~V7.1.1)
+\end{description}
+
+\paragraph{Dominio~6: Configurazione e Hardening}
+\begin{description}
+      \item[\textbf{\texttt{6.1}}]
+            \textit{Error Handling e Information Disclosure.} \texttt{BB}, P2.\\
+            Verifica che le risposte di errore non espongano informazioni tecniche interne quali stack trace, versioni di framework o percorsi di file. Incorpora la garanzia originariamente pianificata come test~3.2.
+            (\gls{OWASP}~API8:2023\footnote{\gls{OWASP} API8:2023: \textit{Security Misconfiguration}~\cite{OWASPTop10}.}, \gls{CWE}-209\footnote{\textit{CWE-209: Generation of Error Message Containing Sensitive Information}.})
+
+      \item[\textbf{\texttt{6.2}}]
+            \textit{Security Headers Audit.} \texttt{WB}, P3.\\
+            Verifica tramite probe \gls{HTTP} che il gateway inietti nelle risposte i security header obbligatori e che gli header informativi siano assenti o privi di versione.
+            (\gls{OWASP}~API8:2023, \gls{CWE}-693\footnote{\textit{CWE-693: Protection Mechanism Failure}.})
+
+      \item[\textbf{\texttt{6.3}}]
+            \textit{Gateway Hardening.} \texttt{BB}, P1.\\
+            Verifica che la configurazione del gateway sia protetta contro exploit Layer-7 comuni, con rilevazione di vulnerabilità di HTTP request smuggling.
+            (\gls{OWASP}~API8:2023, \gls{CWE}-444\footnote{\textit{CWE-444: Inconsistent Interpretation of HTTP Requests}.})
+
+      \item[\textbf{\texttt{6.4}}]
+            \textit{Hardcoded Credentials Audit.} \texttt{WB}, P2.\\
+            Verifica che le credenziali di servizio non siano esposte tramite endpoint di debug né hardcoded negli \gls{URL} dei servizi upstream o nella configurazione dei plugin del gateway.
+            (\gls{OWASP}~API8:2023, \gls{CWE}-798\footnote{\textit{CWE-798: Use of Hard-coded Credentials}.})
+\end{description}
+
+\paragraph{Dominio~7: Business Logic e Flussi Sensibili}
+\begin{description}
+      \item[\textbf{\texttt{7.1}}]
+            \textit{Unsafe Consumption.} \texttt{GB}, P2.\\
+            Verifica che i dati provenienti da \gls{API} di terze parti siano validati prima di essere propagati verso logiche interne.
+            (\gls{OWASP}~API10:2023\footnote{\gls{OWASP} API10:2023: \textit{Unsafe Consumption of External APIs}~\cite{OWASPTop10}.}, \gls{CWE}-20)
+
+      \item[\textbf{\texttt{7.2}}]
+            Verifica che il sistema rifiuti \gls{URL} controllati dall'attaccante iniettati in richieste autenticate, rilevando \gls{SSRF} tramite sonde su indirizzi privati, endpoint IMDS cloud, encoding obfuscati e protocolli non-\gls{HTTP}. La strategia \texttt{GB} è necessaria perché il vettore di injection richiede autenticazione.
+            (\gls{OWASP}~API7:2023\footnote{\gls{OWASP} API7:2023: \textit{Server Side Request Forgery}~\cite{OWASPTop10}.}, \gls{CWE}-918\footnote{\textit{CWE-918: Server-Side Request Forgery}.}, \gls{RFC}~1918\footnote{\gls{RFC}~1918: \textit{Address Allocation for Private Internets}, IETF.})
+
+      \item[\textbf{\texttt{7.3}}]
+            \textit{Race Condition.} \texttt{GB}, P2.\\
+            Verifica che operazioni sensibili non siano vulnerabili a condizioni di gara tramite richieste concorrenti, rilevando inconsistenze di stato di tipo \gls{TOCTOU}.
+            (\gls{OWASP}~API6:2023\footnote{\gls{OWASP} API6:2023: \textit{Unrestricted Access to Sensitive Business Flows}~\cite{OWASPTop10}.}, \gls{CWE}-362\footnote{\textit{CWE-362: Concurrent Execution Using Shared Resource with Improper Synchronization}.})
+
+      \item[\textbf{\texttt{7.4}}]
+            \textit{\gls{SSRF} Blind.} \texttt{GB}, P2.\\
+            Verifica \gls{SSRF} out-of-band, il cui esito non è osservabile nel canale di risposta, tramite un server di callback controllato.
+            (\gls{OWASP}~API7:2023, \gls{CWE}-918)
+\end{description}
