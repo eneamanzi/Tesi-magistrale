@@ -160,7 +160,7 @@ La suite di analisi statica della codebase è composta da cinque strumenti con r
 L'analisi statica con mypy verifica che i tipi dichiarati tra moduli siano consistenti: se \texttt{execute()} dichiara di restituire \texttt{TestResult} e un punto di chiamata la tratta come \texttt{str}, mypy lo intercetta prima dell'esecuzione. Ciò che mypy non copre è il confine con l'esterno: un file \texttt{config.yaml} caricato da disco o l'output grezzo di un connector esterno entrano nel sistema come strutture non ancora tipizzate, e nessuna verifica statica può garantirne la forma. Quel secondo livello è trattato nella Sezione~\ref{subsec:dual-layer-type-safety}.
 
 
-\subsection{Dual-Layer Type Safety (D6.P3)}\label{subsec:dual-layer-type-safety}
+\subsection{Dual-Layer Type Safety}\label{subsec:dual-layer-type-safety}
 
 La type safety in un codebase Python ha due confini distinti con caratteristiche diverse. Il primo è interno: i contratti tra moduli, espressi tramite type hints, verificabili staticamente prima dell'esecuzione. Il secondo è esterno: il punto in cui dati non tipizzati provenienti dall'esterno, un file \texttt{config.yaml} caricato da disco o il raw output di un connector, entrano nel sistema. I due confini richiedono meccanismi diversi.
 

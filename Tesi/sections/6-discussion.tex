@@ -17,7 +17,7 @@ Questo capitolo affronta tale questione in tre direzioni. La prima è critica: i
 
 Ogni scelta architetturale che garantisce un vantaggio specifico impone, per costruzione, una classe di situazioni in cui quel vantaggio diventa vincolo. Tre limiti strutturali emergono dall'analisi: la dipendenza dalla qualità della specifica OpenAPI come oracolo (Sezione~\ref{subsec:limite-ground-truth}), il confine intrinseco dell'astrazione del gateway (Sezione~\ref{subsec:limite-astrazione}), e la dipendenza dall'accesso all'Admin API nei deployment cloud managed (Sezione~\ref{subsec:limite-admin-api}).
 
-\subsection{Il Paradosso del Ground Truth (D3.P2)}\label{subsec:limite-ground-truth}
+\subsection{Il Paradosso del Ground Truth}\label{subsec:limite-ground-truth}
 
 Come discusso nella Sezione~\ref{subsec:oracle-design}, la specifica OpenAPI è il fondamento contrattuale primario della pipeline: delimita la superficie di attacco, guida la costruzione delle probe e fornisce il contratto rispetto al quale le risposte vengono interpretate.
 Il vantaggio è la precisione contrattuale: conoscendo il contratto, il tool costruisce richieste strutturalmente conformi che raggiungono la logica di sicurezza del target invece di fermarsi alla validazione sintattica dell'input. Questo è il limite strutturale che il paradigma contract-driven supera usando la specifica formale come mappa della superficie di attacco, come illustrato nella Sezione~\ref{subsec:dast-sast}.
@@ -25,14 +25,14 @@ Il vantaggio è la precisione contrattuale: conoscendo il contratto, il tool cos
 Il prezzo è la dipendenza dalla qualità di ciò che si assume come oracolo. Una specifica che non riflette endpoint aggiunti dopo l'ultima pubblicazione, o che esclude deliberatamente endpoint sensibili dalla documentazione, restringe la superficie di attacco osservabile senza che il sistema possa rilevarlo: il tool non dispone di un meccanismo per distinguere un endpoint assente dalla specifica da uno assente dal sistema. La correttezza dell'assessment è in entrambi i casi condizionale alla correttezza del contratto; lo specification drift tra documentazione e implementazione reale è riconosciuto nella letteratura sul contract-driven testing come una delle cause principali di copertura incompleta, indipendentemente dallo strumento adottato. La traiettoria di ricerca che affronta strutturalmente questo paradosso è discussa nella Sezione~\ref{subsec:ricerca-aperta}.
 
 
-\subsection{La Tensione dell'Astrazione (D1.P6)}\label{subsec:limite-astrazione}
+\subsection{La Tensione dell'Astrazione}\label{subsec:limite-astrazione}
 
 Come descritto nella Sezione~\ref{subsec:gateway-adapter}, \texttt{BaseGatewayAdapter} è l'interfaccia che disaccoppia i test \texttt{WHITE\_BOX} dal gateway concreto installato nel deployment: aggiungere il supporto per un nuovo prodotto richiede una nuova implementazione concreta senza modificare i test che la usano. Il prezzo di questa portabilità è che l'interfaccia può esporre solo ciò che è concettualmente generalizzabile a tutti i gateway che la implementano; controlli che dipendono da funzionalità vendor-specific, prive di equivalente strutturale in altri prodotti, rimangono fuori dal perimetro dell'astrazione.
 
 Kong, ad esempio, supporta l'ordinamento esplicito dei plugin tramite un campo della sua Admin \gls{API}: un plugin di autenticazione eseguito dopo un plugin di trasformazione del payload riceve dati già alterati, con implicazioni concrete sulla sicurezza. Verificare questa condizione richiede metadati specifici di Kong che non hanno corrispondente in altri gateway; includerli nell'interfaccia comune significherebbe vincolarla a una semantica vendor-specific. Il design attuale mantiene l'interfaccia generalizzabile e accetta questo come limite strutturale, non come dimenticanza. Una possibile direzione di sviluppo per superare questa tensione è descritta nella Sezione~\ref{subsec:roadmap-operativa}.
 
 
-\subsection{La Dipendenza dall'Admin API (D4.P5)}\label{subsec:limite-admin-api}
+\subsection{La Dipendenza dall'Admin API}\label{subsec:limite-admin-api}
 
 La degradazione controllata descritta nella Sezione~\ref{subsec:graceful-degradation} garantisce che l'assenza della Admin \gls{API} non blocchi la pipeline, ma non elimina le conseguenze sulla copertura. In ambienti cloud managed, come Amazon \gls{API} Gateway, Azure \gls{APIM} o Google Cloud Endpoints, il piano di configurazione non è esposto tramite un'Admin \gls{API} interrogabile direttamente: è accessibile solo attraverso le \gls{API} del cloud provider, con modelli di autenticazione specifici per piattaforma. Configurare \texttt{gateway\_adapter} per questi ambienti richiede un adapter dedicato per ciascun provider, attualmente non implementato.
 
@@ -65,7 +65,7 @@ Questa dipendenza si manifesta in forme diverse a seconda del contesto di deploy
 
 Il tool è stato progettato per operare in contesti di integrazione continua, non solo come strumento di assessment isolato. Tre proprietà rendono concreta questa integrazione: la riproducibilità deterministica, che garantisce risultati comparabili tra esecuzioni successive; la degradazione controllata, che assicura che l'assenza di precondizioni produca output documentati senza bloccare la pipeline; e la semantica degli exit code, che fornisce un canale di comunicazione macchina-leggibile con il sistema che ospita il tool. La sezione successiva descrive come le proprietà del tool si traducono in pattern di deployment concreti: il canale di comunicazione con la pipeline (Sezione~\ref{subsec:exit-codes}), i due profili di esecuzione disponibili (Sezione~\ref{subsec:fail-fast}), e la variabilità di copertura in funzione del contesto organizzativo (Sezione~\ref{subsec:privilegio-deployment}).
 
-\subsection{Semantic Exit Codes come Canale di Comunicazione con la Pipeline (D6.P1)}\label{subsec:exit-codes}
+\subsection{Semantic Exit Codes come Canale di Comunicazione con la Pipeline}\label{subsec:exit-codes}
 
 Al termine di ogni esecuzione, il tool comunica il proprio esito attraverso quattro codici di uscita con significato preciso: \texttt{0} indica che tutti i test attivi hanno prodotto \texttt{PASS} o \texttt{SKIP}; \texttt{1} indica che almeno un test ha rilevato una violazione (\texttt{FAIL}); \texttt{2} indica che nessun test ha rilevato violazioni ma almeno uno ha prodotto \texttt{ERROR}, segnalando un malfunzionamento parziale della pipeline; \texttt{10} indica un errore infrastrutturale nelle fasi di avvio che ha impedito l'esecuzione dei test. Quando un assessment presenta sia \texttt{FAIL} che \texttt{ERROR}, il codice restituito è \texttt{1}: le violazioni rilevate prevalgono sui malfunzionamenti parziali. Il routing basato su questi quattro codici è schematizzato nella Figura~\ref{fig:cicd-decision-tree}.
 
@@ -77,7 +77,7 @@ Sistemi di \gls{CI/CD} come GitHub Actions o GitLab \gls{CI}\footnote{GitHub Act
 
 La granularità attuale tratta ogni \texttt{FAIL} con lo stesso peso: una violazione P0 su un endpoint di autenticazione e una P3 su una configurazione subottimale producono entrambe exit~\texttt{1}. Rendere il predicato di blocco configurabile per livello di priorità è un'estensione operativa discussa nella Sezione~\ref{subsec:roadmap-operativa}.
 
-\subsection{Quality Gate a Due Velocità: Fail-Fast e Assessment Completo (D4.P8)}\label{subsec:fail-fast}
+\subsection{Quality Gate a Due Velocità: Fail-Fast e Assessment Completo}\label{subsec:fail-fast}
 
 Il tool supporta due profili di esecuzione distinti configurabili sullo stesso file. Il comportamento di default esegue tutti i test attivi indipendentemente dagli esiti intermedi e produce un report completo su tutti i domini: è appropriato per gli assessment periodici su versioni consolidate del software, dove la completezza dell'evidenza ha valore autonomo e ogni dominio deve produrre risultati per supportare le decisioni di correzione.
 

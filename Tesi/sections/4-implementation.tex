@@ -27,11 +27,9 @@
 % !TEX root = ../main.tex
 \chapter{Implementazione}\label{chap:implementation}
 
-Le proprietà architetturali formalizzate nel Capitolo~\ref{chap:methodology} si manifestano in questa sezione nella loro implementazione concreta. Il grado di trattamento rispecchia il peso strutturale di ciascuna: alcune definiscono l'organizzazione di interi componenti e sono trattate in sezioni dedicate; altre derivano dalle proprietà stabilite nel Capitolo~\ref{chap:methodology} e vengono richiamate nel contesto del componente in cui si realizzano; altre ancora, di natura prevalentemente operativa, trovano collocazione nelle sezioni di questo capitolo pertinenti al loro locus, o nei capitoli successivi dedicati alla validazione e all'integrazione con i processi di sviluppo. La Tabella~\ref{tab:property-index} costituisce la mappa di navigazione verso le sezioni dove ciascuna proprietà è introdotta.
+I principi architetturali discussi nel Capitolo~\ref{chap:methodology} si manifestano in questa sezione nella loro implementazione concreta. Il grado di trattamento rispecchia il peso strutturale di ciascuno: alcuni definiscono l'organizzazione di interi componenti e sono trattati in sezioni dedicate; altri derivano dai principi stabiliti nel Capitolo~\ref{chap:methodology} e vengono richiamati nel contesto del componente in cui si realizzano; altri ancora, di natura prevalentemente operativa, trovano collocazione nelle sezioni di questo capitolo pertinenti al loro locus, o nei capitoli successivi dedicati alla validazione e all'integrazione con i processi di sviluppo.
 
-Il Capitolo~\ref{chap:methodology} ha percorso il primo livello di questo approccio top-down: ha stabilito i principi fondamentali del sistema, la metodologia di assessment, i domini di sicurezza e le proprietà architetturali che ne definiscono la struttura. Questo capitolo ne rappresenta il livello successivo nella discesa: i principi prendono forma in moduli Python, le proprietà si concretizzano in classi, meccanismi e scelte implementative specifiche. Dove un componente è stato introdotto nella sua motivazione architetturale, le sezioni seguenti aggiungono il dettaglio implementativo con un rimando esplicito alla sezione di origine.
-
-
+Il Capitolo~\ref{chap:methodology} ha percorso il primo livello di questo approccio top-down: ha stabilito i principi fondamentali del sistema, la metodologia di assessment, i domini di sicurezza e i principi architetturali che ne definiscono la struttura. Questo capitolo ne rappresenta il livello successivo nella discesa: i principi prendono forma in moduli Python, le scelte architetturali si concretizzano in classi, meccanismi e decisioni implementative specifiche. Dove un componente è stato introdotto nella sua motivazione architetturale, le sezioni seguenti aggiungono il dettaglio implementativo con un rimando esplicito alla sezione di origine.
 % ─────────────────────────────────────────────────────────────────────────────
 \section{La Pipeline di Esecuzione a Sette Fasi e il Core Engine}%
 \label{sec:pipeline}
@@ -132,7 +130,7 @@ Ogni fase corrisponde a un modulo separato nel filesystem (Figura~\ref{fig:src-l
 Il ruolo di \texttt{engine.py} è limitato all'orchestrazione pura: esegue le fasi nell'ordine corretto, trasferisce i contesti da una fase all'altra, e non contiene logica di dominio di nessun tipo (né regole di sicurezza, né criteri di valutazione, né conoscenza del formato della specifica OpenAPI). La scelta ha una ragione strutturale: un orchestratore che incorpora logica di dominio diventa il punto di concentrazione delle dipendenze, rendendo difficile testare i componenti in isolamento e trasformando ogni sostituzione di fase in un'operazione ad alto rischio di regressione. La coerenza con il principio del flusso monodirezionale (Sezione~\ref{subsec:dep-flow}) è verificabile per ispezione diretta: \texttt{engine.py} importa da \texttt{core/}, \texttt{discovery/}, \texttt{tests/} e \texttt{report/}, ma nessuno di questi moduli importa da \texttt{engine.py}. Il flusso completo della pipeline con le condizioni di errore per ciascuna fase è sintetizzato nella Figura~\ref{fig:pipeline-flowchart}.
 
 
-\subsection{Fail-Safe Error Isolation (D4.P3)}\label{subsec:fail-safe}
+\subsection{Fail-Safe Error Isolation}\label{subsec:fail-safe}
 
 Il contratto tra l'orchestratore (\texttt{engine.py}) e i test individuali si caratterizza per un'assenza strutturale: nessun blocco \texttt{try/except} racchiude la chiamata a \texttt{test.execute()} nell'engine. Si tratta di una scelta deliberata, che delega la responsabilità della gestione delle eccezioni a livello di test, impedendo che una singola probe possa interrompere l'esecuzione delle altre per errori non previsti. Il perimetro di responsabilità dell'engine termina alla firma del contratto: invoca \texttt{test.execute()} e riceve un \texttt{TestResult}; qualsiasi condizione interna al test, normale o anomala, non attraversa quel confine.
 
@@ -141,7 +139,7 @@ Perché questo contratto funzioni, \texttt{BaseTest.execute()} deve garantire du
 \input{assets/figures/4-sequence-error-isolation.tex}
 
 
-\subsection{Gerarchia delle Eccezioni con Phase Mapping (D4.P4)}\label{subsec:exception-hierarchy}
+\subsection{Gerarchia delle Eccezioni con Phase Mapping}\label{subsec:exception-hierarchy}
 
 Il meccanismo che rende possibile la distinzione tra errori bloccanti e non-bloccanti è la gerarchia delle eccezioni custom. Tutte le eccezioni del tool ereditano da \texttt{ToolBaseError}, radice comune della gerarchia. La struttura offre al codice chiamante due granularità di intercettazione: un \texttt{except~ToolBaseError} copre qualsiasi condizione di errore del tool in un unico punto; scendere su un'eccezione specifica, come \texttt{except~ConfigurationError} o
 \texttt{except~DAGCycleError}, permette di distinguere la causa e rispondere
@@ -154,7 +152,7 @@ La prima scelta che riflette una decisione di design consapevole e non un vincol
 A questa si affianca l'assenza di \texttt{ExternalToolNotFoundError}; un tool esterno mancante non è una condizione di errore imprevista: è una condizione operativa attesa, gestita a monte durante la Phase~4 tramite \texttt{is\_available()} nel registry dei connector, come descritto nella Sezione~\ref{subsec:connector-injection}. Il test che dipende da un tool assente riceve uno stato \texttt{SKIP} con motivo esplicito, non un'eccezione. Introdurre \texttt{ExternalToolNotFoundError} avrebbe aggiunto una classe senza aggiungere semantica: la condizione è già rappresentata da \texttt{TestResult(status=SKIP)}.
 
 
-\subsection{Costruzione dei Contesti di Esecuzione (D1.P3)}\label{subsec:split-state-impl}
+\subsection{Costruzione dei Contesti di Esecuzione}\label{subsec:split-state-impl}
 
 In Phase~3, l'engine costruisce i due oggetti che attraversano l'intera pipeline: \texttt{TargetContext} e \texttt{TestContext}. La motivazione architetturale della loro separazione è discussa nella Sezione~\ref{subsec:split-state}.
 
@@ -173,7 +171,7 @@ In Phase~3, l'engine costruisce i due oggetti che attraversano l'intera pipeline
 Come stabilito nella Sezione~\ref{subsec:dag} e anticipato nella Fase~4 dell'elenco nella Sezione~\ref{sec:pipeline}, il \gls{DAG} delle dipendenze tra test non è risolto dall'engine direttamente, ma delegato a due componenti con responsabilità distinte: il \texttt{TestRegistry}, che determina a runtime quali test esistono per ispezione del filesystem, e il \texttt{DAGScheduler}, che riceve la lista dei test scoperti e calcola l'ordine topologico a partire dalle dipendenze dichiarate. Il registry opera su moduli e classi Python; lo scheduler opera su grafi di stringhe. La separazione riflette la differenza di dominio tra le due operazioni: una riguarda la composizione del set di test attivi, l'altra la loro sequenza di esecuzione.
 
 
-\subsection{Discovery Dinamico via \texttt{pkgutil} (D2.P1)}\label{subsec:discovery-impl}
+\subsection{Discovery Dinamico via \texttt{pkgutil}}\label{subsec:discovery-impl}
 
 Il \texttt{TestRegistry} in \texttt{src/tests/registry.py} scopre le classi concrete di test a runtime attraverso tre fasi sequenziali, denominate R1, R2 e R3, senza fare ricorso ad alcun elenco di registrazione manuale:
 
@@ -192,7 +190,7 @@ L'\texttt{ExternalTestRegistry} in \texttt{src/external\_tests/registry.py} segu
 Lo stesso principio di estensibilità vale per i test esterni: aggiungere un nuovo \texttt{ExternalToolTest} richiede la creazione di un file rispettando la nomenclatura \texttt{ext\_test\_*.py}, implementare il contratto di \texttt{ExternalToolTest} con i \texttt{ClassVar} obbligatori e dichiarare il \texttt{tool\_name} corrispondente al connector. Questa proprietà costituisce il prerequisito tecnico del plugin system delineato come traiettoria futura nella Sezione~\ref{sec:sviluppi-futuri}: un package esterno che aggiunge la propria directory al \texttt{sys.path} e rispetta le convenzioni di nomenclatura viene rilevato automaticamente al successivo avvio della pipeline, senza modifiche al core.
 
 
-\subsection{Scheduling Topologico e \texttt{DAGScheduler} (D2.P2)}\label{subsec:dag-impl}
+\subsection{Scheduling Topologico e \texttt{DAGScheduler}}\label{subsec:dag-impl}
 
 Il \texttt{DAGScheduler} in \texttt{src/core/dag.py} riceve la lista dei \texttt{test\_id} prodotta dal registry~(Sezione~\ref{subsec:discovery-impl}) e restituisce una sequenza ordinata di \texttt{ScheduledBatch}: ciascun batch raggruppa i test che possono essere eseguiti nello stesso livello topologico perché le loro dipendenze sono già state soddisfatte nei batch precedenti.
 Il meccanismo di risoluzione, introdotto a livello architetturale nella Sezione~\ref{subsec:dag}, si concretizza qui nel pattern \texttt{get\_ready()} / \texttt{done()} di \texttt{graphlib.TopologicalSorter}, la libreria standard Python introdotta nella versione~3.9.
@@ -200,7 +198,7 @@ Il \texttt{DAGScheduler} costruisce, a partire dal campo \texttt{depends\_on} di
 Il vincolo su C è già catturato dalla dipendenza di B su C, e \texttt{TopologicalSorter} lo propaga automaticamente nel calcolo dell'ordinamento.} Chiama poi \texttt{prepare()} per intercettare eventuali cicli prima dell'esecuzione, e drena l'ordinamento livello per livello: ogni chiamata a \texttt{get\_ready()} restituisce i nodi pronti, \texttt{done(*ready\_nodes)} sblocca quelli che da essi dipendono, e ogni livello produce uno \texttt{ScheduledBatch}.
 \footnote{Passare un nodo a \texttt{done()} segnala al sorter che quel \texttt{test\_id} è stato completato: tutti i test che lo dichiarano in \texttt{depends\_on} vedono soddisfatto quel vincolo e diventano eleggibili per la successiva chiamata a \texttt{get\_ready()}.}
 
-\texttt{ScheduledBatch} è un \texttt{dataclass(frozen=True)} con due campi: \texttt{batch\_index} (intero che indica il livello topologico incrementando a partire da zero) e \texttt{test\_ids} (lista ordinata di stringhe). L'immutabilità garantisce che l'engine non possa alterare un batch durante l'esecuzione. Il determinismo all'interno di ogni batch, requisito discusso nella Sezione~\ref{subsec:reproducibility}, dipende da una singola riga: \texttt{ready\_nodes~=~sorted(sorter.get\_ready())}. \texttt{graphlib.TopologicalSorter.get\_ready()} restituisce i nodi pronti senza garantire nessun ordine sull'insieme estratto: a parità di grafo e di dipendenze dichiarate, l'ordine di iterazione può variare tra run, versioni di Python o piattaforme. L'ordinamento lessicografico esplicito sul \texttt{test\_id} è l'unica fonte di ordine deterministico all'interno di un batch: due run con le stesse dipendenze dichiarate producono sempre la stessa sequenza di esecuzione, condizione necessaria perché D3.P4 sia verificabile empiricamente e non solo enunciabile. La topologia concreta prodotta dal \texttt{DAGScheduler} nell'assessment di validazione, con la sequenza di Phase~A e Phase~B risultante, è illustrata nella Figura~\ref{fig:dag-topology}.
+\texttt{ScheduledBatch} è un \texttt{dataclass(frozen=True)} con due campi: \texttt{batch\_index} (intero che indica il livello topologico incrementando a partire da zero) e \texttt{test\_ids} (lista ordinata di stringhe). L'immutabilità garantisce che l'engine non possa alterare un batch durante l'esecuzione. Il determinismo all'interno di ogni batch, requisito discusso nella Sezione~\ref{subsec:reproducibility}, dipende da una singola riga: \texttt{ready\_nodes~=~sorted(sorter.get\_ready())}. \texttt{graphlib.TopologicalSorter.get\_ready()} restituisce i nodi pronti senza garantire nessun ordine sull'insieme estratto: a parità di grafo e di dipendenze dichiarate, l'ordine di iterazione può variare tra run, versioni di Python o piattaforme. L'ordinamento lessicografico esplicito sul \texttt{test\_id} è l'unica fonte di ordine deterministico all'interno di un batch: due run con le stesse dipendenze dichiarate producono sempre la stessa sequenza di esecuzione, condizione necessaria perché la riproducibilità deterministica (Sezione~\ref{subsec:reproducibility}) sia verificabile empiricamente e non solo enunciabile. La topologia concreta prodotta dal \texttt{DAGScheduler} nell'assessment di validazione, con la sequenza di Phase~A e Phase~B risultante, è illustrata nella Figura~\ref{fig:dag-topology}.
 
 \input{assets/figures/4-dag-topology.tex}
 
@@ -215,7 +213,7 @@ Un caso limite, documentato nella Sezione~\ref{subsec:dag} a livello architettur
 I test nativi sono le unità di verifica che comunicano direttamente con il target tramite \texttt{SecurityClient} e producono evidenza \gls{HTTP} osservabile. Il loro ciclo di vita nella pipeline, dalla scoperta in Fase~4 all'invocazione in Fase~5, è descritto nella Sezione~\ref{sec:pipeline}; questa sezione ne descrive la struttura interna: il contratto che ogni test deve rispettare per essere scoperto e orchestrato correttamente, le invarianti sul risultato che il sistema applica per costruzione, il meccanismo di autenticazione condivisa, le regole di tracciabilità normativa, la policy con cui le probe \gls{HTTP} vengono interpretate, il meccanismo di risoluzione dei path parametrici e il catalogo dei payload di attacco, e il meccanismo di cleanup delle risorse create durante la verifica. Il sistema implementa test per i domini D0, D1, D2, D3, D4, D6 e D7; il Dominio~5 (Observability) è architetturalmente predisposto, ma i test corrispondenti sono pianificati come sviluppo futuro.
 
 
-\subsection{Gerarchia Duale \texttt{BaseTest} / \texttt{ExternalToolTest} (D1.P4)}\label{subsec:dual-hierarchy}
+\subsection{Gerarchia Duale \texttt{BaseTest} / \texttt{ExternalToolTest}}\label{subsec:dual-hierarchy}
 
 Il sistema ospita due categorie di test con contratti distinti: i test nativi estendono \texttt{BaseTest} in \texttt{src/tests/base.py}; i test con tool esterni estendono \texttt{ExternalToolTest} in \texttt{src/external\_tests/base.py}. Le due classi base sono gerarchie parallele e indipendenti, per ragioni tecniche precise; la Figura~\ref{fig:class-hierarchy} ne illustra la struttura d'insieme.
 
@@ -232,7 +230,7 @@ Il contratto che \texttt{BaseTest} impone a ogni implementazione concreta si art
       \item \textbf{Implementazione di \texttt{execute(target, ctx, store)}}: il metodo che garantisce le due invarianti discusse nella Sezione~\ref{subsec:fail-safe}: restituire sempre un \texttt{TestResult} e non propagare mai eccezioni verso l'engine.
 \end{itemize}
 
-\subsection{Invarianti di \texttt{TestResult} a Livello di Tipo (D4.P9)}\label{subsec:testresult-invariants}
+\subsection{Invarianti di \texttt{TestResult} a Livello di Tipo}\label{subsec:testresult-invariants}
 
 Ogni test produce un \texttt{TestResult}, il modello Pydantic che trasporta lo stato finale della verifica verso il report. La coerenza tra lo stato di un \texttt{TestResult} e il suo contenuto, se affidata alla disciplina distribuita di implementazioni indipendenti, è una proprietà che il sistema non può garantire strutturalmente: uno stato \texttt{FAIL} senza evidenza, uno \texttt{SKIP} senza motivazione, un \texttt{PASS} con findings allegati sono tutti costruibili sintatticamente senza che il sistema se ne accorga, producendo entry di report formalmente validi ma privi di significato verificabile. La soluzione adottata sposta l'enforcement a livello di tipo, tramite un \texttt{@model\_validator(mode="after")} in \texttt{src/core/models/results.py} che applica tre invarianti nel momento in cui ogni test costruisce il proprio risultato, ovvero alla chiamata di \texttt{\_make\_pass()}, \texttt{\_make\_fail()} o \texttt{\_make\_skip()}, prima che l'oggetto raggiunga qualsiasi consumer:
 
@@ -245,14 +243,14 @@ Ogni test produce un \texttt{TestResult}, il modello Pydantic che trasporta lo s
 La centralizzazione in un singolo \texttt{model\_validator} ha un effetto architetturale preciso: il contratto tra stato e contenuto del \texttt{TestResult} è enforced nel punto in cui l'oggetto viene costruito, indipendentemente da quale test lo costruisce e da quale helper utilizza. Una violazione solleva \texttt{pydantic.ValidationError} nel punto in cui l'helper \texttt{\_make\_pass()}, \texttt{\_make\_fail()} o \texttt{\_make\_skip()} costruisce l'oggetto, con un traceback che punta direttamente alla riga incriminata nel test responsabile. Ogni nuova implementazione di test ottiene la verifica automaticamente: il validator intercetta risultati inconsistenti nel punto stesso della costruzione, senza che il test debba contenere logica di validazione propria.
 
 
-\subsection{Auth Abstraction Layer e Idempotenza dei Token (D2.P5)}\label{subsec:auth-layer}
+\subsection{Auth Abstraction Layer e Idempotenza dei Token}\label{subsec:auth-layer}
 
 I test \texttt{GREY\_BOX} non possono iniziare la propria probe senza token validi: il gateway respinge qualsiasi richiesta priva di credenziali prima che la logica di autorizzazione venga anche solo valutata. Con una parte significativa dei 18 test attivi in modalità \texttt{GREY\_BOX}, distribuire la logica di login in ogni test produrrebbe autenticazioni ripetute verso lo stesso target per ruoli già acquisiti. \texttt{acquire\_tokens()} in \texttt{src/tests/helpers/auth.py} risolve questo problema centralizzando la gestione dei token nel \texttt{TestContext}: alla chiamata, la funzione verifica prima se il \texttt{TestContext} contiene già un token valido per il ruolo richiesto tramite \texttt{ctx.has\_token(role)}; solo se il token è assente esegue il login \gls{HTTP} e lo scrive nel canale token tramite \texttt{ctx.set\_token(role, token)}. Il numero di login effettivi verso il target è così esattamente uguale al numero di ruoli distinti configurati, indipendentemente da quanti test li richiedano.
 
 Il dispatcher in \texttt{auth.py} legge il campo \texttt{auth\_type} dal \texttt{config.yaml} e delega l'acquisizione dei token all'implementazione corrispondente, astraendo i test dal dettaglio del protocollo. Attualmente sono supportati due metodi: \texttt{forgejo\_token}, che acquisisce un token tramite l'endpoint Forgejo-specifico \texttt{POST /api/v1/users/\{username\}/tokens} con HTTP Basic Auth, e \texttt{jwt\_login}, un flusso generico configurabile tramite \texttt{login\_endpoint}, \texttt{username\_body\_field} e \texttt{token\_response\_path}, adatto a qualsiasi target che esponga un endpoint di login JSON, da crAPI\footnote{\url{https://github.com/OWASP/crAPI}} a Django REST Framework. Aggiungere il supporto per un nuovo meccanismo richiede una nuova implementazione del flusso e un ramo aggiuntivo nel dispatcher; i test rimangono invariati perché il loro contratto con il layer di autenticazione è espresso esclusivamente in termini di ruolo richiesto.
 
 
-\subsection{Tracciabilità Normativa e Distinzione Finding/InfoNote (D5.P1, D5.P2)}\label{subsec:traceability}
+\subsection{Tracciabilità Normativa e Distinzione Finding/InfoNote}\label{subsec:traceability}
 
 Ogni test porta con sé, come \texttt{ClassVar}, i riferimenti normativi della garanzia che verifica: \texttt{cwe\_id} per la classe di vulnerabilità nel \gls{CWE}, e \texttt{tags} per le categorie \gls{OWASP}, i riferimenti \gls{NIST} e i documenti tecnici \gls{RFC}. Entrambi vengono propagati fino al modello \texttt{Finding} tramite il campo \texttt{references: list[str]} e riportati dal report HTML a fianco di ogni risultato: un analista può risalire direttamente dal finding al codice \gls{CWE}, alla categoria \gls{OWASP} API Security e alle sezioni normative pertinenti senza consultare documentazione esterna.
 
@@ -261,7 +259,7 @@ La tracciabilità presuppone una distinzione semantica precisa tra due tipi di a
 Il valore operativo della distinzione emerge con chiarezza nel test~4.3, che verifica la presenza di un meccanismo di circuit breaking sull'infrastruttura del gateway. Kong OSS, nella configurazione adottata per questa validazione, non implementa circuit breaking attivo ma espone healthcheck passivi che svolgono una funzione parzialmente equivalente. Il test registra \texttt{PASS} perché il requisito minimo è soddisfatto, e allega una \texttt{InfoNote} che documenta la differenza tra il compensating control osservato e il circuit breaking completo. L'analista ottiene un quadro preciso senza che il sistema produca né un falso \texttt{FAIL} né un \texttt{PASS} silenzioso che nasconde la sfumatura.
 
 
-\subsection{Oracle a Tre Esiti e Safe HTTP Probing Policy (D4.P7)}\label{subsec:probing-policy}
+\subsection{Oracle a Tre Esiti e Safe HTTP Probing Policy}\label{subsec:probing-policy}
 
 Ogni test nativo che interroga un endpoint del target riceve una risposta \gls{HTTP} che il tool deve interpretare e tradurre in un verdetto preciso. Il problema non è banale: uno status \texttt{404 Not Found} su un endpoint parametrico come \texttt{/users/\{id\}/repos} può significare che il gateway ha rifiutato la richiesta per mancanza di autenticazione, che il path non esiste per il valore di \texttt{\{id\}} usato nel probe, o che l'endpoint è genuinamente non protetto ma il path era errato. Interpretare un \texttt{404} come \texttt{FAIL} in tutti i casi genera falsi positivi inaccettabili in un assessment che si propone come affidabile.
 
@@ -281,12 +279,12 @@ La codifica a tre esiti presuppone che la risposta ricevuta rifletta il comporta
 Un caso limite merita attenzione esplicita. Le probe con metodo \texttt{DELETE} su endpoint parametrici presentano un rischio operativo: se il gateway è mal configurato e non applica autenticazione, una richiesta \texttt{DELETE} con un path valido potrebbe eliminare risorse reali sul target. La policy prevede un fallback sicuro: quando il path seed non è configurato per un endpoint \texttt{DELETE} parametrico, il probe viene eseguito con il valore letterale \texttt{"apiguard-probe"} come sostituto del parametro. Un path con quel valore non corrisponde a nessuna risorsa reale su alcun sistema, garantendo che il probe non causi effetti collaterali indesiderati anche in presenza di un gateway non autenticato.
 
 
-\subsection{Path Seed System (D2.P7)}\label{subsec:path-seed}
+\subsection{Path Seed System}\label{subsec:path-seed}
 
 Il path seed system affronta una tensione strutturale dell'agnosticismo applicativo. Derivare tutta la conoscenza del target dalla specifica OpenAPI significa conoscere la topologia degli endpoint ma non i valori concreti dei loro parametri: \texttt{/users/\{owner\}/repos/\{repo\}} è un endpoint documentato, ma senza sapere quale \texttt{owner} e quale \texttt{repo} esistano realmente sul target, la probe usa un placeholder il cui path quasi certamente non esiste, producendo \texttt{404} e un risultato \textsc{inconclusive}. Il seed risolve questa tensione fornendo per ogni parametro la possibilità di specificare un valore concreto verificato sul target\footnote{Un valore verificato è un identificatore di una risorsa realmente esistente nel deployment; nel caso di Forgejo: un utente, un repository, e così via.}: la generazione tramite il comando \gls{CLI} \texttt{generate-seed}, che interroga la specifica OpenAPI, produce un template da completare e inserire in \texttt{config.yaml}. Con il seed configurato per Forgejo, i path con \texttt{\{owner\}} e \texttt{\{repo\}} producono risposte interpretabili: \textsc{enforced} se il gateway applica il controllo atteso, \textsc{bypassed} se non lo applica. La \hyperref[sec:coverage-idempotenza]{Sezione~\ref*{sec:coverage-idempotenza}} riporta i dati quantitativi di questo effetto sull'assessment descritto in questo capitolo.
 
 
-\subsection{Catalogo dei Payload di Attacco (D2.P8)}\label{subsec:payload-catalog}
+\subsection{Catalogo dei Payload di Attacco}\label{subsec:payload-catalog}
 
 I test nativi applicano il principio di separazione tra dati e logica di valutazione che, come verrà illustrato nella Sezione~\ref{subsec:connector-hierarchy}, governa anche il contratto dei connector: i dati di input alla verifica risiedono separati dalla logica che li interpreta. Nel caso dei test nativi, questo si concretizza nel catalogo dei payload. Le sequenze di \gls{URL} usate dal test \gls{SSRF}, gli header malformati per i test di input validation, e altri vettori di attacco risiedono in moduli puri in \texttt{src/tests/data/}, distinti dalla logica che li applica. Aggiungere un nuovo vettore richiede la modifica del catalogo, senza toccare il test che lo utilizza. La separazione ha una conseguenza operativa concreta in contesti enterprise, dove i payload di attacco sono soggetti a un processo di approvazione separato dal codice applicativo.
 
@@ -359,7 +357,7 @@ Il test invia richieste autenticate all'endpoint di injection configurato in \te
 Le sei categorie di \gls{URL} testati sono: endpoint \gls{IMDS} cloud (AWS, GCP, Azure, DigitalOcean), indirizzi IP privati e loopback, encoding offuscati di indirizzi interni, protocolli non-\gls{HTTP}, bypass \gls{DNS} tramite servizi wildcard, e tecniche di confusion del parser \gls{URL}.
 
 
-\subsection{Teardown Best-Effort in Ordine LIFO (D4.P6)}\label{subsec:teardown}
+\subsection{Teardown Best-Effort in Ordine LIFO}\label{subsec:teardown}
 
 I test che raggiungono la logica applicativa del target spesso creano risorse necessarie alla verifica: token di autenticazione temporanei, utenti di test, risorse effimere. Lasciare queste risorse sul target al termine dell'assessment viola la proprietà di non-interferenza: un assessment successivo potrebbe incontrare uno stato alterato, e il target produttivo potrebbe accumulare risorse orfane nel tempo.
 
@@ -375,7 +373,7 @@ In Phase~6, l'engine chiama \texttt{ctx.drain\_resources()}, che restituisce le 
 La controparte della gerarchia duale introdotta nella Sezione~\ref{subsec:dual-hierarchy} è \texttt{ExternalToolTest}: i test che delegano la raccolta di dati a tool specializzati invece di comunicare direttamente con il target tramite \texttt{SecurityClient}. Seguono lo stesso ciclo di vita nella pipeline (scoperti in Fase~4 dall'\texttt{ExternalTestRegistry} con l'aggiunta di Phase~R4, invocati in Fase~5), ma con un pattern di integrazione strutturalmente diverso. Scanner di vulnerabilità, analizzatori \gls{TLS}, fuzzer producono tipi di evidenza che un client \gls{HTTP} generico non può raccogliere: la negoziazione \gls{TLS} richiede dialogo a livello di protocollo, l'analisi con template nuclei richiede una base di signature aggiornata. Il layer dei connector è il punto in cui questa delega prende forma concreta: isola la logica di invocazione di ogni tool, normalizza il suo output in un modello comune e restituisce al test un oggetto strutturato invece del raw output del processo. In assenza di questo layer, ogni test esterno conterrebbe sia la logica di verifica della garanzia sia la meccanica di subprocess management o di importazione della libreria, accoppiando due responsabilità che evolvono per ragioni distinte.
 
 
-\subsection{Gerarchia a Tre Livelli e Separazione Dati/Valutazione (D1.P5, D2.P3)}\label{subsec:connector-hierarchy}
+\subsection{Gerarchia a Tre Livelli e Separazione Dati/Valutazione}\label{subsec:connector-hierarchy}
 
 La gerarchia dei connector si articola su tre livelli, ciascuno dei quali eredita solo i meccanismi pertinenti al proprio pattern di integrazione.
 
@@ -394,7 +392,7 @@ e implementare \texttt{run()}, il cui contratto formalizza una separazione preci
 La valutazione è responsabilità esclusiva dell'\texttt{ExternalToolTest}, che implementa \texttt{\_evaluate()} e applica il proprio oracle al \texttt{ConnectorResult}. La ragione di questa separazione è la riusabilità: il \texttt{NucleiConnector} non sa nulla della garanzia che il test vuole verificare, e per questo può essere condiviso da test con logiche di valutazione completamente diverse. Un secondo test che vuole usare nuclei per injection scanning scriverebbe un \texttt{\_evaluate()} diverso ma userebbe lo stesso connector, senza alcuna modifica alla logica di invocazione.
 
 
-\subsection{Lifecycle dei Connector e Dependency Injection (D2.P4)}\label{subsec:connector-injection}
+\subsection{Lifecycle dei Connector e Dependency Injection}\label{subsec:connector-injection}
 
 Come descritto nella Sezione~\ref{subsec:discovery-impl}, la Phase~R4 dell'\texttt{ExternalTestRegistry} raggruppa i test per \texttt{tool\_name} e chiama \texttt{is\_available()} una sola volta per gruppo. Il risultato di quella chiamata determina il lifecycle del connector per tutti i test del gruppo: disponibilità o assenza del tool si traduce in due comportamenti distinti, gestiti tramite due attributi di istanza di \texttt{ExternalToolTest}.
 
@@ -403,12 +401,12 @@ Se il tool è disponibile, il registry istanzia un connector condiviso e lo scri
 La conseguenza operativa misurabile è nel log di esecuzione. Con cinque test che dipendono da nuclei e il binario assente, il log produce un solo \texttt{WARNING} del tipo \textit{"nuclei not found: 5 tests will SKIP"}, invece di cinque entry identiche. In un assessment con molti tool e molti test, questa differenza rende il log leggibile invece che ridondante. Il comportamento complessivo del sistema in presenza di infrastruttura parzialmente disponibile, compresi gli scenari con Admin \gls{API} assente o master switch disattivato, è descritto nella Sezione~\ref{subsec:graceful-degradation}.
 
 
-\subsection{Classificazione A/B dei Connector (D2.P6)}\label{subsec:connector-classification}
+\subsection{Classificazione A/B dei Connector}\label{subsec:connector-classification}
 
 I connector sono classificati in due categorie che riflettono il loro rapporto con la copertura nativa. I connector di Categoria~A coprono garanzie che i test nativi non possono raggiungere con soli probe \gls{HTTP}: la loro assenza produce \texttt{SKIP} su verifiche altrimenti inaccessibili. I connector di Categoria~B estendono la copertura su garanzie già verificate parzialmente dai test nativi, aggiungendo profondità senza essere necessari per l'assessment di base. Nell'implementazione corrente, \texttt{NucleiConnector} e \texttt{TestsslConnector}/\texttt{SslyzeConnector} appartengono entrambi alla Categoria~A: il primo perché l'analisi di Shadow \gls{API} tramite template specializzati non è replicabile con probe \gls{HTTP} generici; i secondi perché la negoziazione \gls{TLS} richiede dialogo a livello di protocollo che supera le capacità di un client \gls{HTTP} standard.
 
 
-\subsection{Isolamento della Dipendenza AGPL (D7.P2)}\label{subsec:agpl-isolation}
+\subsection{Isolamento della Dipendenza AGPL}\label{subsec:agpl-isolation}
 
 \texttt{sslyze}, la libreria Python per l'analisi \gls{TLS}, è distribuita sotto licenza \gls{AGPL} v3. Le dipendenze dichiarate in \texttt{[project.dependencies]} di \texttt{pyproject.toml} vengono installate automaticamente con qualsiasi \texttt{pip install apiguard-assurance}; includervi \texttt{sslyze} propagherebbe i suoi obblighi copyleft a chiunque distribuisca o utilizzi il tool, indipendentemente dall'uso effettivo della libreria. La sezione \texttt{[project.optional-dependencies]} del \texttt{pyproject.toml} è pensata esattamente per questo tipo di situazione: raccoglie le dipendenze con vincoli di licenza o peso computazionale che non devono essere imposti per default, lasciando all'operatore la scelta consapevole di installarle tramite un extra esplicito.
 
@@ -433,7 +431,7 @@ I metodi pubblici, \texttt{get\_routes()}, \texttt{get\_plugins()}, \texttt{get\
 Il ciclo di vita dell'adapter si articola su due momenti distinti. In Fase~3 si verifica tramite \texttt{check\_connectivity()} che la Admin \gls{API} sia raggiungibile prima di popolare \texttt{TargetContext.gateway}: se la verifica fallisce, il campo rimane \texttt{None} e tutti i test \texttt{WHITE\_BOX} transitano a \texttt{SKIP} per l'intera run. Durante l'esecuzione dei test nella Fase~5, qualsiasi errore nelle chiamate \gls{HTTP} verso l'Admin \gls{API} viene incapsulato in \texttt{GatewayAdapterError}, che il test cattura e converte in \texttt{TestResult(ERROR)} senza propagare l'eccezione all'engine.
 
 
-\subsection{Degradazione Controllata a Tre Livelli (D4.P5)}\label{subsec:graceful-degradation}
+\subsection{Degradazione Controllata a Tre Livelli}\label{subsec:graceful-degradation}
 
 Un assessment eseguito in ambienti eterogenei incontra sistematicamente situazioni in cui parti dell'infrastruttura non sono disponibili: tool esterni non installati, Admin \gls{API} non esposta, integrazione con tool esterni disabilitata per policy. La risposta del sistema non è un errore a cascata, ma una degradazione controllata su tre livelli distinti che produce risultati parziali corretti con motivazioni esplicite in ogni caso.
 
@@ -456,7 +454,7 @@ In tutti e tre i casi, gli \texttt{SKIP} prodotti sono distinguibili nel report 
 Ogni verifica di sicurezza produce due tipi di output: un verdetto, espresso come \texttt{TestResult}, e l'evidenza che lo sostiene, composta dalle transazioni \gls{HTTP} effettuate dai test nativi e dai dati grezzi prodotti dai tool esterni. L'evidenza è ciò che distingue un risultato verificabile da un'asserzione: senza di essa, un \texttt{FAIL} non può essere riprodotto né contestato. Raccoglierla introduce però una responsabilità: un audit trail non sanitizzato che contiene token o credenziali è esso stesso un rischio di sicurezza: il file viene condiviso con il team di analisi e archiviato nei sistemi di ticketing, dove la sua esposizione sfugge al controllo di chi ha eseguito l'assessment.
 Questa sezione descrive come l'\texttt{EvidenceStore} gestisce raccolta affidabile e sanitizzazione strutturale durante la Fase~5, e come vengono generati i tre deliverable finali dell'assessment in Fase~7 (introdotti nella Sezione~\ref{sec:pipeline}): \texttt{evidence.json} per l'archiviazione forense, \texttt{assessment\_report.html} per la consultazione operativa e \texttt{apiguard\_report.json} per l'integrazione strutturata nei sistemi \gls{CI/CD}.
 
-\subsection{Ciclo di Vita dello Streaming Evidence Store (D4.P1)}\label{subsec:evidence-lifecycle}
+\subsection{Ciclo di Vita dello Streaming Evidence Store}\label{subsec:evidence-lifecycle}
 
 Il design dell'\texttt{EvidenceStore} è motivato nella Sezione~\ref{subsec:evidence-store}, dove viene discusso il problema strutturale del buffer a capacità fissa che produceva audit trail rotti in silenzio. Questa sezione descrive l'implementazione concreta che ha risolto quel problema.
 
@@ -467,7 +465,7 @@ Riportando la soluzione iniziale con \texttt{deque(maxlen=100)}, il primo record
 La proprietà di recuperabilità è un effetto collaterale dell'architettura. Se il processo va in crash tra Phase~5 e Phase~7, i file \texttt{.jsonl} rimangono su disco e sono leggibili manualmente con qualsiasi strumento \gls{JSONL}-compatibile: l'evidenza parziale è recuperabile anche in assenza di un run completo.
 
 
-\subsection{Sanitizzazione Centralizzata delle Credenziali (D4.P2)}\label{subsec:sanitization}
+\subsection{Sanitizzazione Centralizzata delle Credenziali}\label{subsec:sanitization}
 
 Un audit trail che contiene token di autenticazione, \gls{API} key o password è esso stesso una superficie di rischio: \texttt{evidence.json} viene condiviso con il team di sicurezza, archiviato nei sistemi di ticketing, e potenzialmente incluso in repository. Delegare la redazione ai singoli connector presuppone che ogni implementazione, incluse quelle di terze parti, ricordi di oscurare i propri campi sensibili: l'adozione di logiche custom e frammentate elimina la possibilità di definire garanzie uniformi, poiché ogni estensione opererebbe secondo criteri arbitrari e privi di coordinamento.
 
@@ -487,7 +485,7 @@ La sovrapposizione dei tre meccanismi copre scenari che nessuno dei tre individu
 
 I tre meccanismi appena descritti si applicano esclusivamente agli artifact dei connector; le transazioni \gls{HTTP} generate dai test nativi seguono invece un percorso separato. La redazione non avviene a posteriori sul dizionario, ma interviene direttamente al livello del modello Pydantic: un \texttt{field\_validator} applicato all'attributo \texttt{EvidenceRecord.request\_headers} intercetta la creazione del record e sostituisce il valore dell'header \texttt{Authorization} con \texttt{[REDACTED]}. Questo approccio preventivo assicura che nessuna credenziale nativa raggiunga l'\texttt{EvidenceStore} in chiaro.
 
-\subsection{Dual Audit Trail e Report Domain-Centric (D5.P5)}\label{subsec:dual-audit-trail}
+\subsection{Dual Audit Trail e Report Domain-Centric}\label{subsec:dual-audit-trail}
 
 I tre deliverable finali dell'assessment assolvono funzioni distinte e si rivolgono a interlocutori diversi.
 Il termine \textit{Dual} si riferisce quindi al parallelismo tra la persistenza tecnica destinata alle macchine (\texttt{evidence.json}) e la presentazione operativa destinata all'analisi umana (\texttt{assessment\_report.html}).
