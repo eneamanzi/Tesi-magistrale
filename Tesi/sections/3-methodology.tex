@@ -267,7 +267,7 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
 
       \item[\textbf{\texttt{ext.0.1.nuclei}}]
             \textit{Shadow API Discovery: scansione a template.} \texttt{BB}, P0.\\
-            Il tool impiega Nuclei~\cite{ProjectdiscoveryNuclei2026} come connector per rilevare esposizioni note sul target; finding di severity CRITICAL, HIGH o MEDIUM determinano \texttt{FAIL}; severity inferiore produce \texttt{PASS} con un avviso.
+            Il tool impiega Nuclei~\cite{ProjectdiscoveryNuclei2026} come connector per rilevare esposizioni note sul target; finding di severity CRITICAL, HIGH o MEDIUM determinano \texttt{FAIL}; severity inferiore produce \texttt{PASS}.
             (\gls{OWASP}~API9:2023, \gls{CWE}-200)
 
       \item[\textbf{\texttt{0.2}}]
@@ -277,8 +277,8 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
 
       \item[\textbf{\texttt{0.3}}]
             \textit{Deprecated API Enforcement.} \texttt{BB}, P0.\\
-            Verifica che gli endpoint marcati \texttt{deprecated:~true} nella specifica restituiscano \texttt{410~Gone} o includano un header \texttt{Sunset} conforme a \gls{RFC}~8594, confermando che le \gls{API} dismesse non rimangano operative rimangano operative oltre il ciclo di vita dichiarato.
-            (\gls{OWASP}~API9:2023, \gls{CWE}-200, \gls{RFC}~8594\footnote{\gls{RFC}~8594: \textit{The Sunset HTTP Header Field}, IETF.})
+            Verifica che gli endpoint marcati \texttt{deprecated:~true} nella specifica restituiscano \texttt{410~Gone} o includano un header \texttt{Sunset}, confermando che le \gls{API} dismesse non rimangano operative oltre il ciclo di vita dichiarato.
+            (\gls{OWASP}~API9:2023, \gls{CWE}-1059\footnote{\textit{CWE-1059: Incomplete Documentation}.}, \gls{RFC}~8594\footnote{\gls{RFC}~8594: \textit{The Sunset HTTP Header Field}, IETF.})
 \end{description}
 
 \paragraph{Dominio~1: Identità e Autenticazione}
@@ -304,7 +304,7 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
             (\gls{OWASP}~API2:2023, \gls{CWE}-613, \gls{RFC}~7009\footnote{\gls{RFC}~7009: \textit{OAuth 2.0 Token Revocation}, IETF (2013).})
 
       \item[\textbf{\texttt{1.5}}]
-            \textit{Insecure Credential Transport.} \texttt{BB}, P2.\\
+            \textit{Insecure Credential Transport.} \texttt{WB}, P2.\\
             Verifica che le credenziali non transitino in chiaro, controllando redirect \gls{HTTP}$\to$\gls{HTTPS} e la presenza dell'header \gls{HSTS} con durata minima configurabile.
             (\gls{OWASP}~API2:2023, \gls{CWE}-319\footnote{\textit{CWE-319: Cleartext Transmission of Sensitive Information}.}, \gls{NIST}~SP~800-52~Rev.~2\footnote{\gls{NIST} SP~800-52 Rev.~2: \textit{Guidelines for the Selection, Configuration, and Use of Transport Layer Security (TLS) Implementations}.})
 
@@ -321,19 +321,19 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
       \item[\textbf{\texttt{1.6}}]
             \textit{Secure Session Management.} \texttt{WB}, P3.\\
             Verifica che i cookie di sessione presentino i flag di sicurezza obbligatori e che il session store del gateway sia configurato correttamente, prevenendo session hijacking e fixation.
-            (\gls{OWASP}~API2:2023, \gls{CWE}-384\footnote{\textit{CWE-384: Session Fixation}.})
+            (\gls{OWASP}~API2:2023, \gls{CWE}-384\footnote{\textit{CWE-384: Session Fixation}}, \gls{CWE}-614\footnote{\textit{CWE-614: Sensitive Cookie in HTTPS Session Without \texttt{Secure} Attribute}.})
 \end{description}
 
 \paragraph{Dominio~2: Autorizzazione e Controllo degli Accessi}
 \begin{description}
       \item[\textbf{\texttt{2.1}}]
             \textit{\gls{RBAC} Enforcement.} \texttt{GB}, P2.\\
-            Verifica che utenti con ruolo non privilegiato non possano accedere a una lista configurabile di endpoint riservati a ruoli superiori, rilevando bypass della \gls{BFLA}.
+            Verifica che utenti con ruolo non privilegiato non possano accedere a endpoint riservati a ruoli superiori, rilevando bypass della \gls{BFLA}.
             (\gls{OWASP}~API5:2023\footnote{\gls{OWASP} API5:2023: \textit{Broken Function Level Authorization}~\cite{OWASPTop10}.}, \gls{CWE}-285\footnote{\textit{CWE-285: Improper Authorization}.})
 
       \item[\textbf{\texttt{2.2}}]
             \textit{\gls{BOLA} Prevention.} \texttt{GB}, P1.\\
-            Verifica che ogni utente acceda esclusivamente alle risorse di propria titolarità, rilevando \gls{BOLA} tramite manipolazione degli identificatori di path con credenziali di un utente distinto.
+            Verifica che ogni utente acceda esclusivamente alle risorse di propria titolarità, rilevando accesso non autorizzato a oggetti altrui (\gls{BOLA}).
             (\gls{OWASP}~API1:2023\footnote{\gls{OWASP} API1:2023: \textit{Broken Object Level Authorization}~\cite{OWASPTop10}.}, \gls{CWE}-639\footnote{\textit{CWE-639: Authorization Bypass Through User-Controlled Key}.})
 
       \item[\textbf{\texttt{2.3}}]
@@ -356,7 +356,7 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
 \begin{description}
       \item[\textbf{\texttt{3.1}}]
             \textit{Input Validation.} \texttt{BB}, P2.\\
-            Verifica che il gateway rifiuti payload malformati o con valori fuori dai vincoli dichiarati dalla specifica, rilevando assenza di validazione contrattuale dell'input.
+            Verifica che il sistema rifiuti payload malformati o con valori fuori dai vincoli dichiarati dalla specifica, rilevando assenza di validazione contrattuale dell'input.
             (\gls{CWE}-20\footnote{\textit{CWE-20: Improper Input Validation}.})
 
       \item[\textbf{\texttt{3.2}}]
@@ -377,7 +377,7 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
 
       \item[\textbf{\texttt{4.2}}]
             \textit{Timeout Configuration Audit.} \texttt{WB}, P1.\\
-            Verifica tramite Admin \gls{API} che i timeout sugli upstream del gateway siano configurati entro soglie operative, prevenendo il blocco indefinito delle connessioni in caso di backend non funzionante.
+            Verifica tramite Admin \gls{API} che i timeout sugli upstream del gateway siano configurati entro soglie operative, prevenendo il blocco indefinito delle connessioni in caso di backend non responsivo.
             (\gls{CWE}-400)
 
       \item[\textbf{\texttt{4.3}}]
@@ -390,13 +390,13 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
 \begin{description}
       \item[\textbf{\texttt{5.1}}]
             \textit{Audit Logging.} \texttt{WB}, P1.\\
-            Verifica che il gateway produca log strutturati per ogni richiesta con i metadata minimi per incident response e audit, con redazione dei dati sensibili. Richiede accesso al log aggregator.
+            Verifica che il gateway produca log strutturati per ogni richiesta con i metadata minimi per incident response e audit, con redazione dei dati sensibili.
             (\gls{NIST}~SP~800-92\footnote{\gls{NIST} SP~800-92: \textit{Guide to Computer Security Log Management}.}, \gls{ASVS}~V16.2.1\footnote{\gls{OWASP} \gls{ASVS} v5.0.0: \textit{Application Security Verification Standard}.})
 
       \item[\textbf{\texttt{5.2}}]
             \textit{Security Alerting.} \texttt{WB}, P2.\\
-            Verifica che eventi security-anomali producano alert verso il sistema di monitoring configurato entro una latenza definita. Richiede accesso alla configurazione delle alert rules e a un canale di notifica controllato.
-            (\gls{NIST}~SP~800-61~Rev.~3\footnote{\gls{NIST} SP~800-61 Rev.~3: \textit{Computer Security Incident Handling Guide}.}, \gls{ASVS}~V7.1.1)
+            Verifica che eventi di sicurezza anomali producano alert verso il sistema di monitoring configurato entro una latenza definita.
+            (\gls{NIST}~SP~800-61~Rev.~3\footnote{\gls{NIST} SP~800-61 Rev.~3: \textit{Incident Response Recommendations and Considerations for Cybersecurity Risk Management}.}, \gls{ASVS}~V7.1.1)
 \end{description}
 
 \paragraph{Dominio~6: Configurazione e Hardening}
@@ -413,12 +413,12 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
 
       \item[\textbf{\texttt{6.3}}]
             \textit{Gateway Hardening.} \texttt{BB}, P1.\\
-            Verifica che la configurazione del gateway sia protetta contro exploit Layer-7 comuni, con rilevazione di vulnerabilità di HTTP request smuggling.
+            Verifica che il gateway non sia vulnerabile a \gls{HTTP} request smuggling, rilevando configurazioni che consentono a richieste con intestazioni ambigue di attraversare il proxy senza essere normalizzate.
             (\gls{OWASP}~API8:2023, \gls{CWE}-444\footnote{\textit{CWE-444: Inconsistent Interpretation of HTTP Requests}.})
 
       \item[\textbf{\texttt{6.4}}]
             \textit{Hardcoded Credentials Audit.} \texttt{WB}, P2.\\
-            Verifica che le credenziali di servizio non siano esposte tramite endpoint di debug né hardcoded negli \gls{URL} dei servizi upstream o nella configurazione dei plugin del gateway.
+            Verifica che le credenziali di servizio non siano esposte tramite endpoint di debug, né hardcoded negli \gls{URL} dei servizi upstream o nella configurazione dei plugin del gateway.
             (\gls{OWASP}~API8:2023, \gls{CWE}-798\footnote{\textit{CWE-798: Use of Hard-coded Credentials}.})
 \end{description}
 
@@ -430,16 +430,17 @@ Il tool realizza la tassonomia descritta nella Sezione~\ref{subsec:domini-tasson
             (\gls{OWASP}~API10:2023\footnote{\gls{OWASP} API10:2023: \textit{Unsafe Consumption of External APIs}~\cite{OWASPTop10}.}, \gls{CWE}-20)
 
       \item[\textbf{\texttt{7.2}}]
-            Verifica che il sistema rifiuti \gls{URL} controllati dall'attaccante iniettati in richieste autenticate, rilevando \gls{SSRF} tramite sonde su indirizzi privati, endpoint IMDS cloud, encoding obfuscati e protocolli non-\gls{HTTP}. La strategia \texttt{GB} è necessaria perché il vettore di injection richiede autenticazione.
-            (\gls{OWASP}~API7:2023\footnote{\gls{OWASP} API7:2023: \textit{Server Side Request Forgery}~\cite{OWASPTop10}.}, \gls{CWE}-918\footnote{\textit{CWE-918: Server-Side Request Forgery}.}, \gls{RFC}~1918\footnote{\gls{RFC}~1918: \textit{Address Allocation for Private Internets}, IETF.})
+            \textit{\gls{SSRF} Prevention.} \texttt{GB}, P0.\\
+            Verifica che il sistema non esegua richieste \gls{HTTP} verso risorse interne quando riceve un \gls{URL} come parametro di input dall'utente.
+            (\gls{OWASP}~API7:2023\footnote{\gls{OWASP} API7:2023: \textit{Server Side Request Forgery}~\cite{OWASPTop10}.}, \gls{CWE}-918\footnote{\textit{CWE-918: Server-Side Request Forgery}.})
 
       \item[\textbf{\texttt{7.3}}]
             \textit{Race Condition.} \texttt{GB}, P2.\\
-            Verifica che operazioni sensibili non siano vulnerabili a condizioni di gara tramite richieste concorrenti, rilevando inconsistenze di stato di tipo \gls{TOCTOU}.
+            Verifica che operazioni sensibili non siano vulnerabili a race condition tramite richieste concorrenti, rilevando inconsistenze di stato di tipo \gls{TOCTOU}.
             (\gls{OWASP}~API6:2023\footnote{\gls{OWASP} API6:2023: \textit{Unrestricted Access to Sensitive Business Flows}~\cite{OWASPTop10}.}, \gls{CWE}-362\footnote{\textit{CWE-362: Concurrent Execution Using Shared Resource with Improper Synchronization}.})
 
       \item[\textbf{\texttt{7.4}}]
             \textit{\gls{SSRF} Blind.} \texttt{GB}, P2.\\
-            Verifica \gls{SSRF} out-of-band, il cui esito non è osservabile nel canale di risposta, tramite un server di callback controllato.
+            Verifica la stessa garanzia del test~7.2 nei casi in cui l'esito dell'injection non è osservabile nella risposta \gls{HTTP}, ricorrendo a un canale di osservazione out-of-band.
             (\gls{OWASP}~API7:2023, \gls{CWE}-918)
 \end{description}
