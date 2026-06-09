@@ -1,4 +1,11 @@
 % !TEX root = main.tex
+\begin{filecontents*}[overwrite]{\jobname.xmpdata}
+\Title{Progettazione e Implementazione di un Tool API-Agnostico per la Security Assurance: un Approccio Contract-Driven Basato su Oracoli Formali in Architetture a Microservizi}
+\Author{Enea Manzi}
+\Language{it-IT}
+\Subject{Tesi di Laurea Magistrale in Sicurezza Informatica, Università degli Studi di Milano, A.A. 2025-2026}
+\Keywords{API security\sep REST\sep security assurance\sep contract-driven\sep OpenAPI\sep oracle\sep microservizi}
+\end{filecontents*}
 \documentclass{scrbook}
 \usepackage{fontspec} % Enable full UTF-8 support
 % \KOMAoption{DIV}{20}
@@ -8,6 +15,10 @@
 % TODO check questi parametri per gestire overfull hobx
 \setlength{\emergencystretch}{1em}
 \tolerance=400
+
+% TODO comment before deploy and print
+% shows margins
+%\usepackage{showframe}
 
 % KOMA
 %\usepackage{scrhack}
@@ -198,10 +209,6 @@
 %sections/conclusions.tex,
 %}
 
-% TODO comment before deploy and print
-% shows margins
-\usepackage{showframe}
-
 \begin{document}
 \input{sections/0.0-titlepage.tex}
 
@@ -214,9 +221,7 @@
 \setcounter{page}{1}
 
 \include{sections/0.1-abstract.tex}
-\addcontentsline{toc}{chapter}{Abstract}
 \include{sections/0.2-acknowledgement.tex}
-\addcontentsline{toc}{chapter}{Ringraziamenti}
 
 % print index with chapter, section and subsection
 \tableofcontents
@@ -226,7 +231,7 @@
 % print tables index
 \listoftables
 % print code index
-\lstlistoflistings
+%\lstlistoflistings
 
 \mainmatter{}
 \include{sections/1-introduction.tex}
