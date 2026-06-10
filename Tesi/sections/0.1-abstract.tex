@@ -2,8 +2,11 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-% TODO: inserire abstract (~200 parole)
-% Struttura suggerita:
-% - Contesto e motivazione del lavoro
-% - Approccio adottato e contributo principale
-% - Risultati e impatto
+% Contesto e GAP
+La quasi totalità del testing automatico delle API REST affronta la conformità funzionale, non la sicurezza; i rari strumenti orientati al security testing operano sulla sintassi delle richieste HTTP e non raggiungono le vulnerabilità semantiche, invisibili all'analisi sintattica e rilevabili solo attraverso la conoscenza del comportamento atteso del sistema. Quattro delle prime cinque categorie di rischio nell'OWASP API Security Top 10 2023 appartengono a questa classe. Rilevarle automaticamente richiede criteri di valutazione derivati dalla conoscenza del dominio del controllo specifico: costruirli in modo sistematico è il problema strutturalmente meno affrontato nella letteratura. A questo si affiancano il compromesso ricorrente tra portabilità e profondità semantica negli strumenti specializzati e l'assenza di riproducibilità deterministica, che preclude l'integrazione della verifica nei cicli di sviluppo continuativi.
+
+% Approccio Metodologico
+In risposta, si propone un approccio contract-driven alla security assurance delle API REST. La specifica OpenAPI del target guida la costruzione di probe semanticamente significative; il criterio di valutazione di ogni verifica è ricavato dalla semantica del controllo da eseguire e codificato a priori nella logica del test corrispondente. Le due sole sorgenti di conoscenza del target a runtime sono specifica OpenAPI e file di configurazione, il che rende il sistema applicabile a qualsiasi API REST documentata senza modifiche al codice. Oracoli fissi e comportamento deterministico per costruzione rendono l'output dell'assessment indipendente dall'operatore e confrontabile tra esecuzioni successive. Le verifiche sono organizzate in una tassonomia di otto domini di sicurezza, con copertura che si adatta progressivamente in funzione dei privilegi di accesso disponibili.
+
+% Risultati e Contributi
+La validazione su Forgejo~14.0.3 esposto tramite Kong~3.9, target reale con specifica OpenAPI nativa, è stata condotta su un testbed progettato per produrre sia esiti positivi che negativi attesi; il sistema ha correttamente distinto i due casi, rilevando anche una discrepanza reale tra dichiarazioni della specifica e comportamento effettivo. Due run indipendenti hanno confermato la riproducibilità dell'output. Tra i contributi principali figurano una tassonomia a otto domini di security assurance applicabile indipendentemente dall'implementazione, un approccio sistematico a \emph{specified oracles} nel security testing delle API REST con criteri derivati dalla conoscenza del dominio, e un assessment engine deterministico basato su DAG con correttezza semantica dell'ordinamento di esecuzione. Le proprietà di determinismo e riproducibilità verificate empiricamente rendono la security assurance integrabile nel ciclo di sviluppo tramite exit code semantici.
