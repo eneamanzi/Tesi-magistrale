@@ -57,7 +57,9 @@
         "\\subsection{}": "dummy",
         "\\chapter{}": "dummy",
         "\\nameref{}": "dummy",
-        "\\Language{}": "ignore"
+        "\\Language{}": "ignore",
+        "\\subject{}": "ignore",
+        "\\author{}": "ignore",
     },
     "ltex.disabledRules": {
         "it": [

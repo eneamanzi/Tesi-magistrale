@@ -3,3 +3,5 @@ $aux_dir = '.temp';
 
 # Definisce dove va il PDF finale (il punto '.' significa la directory corrente: Tesi/).
 $pdf_dir = '.';
+
+ensure_path('BIBINPUTS', '../Tesi/');
