@@ -1,0 +1,41 @@
+% !TEX root = ../main.tex
+
+\begin{frame}{Design contract-driven}
+  \begin{columns}
+    \begin{column}{.53\textwidth}
+      \begin{itemize}
+        \item \textbf{Paradigma contract-driven}: la specifica \alert{OAS} guida la costruzione di probe \alert{semanticamente valide} e delimita la superficie di assessment
+
+        \item \textbf{Agnosticismo applicativo}: le uniche sorgenti di conoscenza del target a runtime sono \alert{\texttt{openapi.yaml}} e \alert{\texttt{config.yaml}}
+              \begin{itemize}
+                \item nessun riferimento hardcoded al target nel codice
+                \item deployabile su \alert{qualsiasi API REST documentata} senza modifiche
+              \end{itemize}
+      \end{itemize}
+    \end{column}
+
+    \begin{column}{.44\textwidth}
+      \centering
+      \begin{tikzpicture}[
+          node distance=1.5ex and 1.5em,
+          abase/.style={draw, rounded corners=2pt, inner sep=4pt, align=center, font=\scriptsize},
+          in-box/.style={abase, fill=gray!10, draw=gray!50, minimum width=8.5em},
+          eng-box/.style={abase, fill=blue!7, draw=blue!40, minimum width=10em, minimum height=5.5em},
+          out-box/.style={abase, fill=gray!8, draw=gray!50, minimum width=8.5em, minimum height=4em},
+          lbl/.style={font=\tiny\itshape, text=gray!60!black, inner sep=2pt},
+          arr/.style={-latex, semithick, gray!70}
+        ]
+
+        \node[eng-box] (engine) {\textbf{Assessment Engine}\\[0.4em]\tiny unica fonte di conoscenza:\\OAS + config};
+
+        \node[in-box, anchor=east] (oas) at ($(engine.west) + (-2em, 1.6em)$) {\textbf{\texttt{openapi.yaml}}\\\tiny spec.\ formale del target};
+        \node[in-box, anchor=east] (cfg) at ($(engine.west) + (-2em, -1.6em)$) {\textbf{\texttt{config.yaml}}\\\tiny credenziali, URL, param.};
+        \node[out-box, anchor=west] (target) at ($(engine.east) + (2em, 0)$) {\textbf{API Target}\\\tiny qualsiasi API REST\\\tiny documentata};
+
+        \draw[arr] (oas.east) -- (engine.west |- oas.east);
+        \draw[arr] (cfg.east) -- (engine.west |- cfg.east);
+        \draw[arr] (engine.east) -- node[above, lbl] {probe HTTP} (target.west);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}

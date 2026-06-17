@@ -1,0 +1,30 @@
+% !TEX root = ../main.tex
+
+\begin{frame}{Box gradient: profondità di assessment}
+  \begin{center}
+    \small Il livello di ogni test è una \alert{conseguenza delle precondizioni di accesso disponibili}, non una tassonomia imposta dall'esterno.
+  \end{center}
+  \vspace{0.6em}
+  \begin{columns}[T]
+    \begin{column}{.31\textwidth}
+      \begin{colorblock}[black!80]{black!12}{\texttt{BLACK\_BOX}}
+        \small Nessun prerequisito \\[0.3em]
+        \footnotesize Simulazione attaccante esterno senza credenziali; controlli perimetrali del gateway
+      \end{colorblock}
+    \end{column}
+
+    \begin{column}{.31\textwidth}
+      \begin{colorblock}[black!75]{gray!22}{\texttt{GREY\_BOX}}
+        \small Token per $\geq 2$ ruoli \\[0.3em]
+        \footnotesize Garanzie che presuppongono stato autenticato; difetti RBAC, BOLA, segregazione
+      \end{colorblock}
+    \end{column}
+
+    \begin{column}{.31\textwidth}
+      \begin{colorblock}[black!70]{gray!8}{\texttt{WHITE\_BOX}}
+        \small Admin API del gateway \\[0.3em]
+        \footnotesize Ispezione diretta della configurazione tramite piano di controllo
+      \end{colorblock}
+    \end{column}
+  \end{columns}
+\end{frame}

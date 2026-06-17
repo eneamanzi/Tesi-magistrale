@@ -1,0 +1,34 @@
+% !TEX root = ../main.tex
+
+\begin{frame}{Tassonomia: otto domini di security assurance}
+  \begin{columns}
+    \begin{column}{.48\textwidth}
+      \begin{itemize}
+        \item \textbf{D0} \alert{API Discovery}: shadow API, inventario endpoint
+
+        \item \textbf{D1} \alert{Authentication}: JWT, trasporto credenziali, revoca
+
+        \item \textbf{D2} \alert{Authorization}: RBAC, BOLA, segregazione orizzontale e verticale
+
+        \item \textbf{D3} \alert{Data Integrity}: coerenza payload, HMAC
+      \end{itemize}
+    \end{column}
+
+    \begin{column}{.48\textwidth}
+      \begin{itemize}
+        \item \textbf{D4} \alert{Availability}: rate limiting, circuit breaker
+
+        \item \textbf{D5} \textcolor{gray}{Observability} \hfill \textcolor{gray}{\scriptsize [0 test attivi]}
+
+        \item \textbf{D6} \alert{Config \& Hardening}: gateway, header HTTP
+
+        \item \textbf{D7} \alert{Business Logic}: SSRF, race condition
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.8em}
+  \begin{center}
+    \small 18 test attivi su \alert{7 domini}; D5 architetturalmente preparato, nessun test in questa versione
+  \end{center}
+\end{frame}

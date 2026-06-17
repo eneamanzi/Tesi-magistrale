@@ -46,10 +46,10 @@
 % Define footline content
 \setbeamertemplate{footline}{%
   \begin{beamercolorbox}[wd=\textwidth,ht=5mm,dp=3mm,rightskip=1cm,leftskip=1cm]{footline}
-  \insertframenumber/\inserttotalframenumber
-  \ifstrempty{\@footlinepayoff}{}{%
-    \usebeamerfont{footline}\hfill\@footlinepayoff
-  }
+    \insertframenumber/\inserttotalframenumber
+    \ifstrempty{\@footlinepayoff}{}{%
+      \usebeamerfont{footline}\hfill\@footlinepayoff
+    }
   \end{beamercolorbox}
 }
 
@@ -78,21 +78,21 @@
 %       document itself, but NOT for normal text foreground.
 %       \themecolor should only be called from the preamble.
 \newcommand{\themecolor}[1]{
-	\ifstrequal{#1}{main}{%
-        \setbeamercolor{footline}{fg=white}
-		\setbeamercolor{normal text}{fg=white,bg=maincolor}
-		\setbeamercolor{structure}{fg=white}
-		\renewcommand{\@logo}{whitelogo}
-		\setbeamercolor{block title}{fg=maincolor,bg=statalegrey}
-		\setbeamercolor{block body}{fg=darkgray,bg=statalegrey}
-	}{%
-        \setbeamercolor{footline}{fg=darkgray}
-		\setbeamercolor{normal text}{fg=darkgray,bg=white}
-		\setbeamercolor{structure}{fg=maincolor}
-		\renewcommand{\@logo}{logo}
-		\setbeamercolor{block title}{fg=white,bg=maincolor}
-		\setbeamercolor{block body}{fg=darkgray,bg=statalegrey}
-	}
+  \ifstrequal{#1}{main}{%
+    \setbeamercolor{footline}{fg=white}
+    \setbeamercolor{normal text}{fg=white,bg=maincolor}
+    \setbeamercolor{structure}{fg=white}
+    \renewcommand{\@logo}{whitelogo}
+    \setbeamercolor{block title}{fg=maincolor,bg=statalegrey}
+    \setbeamercolor{block body}{fg=darkgray,bg=statalegrey}
+  }{%
+    \setbeamercolor{footline}{fg=darkgray}
+    \setbeamercolor{normal text}{fg=darkgray,bg=white}
+    \setbeamercolor{structure}{fg=maincolor}
+    \renewcommand{\@logo}{logo}
+    \setbeamercolor{block title}{fg=white,bg=maincolor}
+    \setbeamercolor{block body}{fg=darkgray,bg=statalegrey}
+  }
 }
 \themecolor{white} % Default: white theme
 
@@ -111,7 +111,7 @@
 \setbeamerfont{block title}{series=\centering\bfseries}
 
 % Code to get prettier boxes
- \setbeamertemplate{blocks}[rounded]
+\setbeamertemplate{blocks}[rounded]
 
 
 % Bullets in several levels
@@ -120,13 +120,13 @@
 \setbeamertemplate{itemize subsubitem}{\ensuremath{\circ}}
 
 \newenvironment{colorblock}[3][white]{%
-	\begingroup
-	\setbeamercolor{block title}{fg=#1,bg=#2}
-	\setbeamercolor{block body} {fg=#1,bg=#2}
-	\begin{block}{#3}
-	}{%
-	\end{block}
-	\endgroup
+  \begingroup
+  \setbeamercolor{block title}{fg=#1,bg=#2}
+  \setbeamercolor{block body} {fg=#1,bg=#2}
+  \begin{block}{#3}
+    }{%
+  \end{block}
+  \endgroup
 }
 
 % Put the logo in each slide's top left area
@@ -155,13 +155,13 @@
   \vspace{20mm}
   \begin{beamercolorbox}[wd=0.72\textwidth,sep=10pt,leftskip=8mm]{title}%
     {\usebeamerfont{title}\inserttitle}
-  
+
     {\usebeamerfont{subtitle}\insertsubtitle}
 
     {\usebeamerfont{subtitle}\@courseLabel}
-    
+
     {\usebeamerfont{author}\usebeamercolor[fg]{author}\textbf{\insertauthor} \ifdefempty{\@IDnumber}{}{(\@IDnumber)}}
-  
+
     {\usebeamerfont{date}\usebeamercolor[fg]{date}\insertdate}
   \end{beamercolorbox}
 }
@@ -170,10 +170,10 @@
 \newcommand{\TikzSplitSlide}[1]{%
   \rule{0.56\paperwidth}{0pt}%
   \begin{tikzpicture}
-    \clip (-0.1\paperwidth,-0.5\paperheight) -- 
-          ( 0.5\paperwidth,-0.5\paperheight) -- 
-          ( 0.5\paperwidth, 0.5\paperheight) -- 
-          ( 0.1\paperwidth, 0.5\paperheight) -- cycle; 
+    \clip (-0.1\paperwidth,-0.5\paperheight) --
+    ( 0.5\paperwidth,-0.5\paperheight) --
+    ( 0.5\paperwidth, 0.5\paperheight) --
+    ( 0.1\paperwidth, 0.5\paperheight) -- cycle;
     \node at (0.2\paperwidth,0) {%
       \includegraphics[height=\paperheight]{#1}%
     };
@@ -185,13 +185,13 @@
 \newcommand{\titlebackground}{\@ifstar{\SplitBackground}{\FullBackground}}
 \newcommand{\FullBackground}[1]{\renewcommand{\@TitleBackground}{#1}}
 \newcommand{\SplitBackground}[1]{%
-	\booltrue{splittitle}%
-	\renewcommand{\@TitleBackground}{#1}%
+  \booltrue{splittitle}%
+  \renewcommand{\@TitleBackground}{#1}%
 }
 
 % Overwrite the maketitle command for the title page
 \renewcommand{\maketitle}{
-\begingroup
+  \begingroup
   \ifdefempty{\@TitleBackground}{}{% Skip if \@TitleBackground is empty
     \setbeamertemplate{background}{%
       \ifbool{splittitle}{%
@@ -202,16 +202,16 @@
     }
   }
   \begin{frame}%
-  \titlepage%
+    \titlepage%
   \end{frame}%
-\endgroup
+  \endgroup
 }
 
 \makeatletter
-    \newenvironment{withoutheadline}{
-        \setbeamertemplate{headline}[default]
-        \def\beamer@entrycode{\vspace*{-\headheight}}
-    }{}
+\newenvironment{withoutheadline}{
+  \setbeamertemplate{headline}[default]
+  \def\beamer@entrycode{\vspace*{-\headheight}}
+}{}
 \makeatother
 
 % Define chapter environment
@@ -235,11 +235,11 @@
     \end{beamercolorbox}
   }
   \begin{frame}{#3}
-  \hspace*{0.05\textwidth}%
-  \minipage{0.35\textwidth}%
-  \usebeamercolor[fg]{normal text}%
-}{%
-  \endminipage
+    \hspace*{0.05\textwidth}%
+    \minipage{0.35\textwidth}%
+    \usebeamercolor[fg]{normal text}%
+    }{%
+    \endminipage
   \end{frame}
   \endgroup
 }
@@ -248,8 +248,8 @@
 \newenvironment{sidepic}[2]{% Args: image, frame title
   \begingroup
   \setbeamertemplate{background}{%
-  \hspace*{0.6\paperwidth}%
-  \includegraphics[height=\paperheight]{#1}%
+    \hspace*{0.6\paperwidth}%
+    \includegraphics[height=\paperheight]{#1}%
   }
   \setbeamertemplate{frametitle}{% Same as normal, but with right skip
     \vspace*{-3.5ex}
@@ -259,16 +259,16 @@
     \end{beamercolorbox}
   }
   \begin{frame}{#2}
-  \minipage{0.6\textwidth}%
-}{%
-  \endminipage
+    \minipage{0.6\textwidth}%
+    }{%
+    \endminipage
   \end{frame}
   \endgroup
 }
 
 % Define er
 \newcommand{\backmatter}[1][]{
-\begingroup
+  \begingroup
   \themecolor{main}
   \begin{frame}[c]
     \centering
@@ -286,18 +286,18 @@
       \textbf{Enea Manzi: \href{mailto:enea.manzi@studenti.unimi.it}{enea.manzi@studenti.unimi.it}}  \\
     \end{minipage}
   \end{frame}
-\endgroup
+  \endgroup
 }
 
 % Define sectioning and table of contents
 \AtBeginSection[]
 {
-    \begingroup
-    \themecolor{main}
-    \begin{frame}{Table of Contents}
-        \tableofcontents[currentsection]
-    \end{frame}
-    \endgroup
+  \begingroup
+  \themecolor{main}
+  \begin{frame}{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+  \endgroup
 }
 
 % style of section presented in the table of contents

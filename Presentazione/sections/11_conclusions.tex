@@ -1,0 +1,29 @@
+% !TEX root = ../main.tex
+
+\begin{frame}{Conclusioni}
+  \begin{columns}
+    \begin{column}{.52\textwidth}
+      \begin{itemize}
+        \item \textbf{G1} risolto: probe semanticamente valide dalla specifica OAS \alert{raggiungono la logica applicativa}
+
+        \item \textbf{G2} risolto: profondità di assessment \alert{mantenuta su qualsiasi API REST documentata}, senza riscritture
+
+        \item \textbf{G3} risolto: output byte-identico tra run successive, \alert{integrabile via exit code} in CI/CD
+
+        \item \textbf{G4} risolto: specified oracles per ogni verifica, \alert{nessuna interpretazione manuale}
+      \end{itemize}
+    \end{column}
+
+    \begin{column}{.45\textwidth}
+      \begin{center}
+        \textbf{La security assurance diventa un processo \alert{continuo} e \alert{misurabile}}
+      \end{center}
+      \vspace{0.6em}
+      \begin{itemize}
+        \item Tassonomia a 8 domini applicabile indipendentemente dall'implementazione
+        \item Approccio sistematico agli specified oracles nel security testing REST
+        \item Assessment engine deterministico basato su DAG, verificato empiricamente
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}

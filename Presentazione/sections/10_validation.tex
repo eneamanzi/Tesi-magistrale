@@ -1,0 +1,43 @@
+% !TEX root = ../main.tex
+
+\begin{frame}{Validazione sperimentale}
+  \begin{columns}
+    \begin{column}{.52\textwidth}
+      \textbf{Testbed}
+      \begin{itemize}
+        \item Forgejo 14.0.3 esposto tramite \alert{Kong 3.9 DB-less} in Docker locale
+
+        \item Scelto per: OAS nativa, autenticazione reale con ruoli multipli, endpoint con gradi diversi di protezione
+
+        \item Assenza di riferimenti a Forgejo nel codice: \alert{conferma pratica dell'agnosticismo}
+      \end{itemize}
+      \vspace{0.6em}
+      \begin{colorblock}[black!80]{maincolor!10}{Discrepanza rilevata}
+        \small Forgejo dichiara autenticazione globale; alcuni endpoint genuinamente pubblici rispondono senza credenziali. Il tool ha distinto specifica da implementazione.
+      \end{colorblock}
+    \end{column}
+
+    \begin{column}{.45\textwidth}
+      \textbf{Risultati}
+      \vspace{0.4em}
+
+      \begin{center}
+        \begin{tabular}{@{}ll@{}}
+          Test attivi                               & \textbf{18} su 7 domini \\[0.3em]
+          \textcolor{green!55!black}{\textbf{PASS}} & 9                       \\
+          \textcolor{red!60!black}{\textbf{FAIL}}   & 7                       \\
+          \textcolor{gray!60!black}{\textbf{SKIP}}  & 2                       \\
+          \textbf{ERROR}                            & 0                       \\[0.3em]
+          Finding totali                            & \textbf{98}             \\[0.3em]
+        \end{tabular}
+      \end{center}
+
+      \vspace{0.4em}
+      \textbf{Idempotenza}
+      \begin{itemize}
+        \item 2 run indipendenti: risultati \alert{byte-identici}
+        \item $\Delta$ wall-clock \alert{$<$ 0.3\%}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}

@@ -1,0 +1,56 @@
+% !TEX root = ../main.tex
+
+\begin{frame}{Specified oracles: il criterio di valutazione}
+  \begin{columns}
+    \begin{column}{.54\textwidth}
+      \begin{center}
+        \small\textit{Come si stabilisce automaticamente se il comportamento osservato è una violazione?}
+      \end{center}
+      \vspace{0.4em}
+      \begin{itemize}
+        \item Il problema dell'oracolo (Barr et al.\ 2015): generare input è risolto; \alert{valutare il comportamento osservato} è il collo di bottiglia
+
+        \item APIGuard adotta \alert{specified oracles}: criteri codificati \alert{a priori} nella logica di ogni test, ricavati dalla conoscenza del dominio del controllo
+
+        \item Sorgenti per dominio:
+              \begin{itemize}
+                \item schema OAS \textrightarrow{} conformità strutturale
+                \item standard tecnici (NIST, ASVS) \textrightarrow{} TLS, header
+                \item configurazione gateway \textrightarrow{} policy, routing
+                \item confronto tra ruoli \textrightarrow{} difetti RBAC, BOLA
+              \end{itemize}
+      \end{itemize}
+    \end{column}
+
+    \begin{column}{.43\textwidth}
+      \centering
+      \begin{tikzpicture}[
+          node distance=1.8ex and 1em,
+          obase/.style={draw, rounded corners=2pt, inner sep=5pt, align=center, font=\scriptsize},
+          obs/.style={obase, fill=gray!10, draw=gray!50, minimum width=8em},
+          orc/.style={obase, fill=blue!7, draw=blue!40, minimum width=8em, minimum height=3em},
+          dom/.style={obase, fill=orange!8, draw=orange!40, minimum width=8em},
+          pass/.style={obase, fill=green!10, draw=green!50!black, minimum width=3.5em},
+          fail/.style={obase, fill=red!10, draw=red!50, minimum width=3.5em},
+          skip/.style={obase, fill=gray!15, draw=gray!50, minimum width=3.5em},
+          arr/.style={-latex, semithick, gray!70},
+          lbl/.style={font=\tiny\itshape, text=gray!60!black, inner sep=1.5pt}
+        ]
+
+        \node[obs] (obs) {Risposta osservata};
+        \node[orc, below=of obs] (orc) {\textbf{Oracle}\\[0.2em]\tiny criterio del dominio};
+        \node[dom, below=of orc] (dom) {Conoscenza del dominio\\[0.2em]\tiny OAS / standard / config / RBAC};
+
+        \node[pass, below left=1.6ex and 0.2em of orc] (p) {\tiny PASS};
+        \node[fail, below=2.8ex of orc] (f) {\tiny FAIL};
+        \node[skip, below right=1.6ex and 0.2em of orc] (s) {\tiny SKIP};
+
+        \draw[arr] (obs) -- (orc);
+        \draw[arr] (dom) -- (orc);
+        \draw[arr] (orc.south) -- (p.north);
+        \draw[arr] (orc.south) -- (f.north);
+        \draw[arr] (orc.south) -- (s.north);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}

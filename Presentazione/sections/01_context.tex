@@ -1,0 +1,62 @@
+% !TEX root = ../main.tex
+% PATTERN FRAME DISPONIBILI (usati nella triennale):
+%
+% Frame con colonne testo 70% / icona 30%:
+%   \begin{frame}{Titolo}
+%     \begin{columns}
+%       \begin{column}{.7\textwidth}\begin{itemize}\item \alert{punto}\end{itemize}\end{column}
+%       \begin{column}{.2\textwidth}\includegraphics[scale=.2]{assets/icon/nome.png}\end{column}
+%     \end{columns}
+%   \end{frame}
+%
+% Frame con enumerate nidificate:
+%   \begin{enumerate}\item \alert{Step}\begin{enumerate}\item \textbf{Sub}: desc\end{enumerate}\end{enumerate}
+%
+% Frame fullscreen image:
+%   \includegraphics[width=\textwidth,height=0.9\textheight,keepaspectratio]{assets/file.pdf}
+%
+% Slide divisore capitolo (da chapters/special_slides.tex):
+%   \begin{chapter}[assets/background_negative]{maincolor}{Titolo}\end{chapter}
+%   Colori: maincolor, stataledarkgreen, statalered, stataleyellow, statalelilla
+%
+% Slide con immagine laterale:
+%   \begin{sidepic}{assets/path/image}{Titolo}\end{sidepic}
+
+\begin{frame}{Contesto}
+    \begin{columns}
+        \begin{column}{.65\textwidth}
+            \begin{itemize}
+                \item Architetture a \alert{microservizi}: la superficie di attacco cresce con le \alert{interazioni tra servizi}, non con il loro numero
+
+                \item Il \alert{gateway API} come punto di enforcement centralizzato: autenticazione, autorizzazione, rate limiting
+
+                \item Le vulnerabilità più rilevanti sono \alert{semantiche}: richiedono la conoscenza del \alert{comportamento atteso}
+                      \begin{itemize}
+                          \item 4 delle prime 5 categorie OWASP API Security Top 10 2023
+                      \end{itemize}
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{.32\textwidth}
+            \centering
+            \begin{tikzpicture}[
+                    node distance=1.2ex and 0.6em,
+                    cl/.style={draw=gray!50, fill=gray!10, rounded corners=2pt, font=\scriptsize, inner sep=4pt, minimum width=5em},
+                    gw/.style={draw=maincolor!80, fill=maincolor!12, rounded corners=2pt, font=\scriptsize\bfseries, inner sep=4pt, minimum width=5em},
+                    svc/.style={draw=gray!45, fill=gray!7, rounded corners=2pt, font=\tiny, inner sep=3pt, minimum width=4.5em},
+                    arr/.style={-latex, semithick, gray!55}
+                ]
+                \node[cl] (client) {Client};
+                \node[gw, below=2.5ex of client] (gw) {Gateway API};
+                \node[svc, below=2.5ex of gw, xshift=-1.6em] (s1) {Service A};
+                \node[svc, below=2.5ex of gw] (s2) {Service B};
+                \node[svc, below=2.5ex of gw, xshift=+1.6em] (s3) {Service C};
+
+                \draw[arr] (client) -- (gw);
+                \draw[arr] (gw.south) -- (s1.north);
+                \draw[arr] (gw.south) -- (s2.north);
+                \draw[arr] (gw.south) -- (s3.north);
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}

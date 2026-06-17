@@ -19,7 +19,7 @@
 %   statalelightgreen, statalered, stataleyellow, statalelilla
 % \backmatter            — slide finale di ringraziamenti
 % \backmatter[notitle]   — variante senza ripetizione del titolo
-% Vedere chapters/special_slides.tex per gli ambienti chapter e sidepic.
+% Vedere theme_demo.tex per gli ambienti chapter e sidepic.
 \newcommand{\testcolor}[1]{\colorbox{#1}{\textcolor{#1}{test}}~\texttt{#1}}
 \newcommand{\hrefcol}[2]{\textcolor{cyan}{\href{#1}{#2}}}
 \titlebackground*{assets/background}
@@ -33,7 +33,7 @@
 % rboxes      — boxes con angoli arrotondati
 % arrow_label — etichetta bianca centrata sulle frecce (usare come nodo su un path)
 % Stili avanzati (entity, artifact, service, highlight*, lattice*, connector*):
-% vedere 00_common_tikz.tex
+% vedere tikz_common_styles.tex
 \tikzset{%
 	base/.style = {
 			% minimum width=1cm,
@@ -74,7 +74,7 @@
 % ==================///==================///==================///
 
 \begin{document}
-\input{00_common_tikz.tex}
+\input{tikz_common_styles.tex}
 
 \maketitle
 
@@ -89,12 +89,18 @@
 %\begin{frame}{Table of Contents}
 %	\tableofcontents
 %\end{frame}
-\input{sections/01_contesto}
-\input{sections/02_motivazioni}
-\input{sections/03_obbiettivi}
-\input{sections/04_metodologia}
-\input{sections/05_implementazione}
-\input{sections/06_conclusion}
+\input{sections/01_context}
+\input{sections/02_gaps}
+\input{sections/03_objectives}
+\input{sections/04_core_contract_driven}
+\input{sections/05_core_taxonomy}
+\input{sections/06_core_box_gradient}
+\input{sections/07_core_oracles}
+\input{sections/08_core_pipeline}
+\input{sections/09_core_dag_cicd}
+\input{sections/10_validation}
+\input{sections/11_conclusions}
+\input{sections/12_future_work}
 
 
 
@@ -113,5 +119,3 @@
 \input{sections/99_figures}
 
 \end{document}
-
-

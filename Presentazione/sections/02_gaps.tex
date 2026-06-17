@@ -1,0 +1,60 @@
+% !TEX root = ../main.tex
+
+\begin{frame}{Stato dell'arte e gap}
+  \begin{columns}
+    \begin{column}{.55\textwidth}
+      \begin{itemize}
+        \item \textbf{G1 Cecità semantica}: scanner e fuzzer operano sulla \alert{sintassi} HTTP, non sulla \alert{semantica} dei contratti
+
+        \item \textbf{G2 Portabilità/profondità}: gli strumenti specializzati richiedono \alert{riscrittura} per ogni target
+
+        \item \textbf{G3 Riproducibilità}: assenza di \alert{determinismo} preclude l'integrazione in pipeline CI/CD
+
+        \item \textbf{G4 Oracle problem}: nessun meccanismo sistematico per costruire \alert{criteri di valutazione} automatici
+      \end{itemize}
+    \end{column}
+
+    \begin{column}{.42\textwidth}
+      \centering
+      \begin{tikzpicture}[
+          node distance=2.5ex and 0.4em,
+          pbase/.style={draw, rounded corners=1.5pt, inner sep=2pt, align=center, font=\tiny, minimum height=2em},
+          col1/.style={minimum width=5.5em},
+          viaA/.style={pbase, fill=red!6, draw=red!50},
+          invis/.style={pbase, fill=gray!6, draw=gray!40, dashed, text=gray!70!black},
+          viaB/.style={pbase, fill=green!7, draw=green!45},
+          vis/.style={pbase, fill=green!7, draw=green!50!black},
+          lbl/.style={font=\tiny\bfseries, inner sep=1pt},
+          arrA/.style={-latex, semithick, red!60!black},
+          arrB/.style={-latex, semithick, green!50!black},
+          arr-wall/.style={-latex, semithick, dashed, gray!60},
+          note/.style={font=\tiny\itshape, text=gray!70!black, align=center, inner sep=1pt}
+        ]
+
+        \node[viaA, col1] (a1) {Fuzzer\\sintattico};
+        \node[viaA, right=of a1, text width=4em] (a2) {Payload\\malformati};
+        \node[viaA, right=of a2, text width=3.5em] (a3) {\texttt{400}};
+        \node[invis, right=1.8em of a3, text width=4em] (a4) {Logica\\appl.\\{\tiny [invisibile]}};
+
+        \node[viaB, col1, below=4ex of a1] (b1) {Engine\\contract-driven};
+        \node[viaB] (b2) at (a2 |- b1) {Payload\\da OAS};
+        \node[viaB] (b3) at (a3 |- b1) {\texttt{2xx/4xx}\\semantici};
+        \node[vis]  (b4) at (a4 |- b1) {Logica\\appl.\\{\tiny [visibile]}};
+
+        \node[lbl, text=red!70!black, left=0.4em of a1] (lblA) {Via A};
+        \node[lbl, text=green!60!black] (lblB) at (lblA |- b1) {Via B};
+
+        \draw[arrA] (a1) -- (a2);
+        \draw[arrA] (a2) -- (a3);
+        \draw[arr-wall] (a3) -- node[midway, below, yshift=-0.5ex, note] {barriera\\sintattica} (a4);
+
+        \draw[arrB] (b1) -- (b2);
+        \draw[arrB] (b2) -- (b3);
+        \draw[arrB] (b3) -- (b4);
+
+        \path (a1.south) ++(0, -2ex) coordinate (mid-y);
+        \draw[gray!40, dashed, thick] ([xshift=-0.3em]lblA.west |- mid-y) -- ([xshift=0.3em]a4.east |- mid-y);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
