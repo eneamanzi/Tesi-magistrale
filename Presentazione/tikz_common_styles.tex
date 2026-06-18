@@ -185,3 +185,24 @@
 			dashed
 		}
 }
+
+% Stili TikZ condivisi tra tutte le figure assets (copiati da Tesi/main.tex)
+\tikzset{
+	ag/.style        = {draw, rectangle, rounded corners=2pt, minimum height=22pt, inner sep=6pt, align=center, font=\small},
+	ag-gray/.style   = {ag, fill=gray!10,   draw=gray!50},
+	ag-blue/.style   = {ag, fill=blue!7,    draw=blue!40},
+	ag-green/.style  = {ag, fill=green!9,   draw=green!50!black},
+	ag-red/.style    = {ag, fill=red!8,     draw=red!50},
+	ag-gold/.style   = {ag, fill=yellow!18, draw=orange!55},
+	ag-violet/.style = {ag, fill=violet!8,  draw=violet!40},
+	ag-arr/.style    = {-Stealth, semithick},
+	ag-darr/.style   = {-Stealth, semithick, dashed},
+	ag-barr/.style   = {Stealth-Stealth, semithick},
+	ag-group/.style  = {draw=gray!50, fill=gray!4, rounded corners=4pt, inner sep=8pt},
+	ag-lane/.style   = {font=\small\bfseries},
+	ag-note/.style   = {font=\scriptsize\itshape, text=gray!70!black},
+	ag-diamond/.style   = {draw, diamond, aspect=2.2, fill=yellow!15, draw=orange!60, minimum height=28pt, inner sep=2pt, align=center, font=\small},
+	ag-terminal/.style  = {draw, ellipse, fill=gray!15, draw=gray!60, minimum height=22pt, inner sep=6pt, align=center, font=\small},
+	uml-inherit/.style  = {-{Triangle[open]}, semithick},
+	uml-compose/.style  = {-{Diamond}, semithick},
+}

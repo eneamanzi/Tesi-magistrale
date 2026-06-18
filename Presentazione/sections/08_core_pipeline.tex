@@ -1,51 +1,11 @@
 % !TEX root = ../main.tex
 
 \begin{frame}{Pipeline di esecuzione e connector}
-  \begin{columns}
-    \begin{column}{.53\textwidth}
-      \begin{itemize}
-        \item Pipeline a \alert{7 fasi sequenziali}: prime 4 bloccanti (errore interrompe l'avvio), ultime 3 non bloccanti (errori isolati, pipeline prosegue)
+  \begin{itemize}
+    \item Pipeline a \alert{7 fasi sequenziali}: prime 4 bloccanti (errore interrompe l'avvio), ultime 3 non bloccanti (errori isolati, pipeline prosegue)
 
-        \item Connector \alert{gerarchici} a 3 livelli: separano la raccolta dei dati grezzi dalla valutazione dell'esito; lo stesso connector funziona in locale, CI/CD e ambienti containerizzati
+    \item Connector \alert{gerarchici} a 3 livelli: separano la raccolta dei dati grezzi dalla valutazione dell'esito; lo stesso connector funziona in locale, CI/CD e ambienti containerizzati
 
-        \item Discovery \alert{dinamico}: nuove verifiche vengono registrate automaticamente senza modifiche al core
-      \end{itemize}
-    \end{column}
-
-    \begin{column}{.44\textwidth}
-      \centering
-      \begin{tikzpicture}[
-          node distance=0.55ex,
-          pf-s/.style={draw, rounded corners=1.5pt, fill=blue!8, draw=blue!40, inner sep=3pt, align=center, font=\tiny, minimum width=7.5em},
-          pf-e/.style={draw, rounded corners=1.5pt, fill=green!8, draw=green!45, inner sep=3pt, align=center, font=\tiny, minimum width=7.5em},
-          bg-s/.style={draw=blue!25, fill=blue!3, dashed, rounded corners=2pt, inner sep=4pt},
-          bg-e/.style={draw=green!30, fill=green!2, dashed, rounded corners=2pt, inner sep=4pt},
-          arr/.style={-latex, semithick, gray!65}
-        ]
-
-        \node[pf-s] (p1) {Fase 1: Inizializzazione};
-        \node[pf-s, below=of p1] (p2) {Fase 2: OAS Discovery};
-        \node[pf-s, below=of p2] (p3) {Fase 3: Costruzione Contesti};
-        \node[pf-s, below=of p3] (p4) {Fase 4: Test Discovery + DAG};
-        \node[pf-e, below=1ex of p4] (p5) {Fase 5: Esecuzione};
-        \node[pf-e, below=of p5] (p6) {Fase 6: Teardown LIFO};
-        \node[pf-e, below=of p6] (p7) {Fase 7: Report};
-
-        \begin{scope}[on background layer]
-          \node[bg-s, fit=(p1)(p2)(p3)(p4)] (grp-s) {};
-          \node[bg-e, fit=(p5)(p6)(p7)] (grp-e) {};
-        \end{scope}
-
-        \node[font=\tiny\bfseries, text=blue!65!black, anchor=south] at (grp-s.north) {bloccanti};
-        \node[font=\tiny\bfseries, text=green!65!black, anchor=south] at (grp-e.north) {non bloccanti};
-
-        \draw[arr] (p1) -- (p2);
-        \draw[arr] (p2) -- (p3);
-        \draw[arr] (p3) -- (p4);
-        \draw[arr] (p4) -- (p5);
-        \draw[arr] (p5) -- (p6);
-        \draw[arr] (p6) -- (p7);
-      \end{tikzpicture}
-    \end{column}
-  \end{columns}
+    \item Discovery \alert{dinamico}: nuove verifiche vengono registrate automaticamente senza modifiche al core
+  \end{itemize}
 \end{frame}

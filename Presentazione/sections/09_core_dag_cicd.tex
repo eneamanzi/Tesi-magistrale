@@ -8,22 +8,6 @@
 
         \item Senza DAG, i test RBAC eseguiti prima di quelli di autenticazione producono errori non deterministici invece di fallimenti puliti
       \end{itemize}
-      \vspace{0.5em}
-      \centering
-      \begin{tikzpicture}[
-          node distance=1ex and 1.5em,
-          ph/.style={draw, rounded corners=2pt, inner sep=4pt, align=center, font=\tiny, minimum width=5.5em},
-          phA/.style={ph, fill=yellow!15, draw=orange!50},
-          phB/.style={ph, fill=blue!8, draw=blue!40},
-          arr/.style={-latex, semithick, blue!55},
-          lbl/.style={font=\tiny\itshape, text=gray!60!black}
-        ]
-        \node[phA] (a) {Phase A\\{\tiny test indipendenti}};
-        \node[phB, right=2em of a, yshift=1.2em] (b1) {1.4};
-        \node[phB, right=2em of a, yshift=-1.2em] (b2) {2.1};
-        \draw[arr] (a.east) |- node[pos=0.7, above, lbl] {\texttt{depends\_on=["1.1"]}} (b1.west);
-        \draw[arr] (a.east) |- (b2.west);
-      \end{tikzpicture}
     \end{column}
 
     \begin{column}{.47\textwidth}

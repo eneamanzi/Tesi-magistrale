@@ -1,233 +1,1066 @@
 % !TEX root = ../main.tex
-% Slide di backup per le domande della commissione.
-% Non vengono proiettate durante la presentazione principale.
+
+% ==================///==================///==================///
+% ==================/// APPENDICE: FIGURE E TABELLE
+% ==================///==================///==================///
+
+\begin{frame}{Limite strutturale del fuzzing sintattico}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=4ex and 1em,
+        base/.style={draw, rounded corners=1.5pt, inner sep=3pt, align=center, font=\footnotesize, minimum height=3em},
+        col1/.style={minimum width=7.5em},
+        viaA/.style={base, fill=red!6, draw=red!50},
+        invis/.style={base, fill=gray!6, draw=gray!40, dashed, text=gray!70!black},
+        viaB/.style={base, fill=green!7, draw=green!45},
+        vis/.style={base, fill=green!7, draw=green!50!black},
+        lbl/.style={font=\footnotesize\bfseries, inner sep=1pt},
+        arrA/.style={-latex, semithick, red!60!black},
+        arrB/.style={-latex, semithick, green!50!black},
+        arr-wall/.style={-latex, semithick, dashed, gray!60},
+        note/.style={font=\scriptsize\itshape, text=gray!70!black, align=center, inner sep=1.5pt}
+      ]
+
+      \node[viaA, col1] (a1) {Fuzzer\\sintattico};
+      \node[viaA, right=of a1, text width=6.5em] (a2) {Payload casuali\\malformati};
+      \node[viaA, right=of a2, text width=6.5em] (a3) {\texttt{400 Bad}\\\texttt{Request}};
+
+      \node[invis, right=3.5em of a3, text width=7em] (a4) {Logica\\applicativa\\{\scriptsize [invisibile]}};
+
+      \node[viaB, col1, below=6ex of a1] (b1) {Engine\\contract-driven};
+
+      \node[viaB] (b2) at (a2 |- b1) {Payload validi\\dalla OpenAPI Specification};
+      \node[viaB] (b3) at (a3 |- b1) {\texttt{2xx} / \texttt{4xx}\\semantici};
+      \node[vis]  (b4) at (a4 |- b1) {Logica\\applicativa\\{\scriptsize [visibile]}};
+
+      \node[lbl, text=red!70!black, left=1em of a1] (lblA) {Via~A};
+      \node[lbl, text=green!60!black] (lblB) at (lblA |- b1) {Via~B};
+
+      \draw[arrA] (a1) -- (a2);
+      \draw[arrA] (a2) -- (a3);
+      \draw[arr-wall] (a3) -- node[midway, below, yshift=-0.5ex, note] {barriera\\sintattica} (a4);
+
+      \draw[arrB] (b1) -- (b2);
+      \draw[arrB] (b2) -- (b3);
+      \draw[arrB] (b3) -- (b4);
+
+      \path (a1.south) ++(0, -3ex) coordinate (mid-y);
+      \draw[gray!40, dashed, thick] ([xshift=-0.5em]lblA.west |- mid-y) -- ([xshift=0.5em]a4.east |- mid-y);
+
+    \end{tikzpicture}%
+  \end{adjustbox}
+\end{frame}
 
 \begin{frame}{Architettura di APIGuard Assurance}
-    \centering\resizebox{\textwidth}{!}{
-        % Figura 3-architettura-apiguard adattata (senza float, caption, label, \gls)
-        \begin{tikzpicture}[
-                node distance=1.5ex and 1.5em,
-                base/.style={draw, rounded corners=1.5pt, inner sep=5pt, align=center, font=\small},
-                col-in/.style={base, fill=gray!10, draw=gray!50, minimum width=10em},
-                col-mid-blue/.style={base, fill=blue!7, draw=blue!40, minimum width=13em, minimum height=3em},
-                col-mid-green/.style={base, fill=green!7, draw=green!45, minimum width=13em, minimum height=3em},
-                col-mid-gold/.style={base, fill=orange!10, draw=orange!50, minimum width=13em, minimum height=2.5em},
-                col-mid-violet/.style={base, fill=violet!7, draw=violet!40, minimum width=13em, minimum height=3em},
-                col-out/.style={base, fill=gray!8, draw=gray!50, minimum width=8.5em},
-                arr/.style={-latex, semithick, gray!80!black},
-                darr/.style={-latex, semithick, dashed, gray!80!black},
-                barr/.style={latex-latex, semithick, gray!80!black},
-                lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=3pt},
-                bg-engine/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=10pt}
-            ]
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=1.5ex and 1.5em,
+        base/.style={draw, rounded corners=1.5pt, inner sep=5pt, align=center, font=\small},
+        col-in/.style={base, fill=gray!10, draw=gray!50, minimum width=10em},
+        col-mid-blue/.style={base, fill=blue!7, draw=blue!40, minimum width=13em, minimum height=3em},
+        col-mid-green/.style={base, fill=green!7, draw=green!45, minimum width=13em, minimum height=3em},
+        col-mid-gold/.style={base, fill=orange!10, draw=orange!50, minimum width=13em, minimum height=2.5em},
+        col-mid-violet/.style={base, fill=violet!7, draw=violet!40, minimum width=13em, minimum height=3em},
+        col-out/.style={base, fill=gray!8, draw=gray!50, minimum width=8.5em},
+        arr/.style={-latex, semithick, gray!80!black},
+        darr/.style={-latex, semithick, dashed, gray!80!black},
+        barr/.style={latex-latex, semithick, gray!80!black},
+        lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=3pt},
+        bg-engine/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=10pt}
+      ]
 
-            \node[col-mid-blue] (tc) {\textbf{\texttt{TargetContext}} {\footnotesize[frozen]}\\{\footnotesize base\_url | attack\_surface | creds}};
-            \node[col-mid-green, below=of tc] (tx) {\textbf{\texttt{TestContext}} {\footnotesize[mutable]}\\{\footnotesize token | teardown | shared\_data}};
-            \node[col-mid-gold, below=of tx] (dag) {\textbf{DAG Scheduler}\\{\footnotesize ordinamento, batch sequenziali}};
+      \node[col-mid-blue] (tc) {\textbf{\texttt{TargetContext}} {\footnotesize[frozen]}\\{\footnotesize base\_url | attack\_surface | creds}};
 
-            \begin{scope}[on background layer]
-                \node[bg-engine, fit=(tc)(tx)(dag)] (engine) {};
-            \end{scope}
-            \node[font=\footnotesize\bfseries, text=blue!70!black, anchor=south east, shift={(-1em, 0.5ex)}] at (engine.north) {Assessment Engine};
+      \node[col-mid-green, below=of tc] (tx) {\textbf{\texttt{TestContext}} {\footnotesize[mutable]}\\{\footnotesize token | teardown | shared\_data}};
+      \node[col-mid-gold, below=of tx] (dag) {\textbf{DAG Scheduler}\\{\footnotesize ordinamento, batch sequenziali}};
 
-            \node[col-in, anchor=north east] (cfg) at ([xshift=-1.5em]tc.west |- engine.north) {\textbf{\texttt{config.yaml}}\\{\footnotesize credenziali, URL, param.}};
-            \node[col-in, anchor=east] (oas) at ([xshift=-1.5em, yshift=-7ex]tc.west) {\textbf{\texttt{openapi.yaml}}\\{\footnotesize spec formale target}};
+      \begin{scope}[on background layer]
+        \node[bg-engine, fit=(tc)(tx)(dag)] (engine) {};
+      \end{scope}
 
-            \node[col-out, right=4em of tc] (kong) {\textbf{Kong Gateway}\\{\footnotesize :8000 / :8443 / :8001}};
-            \node[col-out, below=8.5ex of kong] (forgejo) {\textbf{Forgejo}\\{\footnotesize target applicativo}};
+      \node[font=\footnotesize\bfseries, text=blue!70!black, anchor=south east, shift={(-1em, 0.5ex)}]
+      at (engine.north) {Assessment Engine};
 
-            \node[col-mid-violet, below=4ex of dag] (ev) {\textbf{EvidenceStore} {\footnotesize[JSONL]}\\{\footnotesize \texttt{evidence.json} | \texttt{report.html}}};
+      \node[col-in, anchor=north east] (cfg) at ([xshift=-1.5em]tc.west |- engine.north) {\textbf{\texttt{config.yaml}}\\{\footnotesize credenziali, URL, param.}};
 
-            \draw[arr] (cfg.east) -- (tc.west |- cfg.east);
-            \draw[arr] (oas.north) |- ([yshift=-2ex]tc.west);
+      \node[col-in, anchor=east] (oas) at ([xshift=-1.5em, yshift=-7ex]tc.west) {\textbf{\texttt{openapi.yaml}}\\{\footnotesize spec formale target}};
 
-            \path (tc.east) ++(0, 1.5ex) coordinate (probe-start);
-            \path (kong.west) ++(0, 1.5ex) coordinate (probe-end);
-            \draw[arr] (probe-start) -- node[pos=0.6, above, align=center, lbl] {probe\\HTTP} (probe-end);
+      \node[col-out, right=4em of tc] (kong) {\textbf{Kong Gateway}\\{\footnotesize :8000 / :8443 / :8001}};
 
-            \draw[barr] (kong.south) -- (forgejo.north);
-            \draw[arr] (dag.north) -- (tx.south);
-            \draw[arr] (dag.south) -- (ev.north);
+      \node[col-out, below=8.5ex of kong] (forgejo) {\textbf{Forgejo}\\{\footnotesize target applicativo}};
 
-            \path (tx.east) ++(0, -1ex) coordinate (admin-start);
-            \path (kong.west) ++(0, -1.5ex) coordinate (admin-end);
-            \path (admin-start) ++(1.2em, 0) coordinate (admin-turn1);
-            \coordinate (admin-turn2) at (admin-turn1 |- admin-end);
-            \draw[darr] (admin-start) -- (admin-turn1) -- (admin-turn2) -- (admin-end);
-            \node[lbl, align=left, anchor=north west] at ([xshift=0.1em, yshift=-1.5ex]admin-turn2) {Admin API\\{\footnotesize WHITE\_BOX}};
-        \end{tikzpicture}
-    }% fine \resizebox
+      \node[col-mid-violet, below=4ex of dag] (ev) {\textbf{EvidenceStore} {\footnotesize[JSONL]}\\{\footnotesize \texttt{evidence.json} | \texttt{report.html}}};
+
+      \draw[arr] (cfg.east) -- (tc.west |- cfg.east);
+      \draw[arr] (oas.north) |- ([yshift=-2ex]tc.west);
+
+      \path (tc.east) ++(0, 1.5ex) coordinate (probe-start);
+      \path (kong.west) ++(0, 1.5ex) coordinate (probe-end);
+      \draw[arr] (probe-start) -- node[pos=0.6, above, align=center, lbl] {probe\\HyperText Transfer Protocol} (probe-end);
+
+      \draw[barr] (kong.south) -- (forgejo.north);
+
+      \draw[arr] (dag.north) -- (tx.south);
+      \draw[arr] (dag.south) -- (ev.north);
+
+      \path (tx.east) ++(0, -1ex) coordinate (admin-start);
+      \path (kong.west) ++(0, -1.5ex) coordinate (admin-end);
+
+      \path (admin-start) ++(1.2em, 0) coordinate (admin-turn1);
+      \coordinate (admin-turn2) at (admin-turn1 |- admin-end);
+
+      \draw[darr] (admin-start) -- (admin-turn1) -- (admin-turn2) -- (admin-end);
+
+      \node[lbl, align=left, anchor=north west]
+      at ([xshift=0.1em, yshift=-1.5ex]admin-turn2)
+      {Admin Application Programming Interface\\{\footnotesize WHITE\_BOX}};
+
+    \end{tikzpicture}
+  \end{adjustbox}
 \end{frame}
 
 \begin{frame}{Pipeline a sette fasi}
-    \centering\resizebox{!}{0.82\textheight}{
-        \begin{tikzpicture}[
-                node distance=3.2ex and 4em,
-                base/.style={draw, rounded corners=1.5pt, inner sep=3pt, align=center, font=\small, minimum height=3.5ex},
-                phase-startup/.style={base, fill=blue!7, draw=blue!40, minimum width=13.5em},
-                phase-exec/.style={base, fill=green!7, draw=green!45, minimum width=13.5em},
-                err-stop/.style={base, fill=red!6, draw=red!50, minimum width=11.5em},
-                err-warn/.style={base, fill=orange!8, draw=orange!50, minimum width=11.5em},
-                term/.style={draw=gray!50, fill=gray!15, ellipse, minimum height=2.5ex, inner sep=3pt, align=center, font=\footnotesize\ttfamily},
-                lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=2pt},
-                arr-ok/.style={-latex, semithick, gray!70!black},
-                arr-ko/.style={-latex, semithick, red!60!black},
-                arr-warn/.style={-latex, semithick, dashed, orange!80!black},
-                bg-startup/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=8pt},
-                bg-exec/.style={draw=green!35, fill=green!2, dashed, rounded corners=3pt, inner sep=8pt}
-            ]
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=3.2ex and 4em,
+        base/.style={draw, rounded corners=1.5pt, inner sep=3pt, align=center, font=\small, minimum height=3.5ex},
+        phase-startup/.style={base, fill=blue!7, draw=blue!40, minimum width=13.5em},
+        phase-exec/.style={base, fill=green!7, draw=green!45, minimum width=13.5em},
+        err-stop/.style={base, fill=red!6, draw=red!50, minimum width=11.5em},
+        err-warn/.style={base, fill=orange!8, draw=orange!50, minimum width=11.5em},
+        term/.style={draw=gray!50, fill=gray!15, ellipse, minimum height=2.5ex, inner sep=3pt, align=center, font=\footnotesize\ttfamily},
+        lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=2pt},
+        arr-ok/.style={-latex, semithick, gray!70!black},
+        arr-ko/.style={-latex, semithick, red!60!black},
+        arr-warn/.style={-latex, semithick, dashed, orange!80!black},
+        bg-startup/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=8pt},
+        bg-exec/.style={draw=green!35, fill=green!2, dashed, rounded corners=3pt, inner sep=8pt}
+      ]
 
-            \node[term] (start) {apiguard run};
-            \node[phase-startup, below=3.5ex of start] (p1) {\textbf{Fase 1:} Inizializzazione};
-            \node[phase-startup, below=of p1] (p2) {\textbf{Fase 2:} OpenAPI Discovery};
-            \node[phase-startup, below=of p2] (p3) {\textbf{Fase 3:} Costruzione Contesti};
-            \node[phase-startup, below=of p3] (p4) {\textbf{Fase 4:} Test Discovery e DAG};
-            \node[phase-exec, below=6.5ex of p4] (p5) {\textbf{Fase 5:} Esecuzione (per test)};
-            \node[phase-exec, below=of p5] (p6) {\textbf{Fase 6:} Teardown LIFO};
-            \node[phase-exec, below=of p6] (p7) {\textbf{Fase 7:} Report};
-            \node[term, below=3.5ex of p7] (end) {exit code: 0 / 1 / 2 / 10};
+      \node[term] (start) {apiguard run};
 
-            \node[err-stop, right=4em of p1] (s1) {\texttt{ConfigurationError}\\{\footnotesize avvio interrotto}};
-            \node[err-stop, right=4em of p2] (s2) {\texttt{OpenAPILoadError}\\{\footnotesize avvio interrotto}};
-            \node[err-stop, right=4em of p4] (s4) {\texttt{DAGCycleError}\\{\footnotesize avvio interrotto}};
-            \node[err-warn, right=4em of p5] (w5) {\texttt{TestResult(ERROR)}\\{\footnotesize isolato, pipeline prosegue}};
-            \node[err-warn, right=4em of p6] (w6) {\texttt{TeardownError}\\{\footnotesize WARNING strutturato}};
+      \node[phase-startup, below=3.5ex of start] (p1) {\textbf{Fase~1:} Inizializzazione\\{\footnotesize\texttt{config/loader.py}}};
+      \node[phase-startup, below=of p1]    (p2) {\textbf{Fase~2:} OpenAPI Discovery\\{\footnotesize\texttt{discovery/openapi.py}}};
+      \node[phase-startup, below=of p2]    (p3) {\textbf{Fase~3:} Costruzione Contesti\\{\footnotesize\texttt{engine.py}}};
+      \node[phase-startup, below=of p3]    (p4) {\textbf{Fase~4:} Test Discovery e Directed Acyclic Graph\\{\footnotesize\texttt{registry.py, dag.py}}};
 
-            \begin{scope}[on background layer]
-                \node[bg-startup, fit=(p1)(p2)(p3)(p4)] (grp-startup) {};
-                \node[bg-exec, fit=(p5)(p6)(p7)] (grp-exec) {};
-            \end{scope}
+      \node[phase-exec, below=6.5ex of p4] (p5) {\textbf{Fase~5:} Esecuzione (per test)\\{\footnotesize\texttt{engine.py}}};
+      \node[phase-exec, below=of p5]   (p6) {\textbf{Fase~6:} Teardown Last In, First Out\\{\footnotesize\texttt{core/context.py}}};
+      \node[phase-exec, below=of p6]   (p7) {\textbf{Fase~7:} Report\\{\footnotesize\texttt{report/renderer.py}}};
 
-            \node[font=\footnotesize\bfseries, text=blue!70!black, align=right, anchor=east] at ([xshift=-0.5em]grp-startup.west) {Fasi 1-4\\(bloccanti)};
-            \node[font=\footnotesize\bfseries, text=green!70!black, align=right, anchor=east] at ([xshift=-0.5em]grp-exec.west) {Fasi 5-7\\(non bloccanti)};
+      \node[term, below=3.5ex of p7] (end) {exit code: 0 / 1 / 2 / 10};
 
-            \draw[arr-ok] (start) -- (p1);
-            \draw[arr-ok] (p1) -- node[midway, right, lbl] {OK} (p2);
-            \draw[arr-ok] (p2) -- node[midway, right, lbl] {OK} (p3);
-            \draw[arr-ok] (p3) -- node[midway, right, lbl] {OK} (p4);
-            \draw[arr-ok] (p4) -- node[midway, right, lbl] {OK} (p5);
-            \draw[arr-ok] (p5) -- (p6);
-            \draw[arr-ok] (p6) -- node[midway, right, lbl] {OK} (p7);
-            \draw[arr-ok] (p7) -- (end);
+      \node[err-stop, right=4em of p1] (s1) {\texttt{ConfigurationError}\\{\footnotesize avvio interrotto}};
+      \node[err-stop, right=4em of p2] (s2) {\texttt{OpenAPILoadError}\\{\footnotesize avvio interrotto}};
+      \node[err-stop, right=4em of p4] (s4) {\texttt{DAGCycleError}\\{\footnotesize avvio interrotto}};
 
-            \draw[arr-ko] (p1.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s1.west);
-            \draw[arr-ko] (p2.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s2.west);
-            \draw[arr-ko] (p4.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s4.west);
-            \draw[arr-warn] (p5.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {eccezione\\interna} (w5.west);
-            \draw[arr-warn] (p6.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {cleanup\\parziale} (w6.west);
-        \end{tikzpicture}
-    }% fine \resizebox
+      \node[err-warn, right=4em of p5] (w5) {\texttt{TestResult(ERROR)}\\{\footnotesize isolato, pipeline prosegue}};
+      \node[err-warn, right=4em of p6] (w6) {\texttt{TeardownError}\\{\footnotesize \texttt{WARNING} strutturato}};
+
+      \begin{scope}[on background layer]
+        \node[bg-startup, fit=(p1)(p2)(p3)(p4)] (grp-startup) {};
+        \node[bg-exec, fit=(p5)(p6)(p7)] (grp-exec) {};
+      \end{scope}
+
+      \node[font=\footnotesize\bfseries, text=blue!70!black, align=right, anchor=east]
+      at ([xshift=-0.5em]grp-startup.west) {Fasi 1-4\\(bloccanti)};
+
+      \node[font=\footnotesize\bfseries, text=green!70!black, align=right, anchor=east]
+      at ([xshift=-0.5em]grp-exec.west) {Fasi 5-7\\(non bloccanti)};
+
+      \draw[arr-ok] (start) -- (p1);
+      \draw[arr-ok] (p1) -- node[midway, right, lbl] {OK} (p2);
+      \draw[arr-ok] (p2) -- node[midway, right, lbl] {OK} (p3);
+      \draw[arr-ok] (p3) -- node[midway, right, lbl] {OK} (p4);
+      \draw[arr-ok] (p4) -- node[midway, right, lbl] {OK} (p5);
+      \draw[arr-ok] (p5) -- (p6);
+      \draw[arr-ok] (p6) -- node[midway, right, lbl] {OK} (p7);
+      \draw[arr-ok] (p7) -- (end);
+
+      \draw[arr-ko] (p1.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s1.west);
+      \draw[arr-ko] (p2.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s2.west);
+      \draw[arr-ko] (p4.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s4.west);
+
+      \draw[arr-warn] (p5.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {eccezione\\interna} (w5.west);
+      \draw[arr-warn] (p6.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {cleanup\\parziale} (w6.west);
+
+    \end{tikzpicture}
+  \end{adjustbox}
 \end{frame}
 
-\begin{frame}{Topologia DAG}
-    \centering\resizebox{\textwidth}{!}{
-        % Figura 4-dag-topology adattata
-        \begin{tikzpicture}[
-                node distance=1.5ex and 0.8em,
-                tst/.style={draw=orange!55, fill=yellow!18, rounded corners=1.5pt, minimum width=4.5em, minimum height=3.5ex, font=\footnotesize\ttfamily, align=center},
-                tst-hl/.style={tst, draw=orange!70, fill=yellow!35, thick},
-                ext/.style={tst, minimum width=6.5em, font=\scriptsize\ttfamily},
-                phB/.style={draw=blue!40, fill=blue!7, rounded corners=1.5pt, minimum width=5.5em, minimum height=3.5ex, font=\footnotesize\ttfamily, align=center},
-                bg-A/.style={draw=orange!50, fill=yellow!6, dashed, rounded corners=3pt, inner sep=12pt},
-                bg-B/.style={draw=blue!40, fill=blue!4, dashed, rounded corners=3pt, inner sep=10pt},
-                arr/.style={-latex, semithick, blue!60},
-                darr/.style={-latex, semithick, dashed, gray!60}
-            ]
+\begin{frame}{Topologia del Directed Acyclic Graph}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=1.5ex and 0.8em,
+        tst/.style={draw=orange!55, fill=yellow!18, rounded corners=1.5pt, minimum width=4.5em, minimum height=3.5ex, font=\footnotesize\ttfamily, align=center},
+        tst-hl/.style={tst, draw=orange!70, fill=yellow!35, thick},
+        ext/.style={tst, minimum width=6.5em, font=\scriptsize\ttfamily},
+        phB/.style={draw=blue!40, fill=blue!7, rounded corners=1.5pt, minimum width=5.5em, minimum height=3.5ex, font=\footnotesize\ttfamily, align=center},
+        phC/.style={draw=gray!40, fill=gray!8, dashed, rounded corners=1.5pt, minimum width=7em, minimum height=4.5ex, font=\footnotesize, align=center},
+        bg-A/.style={draw=orange!50, fill=yellow!6, dashed, rounded corners=3pt, inner sep=12pt},
+        bg-B/.style={draw=blue!40, fill=blue!4, dashed, rounded corners=3pt, inner sep=10pt},
+        arr/.style={-latex, semithick, blue!60},
+        darr/.style={-latex, semithick, dashed, gray!60}
+      ]
 
-            \node[tst] (d0a) {0.1};
-            \node[tst, right=of d0a] (d0b) {0.2};
-            \node[tst, right=of d0b] (d0c) {0.3};
-            \node[tst-hl, below=of d0a] (a11) {\textbf{1.1}};
-            \node[tst, right=of a11] (d1b) {1.5};
-            \node[tst, right=of d1b] (d1c) {1.6};
-            \node[tst, below=3.5ex of a11] (d3a) {3.3};
-            \node[tst, below=of d3a] (d4a) {4.1};
-            \node[tst, right=of d4a] (d4b) {4.2};
-            \node[tst, right=of d4b] (d4c) {4.3};
-            \node[tst, below=of d4a] (d6a) {6.2};
-            \node[tst, right=of d6a] (d6b) {6.4};
-            \node[tst, below=of d6a] (d7a) {7.2};
-            \node[ext, below=of d7a.south west, anchor=north west] (ex0) {ext.0.1.nuclei};
-            \node[ext, below=of ex0.south west, anchor=north west] (ex1) {ext.1.5.sslyze};
-            \node[ext, right=of ex1] (ex2) {ext.1.5.testssl};
+      \node[tst] (d0a) {0.1};
+      \node[tst, right=of d0a] (d0b) {0.2};
+      \node[tst, right=of d0b] (d0c) {0.3};
 
-            \begin{scope}[on background layer]
-                \node[bg-A, fit=(d0a)(d0c)(a11)(d1c)(d4c)(d7a)(ex1)(ex2)] (phaseA) {};
-            \end{scope}
-            \node[font=\footnotesize\bfseries, text=orange!80!black, anchor=south west] at ([xshift=1ex, yshift=0.5ex]phaseA.north west) {Phase A (16 test, nessuna dipendenza)};
+      \node[tst-hl, below=of d0a] (a11) {\textbf{1.1}};
+      \node[tst, right=of a11] (d1b) {1.5};
+      \node[tst, right=of d1b] (d1c) {1.6};
 
-            \path (a11.south) ++(0, -1.75ex) coordinate (bus-y);
-            \path (phaseA.east |- bus-y) coordinate (exitA);
-            \path (exitA) ++(2.5em, 0) coordinate (split);
+      \node[tst, below=3.5ex of a11] (d3a) {3.3};
 
-            \node[phB, anchor=west] (b14) at ([xshift=1.5em, yshift=3ex]split) {1.4};
-            \node[phB, anchor=west] (b21) at ([xshift=1.5em, yshift=-3ex]split) {2.1};
+      \node[tst, below=of d3a] (d4a) {4.1};
+      \node[tst, right=of d4a] (d4b) {4.2};
+      \node[tst, right=of d4b] (d4c) {4.3};
 
-            \begin{scope}[on background layer]
-                \node[bg-B, fit=(b14)(b21)] (phaseB) {};
-            \end{scope}
-            \node[font=\footnotesize\bfseries, text=blue!80!black, anchor=south west] at ([xshift=1ex, yshift=0.5ex]phaseB.north west) {Phase B (\texttt{depends\_on=["1.1"]})};
+      \node[tst, below=of d4a] (d6a) {6.2};
+      \node[tst, right=of d6a] (d6b) {6.4};
 
-            \draw[blue!60, semithick] (a11.south) |- (exitA) -- node[above, yshift=0.3ex, font=\scriptsize\itshape, text=gray!80!black, fill=white, inner sep=0.1pt] {\texttt{1.1} $\rightarrow$} (split);
-            \draw[arr] (split) |- (b14.west);
-            \draw[arr] (split) |- (b21.west);
-        \end{tikzpicture}
-    }% fine \resizebox
+      \node[tst, below=of d6a] (d7a) {7.2};
+
+      \node[ext, below=of d7a.south west, anchor=north west] (ex0) {ext.0.1.nuclei};
+      \node[ext, below=of ex0.south west, anchor=north west] (ex1) {ext.1.5.sslyze};
+      \node[ext, right=of ex1] (ex2) {ext.1.5.testssl};
+
+      \begin{scope}[on background layer]
+        \node[bg-A, fit=(d0a)(d0c)(a11)(d1c)(d4c)(d7a)(ex1)(ex2)] (phaseA) {};
+      \end{scope}
+
+      \node[font=\footnotesize\bfseries, text=orange!80!black, anchor=south west]
+      at ([xshift=1ex, yshift=0.5ex]phaseA.north west) {Phase A (16 test, nessuna dipendenza)};
+
+      \path (a11.south) ++(0, -1.75ex) coordinate (bus-y);
+
+      \path (phaseA.east |- bus-y) coordinate (exitA);
+
+      \path (exitA) ++(2.5em, 0) coordinate (split);
+
+      \node[phB, anchor=west] (b14) at ([xshift=1.5em, yshift=3ex]split) {1.4};
+      \node[phB, anchor=west] (b21) at ([xshift=1.5em, yshift=-3ex]split) {2.1};
+
+      \begin{scope}[on background layer]
+        \node[bg-B, fit=(b14)(b21)] (phaseB) {};
+      \end{scope}
+
+      \node[font=\footnotesize\bfseries, text=blue!80!black, anchor=south west]
+      at ([xshift=1ex, yshift=0.5ex]phaseB.north west) {Phase B (\texttt{depends\_on=["1.1"]})};
+
+      \node[phC, anchor=west] (phaseC) at ([xshift=3.5em]phaseB.east |- split) {\textit{Phase C}\\{\scriptsize (pianificata)}};
+
+      \draw[blue!60, semithick] (a11.south) |- (exitA) --
+      node[above, yshift=0.3ex, font=\scriptsize\itshape, text=gray!80!black, fill=white, inner sep=0.1pt] {\texttt{1.1} $\rightarrow$} (split);
+
+      \draw[arr] (split) |- (b14.west);
+      \draw[arr] (split) |- (b21.west);
+
+      \draw[darr] (phaseB.east |- split) --
+      node[above, yshift=0.3ex, font=\scriptsize\itshape, text=gray!80!black, fill=white, inner sep=0.1pt] {dipendenze} (phaseC.west |- split);
+
+    \end{tikzpicture}
+  \end{adjustbox}
 \end{frame}
 
-\begin{frame}{Mappa di copertura (v0.1.0)}
-    \centering\resizebox{!}{0.82\textheight}{
-        \begin{tikzpicture}[
-                node distance=1.5ex and 0.4em,
-                base/.style={draw, rounded corners=1.5pt, align=center, inner sep=4pt},
-                dom/.style={base, fill=gray!10, draw=gray!50, minimum width=10em, minimum height=5.2ex, font=\footnotesize\bfseries},
-                pass/.style={fill=green!10, draw=green!50!black},
-                fail/.style={fill=red!10, draw=red!60!black},
-                skip/.style={fill=gray!15, draw=gray!50},
-                tst/.style={base, minimum width=3.5em, minimum height=5.2ex, font=\footnotesize\ttfamily},
-                ext/.style={base, minimum width=5em, minimum height=5.2ex, font=\footnotesize\ttfamily\itshape},
-                inact/.style={base, draw=gray!35, dashed, fill=gray!4, minimum width=8em, minimum height=5.2ex, font=\footnotesize\itshape, text=gray!70!black},
-            ]
+\begin{frame}{Gerarchia delle classi}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        cls/.style={draw, rectangle, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=2.4em},
+        abs/.style={cls, fill=blue!7, draw=blue!40, font=\small\itshape, minimum width=7.5em},
+        conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=6em},
+        ext-abs/.style={cls, fill=green!7, draw=green!45, font=\small\itshape, minimum width=10.5em},
+        ext-conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
+        conn-abs/.style={cls, fill=violet!7, draw=violet!40, font=\small\itshape, minimum width=13em},
+        conn-abs-child/.style={cls, fill=violet!7, draw=violet!40, font=\small\itshape, minimum width=13em},
+        conn-conc/.style={cls, fill=gray!8, draw=gray!50, minimum width=10em, minimum height=2.4em},
+      ]
 
-            \node[dom] (d0) {D0: Discovery};
-            \node[tst, fail, right=1.5em of d0] (t01) {\texttt{0.1}};
-            \node[tst, fail, right=of t01] (t02) {\texttt{0.2}};
-            \node[tst, skip, right=of t02] (t03) {\texttt{0.3}};
-            \node[ext, pass, right=of t03] (te01) {\texttt{ext.0.1}\\[-2pt]{\scriptsize nuclei}};
+      \path (1.5em, 0) coordinate (LEFT);
+      \path (\textwidth, 0) ++(-1.5em, 0) coordinate (RIGHT);
 
-            \node[dom, below=1.5ex of d0.south west, anchor=north west] (d1) {D1: Authentication};
-            \node[tst, fail, right=1.5em of d1] (t11) {\texttt{1.1}};
-            \node[tst, pass, right=of t11] (t14) {\texttt{1.4}};
-            \node[tst, pass, right=of t14] (t15) {\texttt{1.5}};
-            \node[tst, skip, right=of t15] (t16) {\texttt{1.6}};
-            \node[ext, fail, right=of t16] (te15s) {\texttt{ext.1.5}\\[-2pt]{\scriptsize sslyze}};
-            \node[ext, fail, right=of te15s] (te15t) {\texttt{ext.1.5}\\[-2pt]{\scriptsize testssl}};
+      \node[abs, anchor=north west] (BT) at (LEFT) {\texttt{BaseTest}\\{\scriptsize (abstract)}};
+      \coordinate (busNat) at ([xshift=0.8em, yshift=-1.5ex]BT.south west);
+      \draw[uml-inherit] (busNat) -- ([xshift=0.8em]BT.south west);
+      \node[conc, below=2ex of BT.south west, anchor=north west, xshift=1.5em] (T01) {\texttt{test\_0\_1}};
+      \node[conc, below=0.5ex of T01.south west, anchor=north west] (T11) {\texttt{test\_1\_1}};
+      \node[conc, below=0.5ex of T11.south west, anchor=north west] (T21) {\texttt{test\_2\_1}};
+      \node[conc, below=0.5ex of T21.south west, anchor=north west] (Tdot) {\texttt{...\ D0--D7}};
+      \draw[gray!60, semithick] (busNat) -- (busNat |- Tdot.west);
+      \draw[gray!60, semithick] (busNat |- T01.west) -- (T01.west);
+      \draw[gray!60, semithick] (busNat |- T11.west) -- (T11.west);
+      \draw[gray!60, semithick] (busNat |- T21.west) -- (T21.west);
+      \draw[gray!60, semithick] (busNat |- Tdot.west) -- (Tdot.west);
 
-            \node[dom, below=1.5ex of d1.south west, anchor=north west] (d2) {D2: Authorization};
-            \node[tst, pass, right=1.5em of d2] (t21) {\texttt{2.1}};
+      \node[conn-abs, anchor=north east] (BC) at (RIGHT) {\texttt{BaseConnector}\\{\scriptsize (abstract)}};
+      \coordinate (busBC) at ([xshift=0.8em, yshift=-1.5ex]BC.south west);
+      \draw[uml-inherit] (busBC) -- ([xshift=0.8em]BC.south west);
+      \node[conn-abs-child, below=2ex of BC.south west, anchor=north west, xshift=1.5em] (BLC) {\texttt{BaseLibraryConnector}\\{\scriptsize (abstract)}};
+      \coordinate (busBLC) at ([xshift=0.8em, yshift=-1.5ex]BLC.south west);
+      \draw[uml-inherit] (busBLC) -- ([xshift=0.8em]BLC.south west);
+      \node[conn-conc, below=1.5ex of BLC.south west, anchor=north west, xshift=1.5em] (SSL) {\texttt{SslyzeConnector}};
+      \coordinate (refBSC) at (BLC.west |- SSL.south);
+      \node[conn-abs-child, below=1.5ex of refBSC, anchor=north west] (BSC) {\texttt{BaseSubprocessConnector}\\{\scriptsize (abstract)}};
+      \coordinate (busBSC) at ([xshift=0.8em, yshift=-1.5ex]BSC.south west);
+      \draw[uml-inherit] (busBSC) -- ([xshift=0.8em]BSC.south west);
+      \node[conn-conc, below=1.5ex of BSC.south west, anchor=north west, xshift=1.5em] (NUC) {\texttt{NucleiConnector}};
+      \node[conn-conc, below=0.5ex of NUC.south west, anchor=north west] (TSL) {\texttt{TestsslConnector}};
+      \draw[gray!60, semithick] (busBC) -- (busBC |- BSC.west);
+      \draw[gray!60, semithick] (busBC |- BLC.west) -- (BLC.west);
+      \draw[gray!60, semithick] (busBC |- BSC.west) -- (BSC.west);
+      \draw[gray!60, semithick] (busBLC) -- (busBLC |- SSL.west);
+      \draw[gray!60, semithick] (busBLC |- SSL.west) -- (SSL.west);
+      \draw[gray!60, semithick] (busBSC) -- (busBSC |- TSL.west);
+      \draw[gray!60, semithick] (busBSC |- NUC.west) -- (NUC.west);
+      \draw[gray!60, semithick] (busBSC |- TSL.west) -- (TSL.west);
 
-            \node[dom, below=1.5ex of d2.south west, anchor=north west] (d3) {D3: Data Integrity};
-            \node[tst, pass, right=1.5em of d3] (t33) {\texttt{3.3}};
+      \path (BT.north east) -- (BC.north west) coordinate[midway] (FREE-CENTER);
+      \node[ext-abs, anchor=north] (ETT) at (FREE-CENTER |- BT.north) {\texttt{ExternalToolTest}\\{\scriptsize (abstract)}};
+      \coordinate (busExt) at ([xshift=0.8em, yshift=-1.5ex]ETT.south west);
+      \draw[uml-inherit] (busExt) -- ([xshift=0.8em]ETT.south west);
+      \node[ext-conc, below=2ex of ETT.south west, anchor=north west, xshift=1.5em] (E01) {\texttt{ext\_0\_1\_nuclei}};
+      \node[ext-conc, below=0.5ex of E01.south west, anchor=north west] (E15s) {\texttt{ext\_1\_5\_sslyze}};
+      \node[ext-conc, below=0.5ex of E15s.south west, anchor=north west] (E15t) {\texttt{ext\_1\_5\_testssl}};
+      \draw[gray!60, semithick] (busExt) -- (busExt |- E15t.west);
+      \draw[gray!60, semithick] (busExt |- E01.west) -- (E01.west);
+      \draw[gray!60, semithick] (busExt |- E15s.west) -- (E15s.west);
+      \draw[gray!60, semithick] (busExt |- E15t.west) -- (E15t.west);
 
-            \node[dom, below=1.5ex of d3.south west, anchor=north west] (d4) {D4: Availability};
-            \node[tst, fail, right=1.5em of d4] (t41) {\texttt{4.1}};
-            \node[tst, pass, right=of t41] (t42) {\texttt{4.2}};
-            \node[tst, pass, right=of t42] (t43) {\texttt{4.3}};
+      \draw[uml-compose, dashed, gray!60] (ETT.east) -- (BC.west) node[midway, above, font=\scriptsize\itshape, gray!70] {usa};
 
-            \node[dom, fill=gray!4, draw=gray!35, below=1.5ex of d4.south west, anchor=north west] (d5) {D5: Observability};
-            \node[inact, right=1.5em of d5] (td5) {nessun test attivo};
+      \node[font=\small\bfseries, blue!60!black, above=1.5ex of BT] {Test nativi (D0--D7)};
+      \node[font=\small\bfseries, green!55!black, above=1.5ex of ETT] {Test esterni};
+      \node[font=\small\bfseries, violet!60!black, above=1.5ex of BC] {Connettori};
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
 
-            \node[dom, below=1.5ex of d5.south west, anchor=north west] (d6) {D6: Hardening};
-            \node[tst, pass, right=1.5em of d6] (t62) {\texttt{6.2}};
-            \node[tst, pass, right=of t62] (t64) {\texttt{6.4}};
+\begin{frame}{Gerarchia delle eccezioni}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=0.8ex and 2.5em,
+        base/.style={draw, rounded corners=1.5pt, inner sep=5pt, text width=17.5em, align=left, font=\small},
+        root/.style={draw=gray!50, fill=gray!10, rounded corners=2pt, inner sep=6pt, align=center, minimum width=7em},
+        blk/.style={base, fill=red!6, draw=red!50},
+        rec/.style={base, fill=orange!8, draw=orange!50},
+        cli/.style={base, fill=gray!8, draw=gray!50},
+        cat-lbl/.style={align=center, text width=6.5em},
+        tree/.style={-latex, gray!60, semithick, rounded corners=2pt},
+        fork/.style={gray!60, semithick, rounded corners=2pt}
+      ]
 
-            \node[dom, below=1.5ex of d6.south west, anchor=north west] (d7) {D7: Business Logic};
-            \node[tst, fail, right=1.5em of d7] (t72) {\texttt{7.2}};
+      \node[blk] (b1) {\texttt{ConfigurationError} \hfill {\footnotesize\color{red!70!black}[Fase 1]}};
+      \node[blk, below=0.8ex of b1] (b2) {\texttt{OpenAPILoadError} \hfill {\footnotesize\color{red!70!black}[Fase 2]}};
+      \node[blk, below=0.8ex of b2] (b3) {\texttt{DAGCycleError} \hfill {\footnotesize\color{red!70!black}[Fase 4]}};
+      \node[blk, below=0.8ex of b3] (b4) {\texttt{AuthenticationSetupError} \hfill {\footnotesize\color{red!70!black}[auth helper]}};
 
-            \node[tst, pass, below=3.5ex of d7.south west, anchor=north west] (lg-pass) {\texttt{PASS}};
-            \node[tst, fail, right=0.8em of lg-pass] (lg-fail) {\texttt{FAIL}};
-            \node[tst, skip, right=0.8em of lg-fail] (lg-skip) {\texttt{SKIP}};
-            \node[ext, pass, right=0.8em of lg-skip] (lg-ext) {\textit{Esterno}};
-        \end{tikzpicture}
-    }% fine \resizebox
+      \node[rec, below=2.5ex of b4] (r1) {\texttt{SecurityClientError} \hfill {\footnotesize\color{orange!70!black}[Fase 5 \textrightarrow{} ERROR]}};
+      \node[rec, below=0.8ex of r1] (r2) {\texttt{ExternalToolError} \hfill {\footnotesize\color{orange!70!black}[Fase 5 \textrightarrow{} ERROR]}};
+      \node[rec, below=0.8ex of r2] (r3) {\texttt{TeardownError} \hfill {\footnotesize\color{orange!70!black}[Fase 6 \textrightarrow{} WARN]}};
+      \node[rec, below=0.8ex of r3] (r4) {\texttt{GatewayAdapterError} \hfill {\footnotesize\color{orange!70!black}[gateway/base.py]}};
+
+      \node[cli, below=2.5ex of r4] (c1) {\texttt{SeedGeneratorFetchError} \hfill {\footnotesize\color{gray!70!black}[exit code 10]}};
+      \node[cli, below=0.8ex of c1] (c2) {\texttt{SeedGeneratorParseError} \hfill {\footnotesize\color{gray!70!black}[exit code 10]}};
+
+      \path (b1.north west) -- (b4.south west) node[midway, left=2.5em, anchor=east, cat-lbl, text=red!70!black] (lbl-blk) {
+      \textbf{Bloccanti}\\ {\footnotesize (Fasi 1--4)}\\[1pt] {\footnotesize\normalfont\color{gray!70!black} bloccano l'avvio}
+      };
+
+      \path (r1.north west) -- (r4.south west) node[midway, left=2.5em, anchor=east, cat-lbl, text=orange!70!black] (lbl-rec) {
+      \textbf{Recuperate}\\ {\footnotesize (Fasi 5--6)}\\[1pt] {\footnotesize\normalfont\color{gray!70!black} ERROR / WARNING}
+      };
+
+      \path (c1.north west) -- (c2.south west) node[midway, left=2.5em, anchor=east, cat-lbl, text=gray!60!black] (lbl-cli) {
+      \textbf{CLI}\\ {\footnotesize \texttt{generate-seed}}\\[1pt] {\footnotesize\normalfont\color{gray!70!black} standalone}
+      };
+
+      \path (lbl-blk.north west) -- (lbl-cli.south west) node[midway, left=2.5em, anchor=east, root] (root) {
+      \textbf{\texttt{ToolBaseError}}\\[2pt]{\footnotesize\itshape(classe astratta)}
+      };
+
+      \draw[tree] (root.east) -- ++(1.25em, 0) |- (lbl-blk.west);
+      \draw[tree] (root.east) -- ++(1.25em, 0) |- (lbl-rec.west);
+      \draw[tree] (root.east) -- ++(1.25em, 0) |- (lbl-cli.west);
+
+      \coordinate (Fblk) at ([xshift=1.25em]lbl-blk.east);
+      \draw[fork] (lbl-blk.east) -- (Fblk);
+      \draw[tree] (Fblk) |- (b1.west);
+      \draw[tree] (Fblk) |- (b2.west);
+      \draw[tree] (Fblk) |- (b3.west);
+      \draw[tree] (Fblk) |- (b4.west);
+
+      \coordinate (Frec) at ([xshift=1.25em]lbl-rec.east);
+      \draw[fork] (lbl-rec.east) -- (Frec);
+      \draw[tree] (Frec) |- (r1.west);
+      \draw[tree] (Frec) |- (r2.west);
+      \draw[tree] (Frec) |- (r3.west);
+      \draw[tree] (Frec) |- (r4.west);
+
+      \coordinate (Fcli) at ([xshift=1.25em]lbl-cli.east);
+      \draw[fork] (lbl-cli.east) -- (Fcli);
+      \draw[tree] (Fcli) |- (c1.west);
+      \draw[tree] (Fcli) |- (c2.west);
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Struttura interna del TestContext}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=1.2ex and 0.8em,
+        ch-hdr/.style={draw=green!60!black, fill=green!18, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=2.5em, font=\small\bfseries, align=center},
+        ch-row/.style={draw=green!50!black, fill=green!7, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=18pt,
+            inner sep=4pt, font=\footnotesize\ttfamily, align=left},
+        ch-api/.style={draw=gray!40, fill=gray!10, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=3.8em, inner sep=3pt, font=\footnotesize, align=left},
+        ph-badge/.style={draw=gray!50, fill=gray!15, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=3.5em, inner sep=3pt, font=\small, align=center},
+      ]
+
+      \node[ch-hdr] (tok-hdr) {Canale Token};
+
+      \node[ch-row, below=0.6ex of tok-hdr] (tok-r1) {\texttt{ROLE\_ADMIN}};
+      \node[ch-row, below=0.6ex of tok-r1]  (tok-r2) {\texttt{ROLE\_USER\_A}};
+      \node[ch-row, below=0.6ex of tok-r2]  (tok-r3) {\texttt{ROLE\_USER\_B}};
+
+      \node[ch-api, below=0.6ex of tok-r3] (tok-api) {
+        \texttt{set\_token(role, tok)}\\[1pt]
+        \texttt{get\_token(role) \textrightarrow{} tok}\\[1pt]
+        \texttt{has\_token(role) \textrightarrow{} bool}
+      };
+
+      \node[ph-badge, below=1.2ex of tok-api] (tok-ph) {\textbf{Fase~5:} test autenticati\\scrivono e leggono};
+
+      \node[ch-hdr, right=of tok-hdr] (td-hdr) {Canale Teardown \footnotesize[LIFO]};
+
+      \node[ch-row, below=0.6ex of td-hdr] (td-r1) {push(fn\_C)};
+      \node[ch-row, below=0.6ex of td-r1]  (td-r2) {push(fn\_B)};
+      \node[ch-row, below=0.6ex of td-r2]  (td-r3) {push(fn\_A)};
+
+      \node[ch-api, below=0.6ex of td-r3] (td-api) {
+      \texttt{push\_teardown(callable)}\\[1pt]
+      {\itshape drain order:}\\[1pt]
+      \texttt{fn\_A \textrightarrow{} fn\_B \textrightarrow{} fn\_C}
+      };
+
+      \node[ph-badge, below=1.2ex of td-api] (td-ph) {\textbf{Fase~5:} push\\\textbf{Fase~6:} drain inv.};
+
+      \node[ch-hdr, right=of td-hdr] (sh-hdr) {Canale Shared Data};
+
+      \node[ch-row, below=0.6ex of sh-hdr] (sh-r1) {\texttt{"1.1.token"}};
+      \node[ch-row, below=0.6ex of sh-r1]  (sh-r2) {\texttt{"1.1.repos"}};
+      \node[ch-row, below=0.6ex of sh-r2]  (sh-r3) {\texttt{"ext.0.1.hits"}};
+
+      \node[ch-api, below=0.6ex of sh-r3] (sh-api) {
+        \texttt{set\_shared("{id}.{k}", v)}\\[1pt]
+        \texttt{get\_shared("{id}.{k}")}\\[1pt]
+        \texttt{~~\textrightarrow{} v}
+      };
+
+      \node[ph-badge, below=1.2ex of sh-api] (sh-ph) {\textbf{Fase~5:} produttore scrive\\batch successivi leggono};
+
+      \begin{scope}[on background layer]
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
+          fit=(tok-hdr)(tok-r1)(tok-r2)(tok-r3)(tok-api)(tok-ph)] {};
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
+          fit=(td-hdr)(td-r1)(td-r2)(td-r3)(td-api)(td-ph)] {};
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
+          fit=(sh-hdr)(sh-r1)(sh-r2)(sh-r3)(sh-api)(sh-ph)] {};
+      \end{scope}
+
+      \node[draw=green!60!black, fill=green!25, rounded corners=2pt,
+        minimum width=36.9em, font=\small\bfseries, align=center,
+        above=3ex of td-hdr.north] (tc-master)
+      {\texttt{TestContext} [mutable]: tre canali tipizzati con responsabilità distinte};
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Mappa di copertura}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=1.5ex and 0.4em,
+        base/.style={draw, rounded corners=1.5pt, align=center, inner sep=4pt},
+        dom/.style={base, fill=gray!10, draw=gray!50, minimum width=10em, minimum height=5.2ex, font=\footnotesize\bfseries},
+        pass/.style={fill=green!10, draw=green!50!black},
+        fail/.style={fill=red!10, draw=red!60!black},
+        skip/.style={fill=gray!15, draw=gray!50},
+        tst/.style={base, minimum width=3.5em, minimum height=5.2ex, font=\footnotesize\ttfamily},
+        ext/.style={base, minimum width=5em, minimum height=5.2ex, font=\footnotesize\ttfamily\itshape},
+        inact/.style={base, draw=gray!35, dashed, fill=gray!4, minimum width=8em, minimum height=5.2ex, font=\footnotesize\itshape, text=gray!70!black},
+      ]
+
+      \node[dom] (d0) {D0: Discovery};
+
+      \node[tst, fail, right=1.5em of d0] (t01)  {\texttt{0.1}};
+      \node[tst, fail, right=of t01]      (t02)  {\texttt{0.2}};
+      \node[tst, skip, right=of t02]      (t03)  {\texttt{0.3}};
+      \node[ext, pass, right=of t03]      (te01) {\texttt{ext.0.1}\\[-2pt]{\scriptsize nuclei}};
+
+      \node[dom, below=1.5ex of d0.south west, anchor=north west] (d1) {D1: Authentication};
+
+      \node[tst, fail, right=1.5em of d1] (t11)   {\texttt{1.1}};
+      \node[tst, pass, right=of t11]      (t14)   {\texttt{1.4}};
+      \node[tst, pass, right=of t14]      (t15)   {\texttt{1.5}};
+      \node[tst, skip, right=of t15]      (t16)   {\texttt{1.6}};
+      \node[ext, fail, right=of t16]      (te15s) {\texttt{ext.1.5}\\[-2pt]{\scriptsize sslyze}};
+      \node[ext, fail, right=of te15s]    (te15t) {\texttt{ext.1.5}\\[-2pt]{\scriptsize testssl}};
+
+      \node[dom, below=1.5ex of d1.south west, anchor=north west] (d2) {D2: Authorization};
+
+      \node[tst, pass, right=1.5em of d2] (t21) {\texttt{2.1}};
+
+      \node[dom, below=1.5ex of d2.south west, anchor=north west] (d3) {D3: Data Integrity};
+
+      \node[tst, pass, right=1.5em of d3] (t33) {\texttt{3.3}};
+
+      \node[dom, below=1.5ex of d3.south west, anchor=north west] (d4) {D4: Availability};
+
+      \node[tst, fail, right=1.5em of d4] (t41) {\texttt{4.1}};
+      \node[tst, pass, right=of t41]      (t42) {\texttt{4.2}};
+      \node[tst, pass, right=of t42]      (t43) {\texttt{4.3}};
+
+      \node[dom, fill=gray!4, draw=gray!35, below=1.5ex of d4.south west, anchor=north west] (d5) {D5: Observability};
+
+      \node[inact, right=1.5em of d5] (td5) {nessun test attivo};
+
+      \node[dom, below=1.5ex of d5.south west, anchor=north west] (d6) {D6: Hardening};
+
+      \node[tst, pass, right=1.5em of d6] (t62) {\texttt{6.2}};
+      \node[tst, pass, right=of t62]      (t64) {\texttt{6.4}};
+
+      \node[dom, below=1.5ex of d6.south west, anchor=north west] (d7) {D7: Business Logic};
+
+      \node[tst, fail, right=1.5em of d7] (t72) {\texttt{7.2}};
+
+      \node[tst, pass, below=3.5ex of d7.south west, anchor=north west] (lg-pass) {\texttt{PASS}};
+      \node[tst, fail, right=0.8em of lg-pass] (lg-fail) {\texttt{FAIL}};
+      \node[tst, skip, right=0.8em of lg-fail] (lg-skip) {\texttt{SKIP}};
+      \node[ext, pass, right=0.8em of lg-skip] (lg-ext)  {\textit{Esterno}};
+      \node[font=\footnotesize\itshape, text=gray!70!black, right=0.8em of lg-ext] {corsivo = test esterno tramite connector};
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Topologia del testbed}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=4ex and 2.5em,
+        cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
+        host/.style={cls, fill=orange!10, draw=orange!50, minimum width=13.5em},
+        infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=13.5em},
+        app/.style={cls, fill=green!7, draw=green!45, minimum width=9em},
+        backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
+        users/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
+        group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
+        arr/.style={-latex, semithick, gray!80!black},
+        darr/.style={-latex, semithick, dashed, gray!80!black},
+        barr/.style={latex-latex, semithick, gray!80!black},
+      ]
+
+      \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
+
+      \node[infra, below=7ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HyperText Transfer Protocol proxy)}\\{\footnotesize :8443 (Hypertext Transfer Protocol Secure proxy)}\\{\footnotesize :8001 (Admin Application Programming Interface)}};
+
+      \node[app, right=2.5em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target applicativo}};
+
+      \node[users, left=2.5em of kong] (rbac) {\textbf{Utenti RBAC}\\{\footnotesize thesis-admin}\\{\footnotesize user-a}\\{\footnotesize user-b}};
+
+      \node[backend, below=4ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize backend Forgejo}};
+
+      \begin{scope}[on background layer]
+        \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
+      \end{scope}
+      \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
+
+      \draw[arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
+
+      \draw[arr] (kong.east) -- node[midway, above, align=center, font=\footnotesize\itshape, text=gray!70!black] {proxy/ \\route} (forgejo.west);
+
+      \draw[barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
+
+      \draw[darr] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Routing degli exit code}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
+        cmd/.style={base, fill=blue!5, draw=blue!40, font=\small\ttfamily, minimum width=16em},
+        decision/.style={draw, shape=diamond, aspect=2.5, inner sep=2pt, align=center, font=\small, fill=orange!10, draw=orange!50},
+        code0/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
+        code1/.style={base, fill=red!10, draw=red!60!black, minimum width=8.5em},
+        code2/.style={base, fill=orange!10, draw=orange!60!black, minimum width=8.5em},
+        code10/.style={base, fill=gray!15, draw=gray!60!black, minimum width=8.5em},
+        act0/.style={base, fill=green!5, draw=green!40, minimum width=13em},
+        act1/.style={base, fill=red!5, draw=red!40, minimum width=13em},
+        act2/.style={base, fill=orange!5, draw=orange!40, minimum width=13em},
+        act10/.style={base, fill=gray!5, draw=gray!40, minimum width=13em},
+      ]
+
+      \node[base, fill=gray!10, draw=gray!40, font=\small\bfseries] (start) {Runner CI/CD};
+      \node[cmd, below=3ex of start] (cmd) {apiguard run -{}-config config.yaml};
+      \node[decision, below=3ex of cmd] (dec) {exit code?};
+
+      \path (dec.south) ++(4em, -4ex) node[code0, anchor=north west] (e0) {\textbf{\texttt{0}: CLEAN}\\{\scriptsize tutti PASS/SKIP}};
+      \path (e0.south west) ++(0, -2.5ex) node[code1, anchor=north west] (e1) {\textbf{\texttt{1}: FAIL}\\{\scriptsize almeno un FAIL}};
+      \path (e1.south west) ++(0, -2.5ex) node[code2, anchor=north west] (e2) {\textbf{\texttt{2}: ERROR}\\{\scriptsize ERROR senza FAIL}};
+      \path (e2.south west) ++(0, -2.5ex) node[code10, anchor=north west] (e10) {\textbf{\texttt{10}: INFRA}\\{\scriptsize errore infrastrutturale}};
+
+      \path (e0.east) ++(3em, 0) node[act0, anchor=west] (a0) {\textbf{Pipeline prosegue}\\{\scriptsize (merge / deploy consentito)}};
+      \path (e1.east) ++(3em, 0) node[act1, anchor=west] (a1) {\textbf{Blocco merge/deploy}\\{\scriptsize Report allegato come artefatto}};
+      \path (e2.east) ++(3em, 0) node[act2, anchor=west] (a2) {\textbf{Alert malfunzionamento}\\{\scriptsize Revisione manuale richiesta}};
+      \path (e10.east) ++(3em, 0) node[act10, anchor=west] (a10) {\textbf{Diagnosi deployment}\\{\scriptsize Verifica \texttt{config.yaml}}};
+
+      \draw[-latex, semithick] (start) -- (cmd);
+      \draw[-latex, semithick] (cmd) -- (dec);
+
+      \coordinate (bus-end) at (dec.south |- e10.west);
+      \draw[gray!70, semithick] (dec.south) -- (bus-end);
+
+      \draw[-latex, semithick, green!50!black] (dec.south |- e0.west) -- (e0.west);
+      \fill[gray!70] (dec.south |- e0.west) circle (1.5pt);
+
+      \draw[-latex, semithick, red!60!black] (dec.south |- e1.west) -- (e1.west);
+      \fill[gray!70] (dec.south |- e1.west) circle (1.5pt);
+
+      \draw[-latex, semithick, orange!60!black] (dec.south |- e2.west) -- (e2.west);
+      \fill[gray!70] (dec.south |- e2.west) circle (1.5pt);
+
+      \draw[-latex, semithick, gray!60!black] (dec.south |- e10.west) -- (e10.west);
+      \fill[gray!70] (dec.south |- e10.west) circle (1.5pt);
+
+      \draw[-latex, semithick, green!50!black] (e0.east) -- (a0.west);
+      \draw[-latex, semithick, red!60!black] (e1.east) -- (a1.west);
+      \draw[-latex, semithick, orange!60!black] (e2.east) -- (a2.west);
+      \draw[-latex, semithick, gray!60!black] (e10.east) -- (a10.west);
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Verso una piattaforma modulare}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        node distance=4.5ex and 2.5em,
+        base/.style={draw, rounded corners=2pt, inner sep=8pt, align=center, font=\small},
+        core/.style={base, fill=blue!8, draw=blue!45, minimum width=22em, thick},
+        active/.style={base, fill=green!10, draw=green!50!black, minimum width=20em},
+        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=8em},
+        arr-active/.style={-latex, thick, green!50!black},
+        arr-planned/.style={-latex, thick, dashed, gray!50}
+      ]
+
+      \node[core] (core) {
+      \textbf{Core: infrastruttura immutabile}\\[1.5ex]
+      {\footnotesize \texttt{Engine} \textbar{} \texttt{DAGScheduler} \textbar{} \texttt{EvidenceStore}}\\[0.8ex]
+      {\footnotesize \texttt{TestContext} \textbar{} \texttt{TargetContext}}\\[0.8ex]
+      {\footnotesize \texttt{BaseTest} \textbar{} \texttt{BaseConnector} \textbar{} \texttt{BaseGatewayAdapter}}\\[0.8ex]
+      {\footnotesize \texttt{TestResult} \textbar{} \texttt{Finding} \textbar{} \texttt{EvidenceRecord}}
+      };
+
+      \node[active, above=of core] (rest) {
+      \textbf{Plugin REST (OpenAPI Specification)} \ {\footnotesize\itshape (attivo)}\\[1.5ex]
+      {\footnotesize \texttt{OpenAPI discovery} \textbar{} \texttt{AttackSurface}}\\[0.8ex]
+      {\footnotesize \texttt{SecurityClient} \textbar{} \texttt{KongGatewayAdapter}}\\[0.8ex]
+      {\footnotesize 18 Test nativi (Domini D0--D7)}
+      };
+
+      \node[planned, right=of core] (gql) {\textbf{GraphQL}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+      \node[planned, below=of core] (grpc) {\textbf{gRPC}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+      \node[planned, left=of core] (ws) {\textbf{WebSocket}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+
+      \draw[arr-active] (rest.south) -- (core.north);
+      \draw[arr-planned] (gql.west) -- (core.east);
+      \draw[arr-planned] (grpc.north) -- (core.south);
+      \draw[arr-planned] (ws.east) -- (core.west);
+
+      \node[font=\footnotesize, text=gray!80!black, below=4ex of grpc, align=center] (note) {
+      frecce continue: modulo attivo \quad frecce tratteggiate: moduli pianificati\\[1ex]
+      {\itshape Il discovery dinamico via \texttt{pkgutil} permette il caricamento trasparente di moduli di terze parti}
+      };
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Sanitizzazione a imbuto dell'evidenza}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small},%
+        stage/.style={base, ag-blue, minimum width=15em, minimum height=3.5ex},%
+        redact/.style={base, ag-red, minimum width=7em, minimum height=3.5ex},%
+        pass/.style={base, ag-green, minimum width=7em, minimum height=3.5ex},%
+        decision/.style={ag-diamond, minimum width=5em, align=center, inner sep=2pt, font=\small},%
+      ]
+      %
+      \node[base, ag-gray, minimum width=15em] (inp) {Record grezzo (\texttt{dict})\\{\scriptsize output connector / transazione HTTP}};
+      %
+      \node[stage, below=4ex of inp] (s1) {Stadio~1: Key-pattern regex\\{\scriptsize 11 pattern: password, token, api\_key, ...}};
+      \node[stage, below=11ex of s1] (s2) {Stadio~2: JSON Web Token heuristic\\{\scriptsize stringa con 2 punti + base64}};
+      \node[stage, below=11ex of s2] (s3) {Stadio~3: Header prefix\\{\scriptsize Authorization, X-API-Key, ...}};
+      \node[base, ag-violet, minimum width=15em, below=11ex of s3] (out) {\texttt{EvidenceStore.pin\_artifact()}\\{\scriptsize record sanitizzato scritto su JSONL}};
+      %
+      \node[decision, right=3em of s1] (d1) {match?};
+      \node[redact, right=2.5em of d1] (r1) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d1] (p1) {chiave pulita};
+      %
+      \node[decision, right=3em of s2] (d2) {match?};
+      \node[redact, right=2.5em of d2] (r2) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d2] (p2) {valore pulito};
+      %
+      \node[decision, right=3em of s3] (d3) {match?};
+      \node[redact, right=2.5em of d3] (r3) {\texttt{[REDACTED]}};
+      \node[pass, below=2.5ex of d3] (p3) {header pulito};
+      %
+      \draw[ag-arr] (inp) -- (s1);
+      %
+      \draw[ag-arr] (s1.east) -- (d1.west);
+      \draw[ag-arr] (d1.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r1.west);
+      \draw[ag-arr] (d1.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p1.north);
+      \coordinate (m1) at ([yshift=2ex]s2.north);
+      \draw[gray!70, semithick] (r1.south) |- (m1);
+      \draw[gray!70, semithick] (p1.south) |- (m1);
+      \fill[gray!70] (m1) circle (1.5pt);
+      \draw[ag-arr] (m1) -- (s2.north);
+      %
+      \draw[ag-arr] (s2.east) -- (d2.west);
+      \draw[ag-arr] (d2.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r2.west);
+      \draw[ag-arr] (d2.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p2.north);
+      \coordinate (m2) at ([yshift=2ex]s3.north);
+      \draw[gray!70, semithick] (r2.south) |- (m2);
+      \draw[gray!70, semithick] (p2.south) |- (m2);
+      \fill[gray!70] (m2) circle (1.5pt);
+      \draw[ag-arr] (m2) -- (s3.north);
+      %
+      \draw[ag-arr] (s3.east) -- (d3.west);
+      \draw[ag-arr] (d3.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r3.west);
+      \draw[ag-arr] (d3.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p3.north);
+      \coordinate (m3) at ([yshift=2ex]out.north);
+      \draw[gray!70, semithick] (r3.south) |- (m3);
+      \draw[gray!70, semithick] (p3.south) |- (m3);
+      \fill[gray!70] (m3) circle (1.5pt);
+      \draw[ag-arr] (m3) -- (out.north);
+      %
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Error isolation in Fase~5}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tikzpicture}[
+        actor/.style={ag-blue, minimum width=7em, minimum height=2.5em, align=center, font=\small},
+        lifeline/.style={draw=gray!50, dashed, very thin},
+        msg/.style={ag-arr, black!70},
+        msg-return/.style={ag-darr, black!50},
+        lbl/.style={midway, above, font=\footnotesize, fill=white, inner sep=2pt},
+        note-box/.style={draw=orange!50, fill=yellow!12, rounded corners=2pt, inner sep=3pt, font=\footnotesize},
+      ]
+
+      \node[actor] (Eng) {\texttt{Engine}};
+      \node[actor, right=3.2em of Eng] (BT) {\texttt{BaseTest}};
+      \node[actor, right=3.2em of BT] (SC) {\texttt{SecurityClient}};
+      \node[actor, right=3.2em of SC] (TGT) {Target (Kong)};
+
+      \draw[lifeline] (Eng.south) -- ++(0,-55ex);
+      \draw[lifeline] (BT.south) -- ++(0,-55ex);
+      \draw[lifeline] (SC.south) -- ++(0,-55ex);
+      \draw[lifeline] (TGT.south) -- ++(0,-55ex);
+
+      \draw[msg] ([yshift=-4ex]Eng.south) -- ([yshift=-4ex]BT.south) node[lbl] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-8ex]BT.south) -- ([yshift=-8ex]SC.south) node[lbl] {\texttt{request(method, url, ...)}};
+      \draw[msg] ([yshift=-12ex]SC.south) -- ([yshift=-12ex]TGT.south) node[lbl] {HyperText Transfer Protocol request};
+      \draw[msg-return] ([yshift=-16ex]TGT.south) -- ([yshift=-16ex]SC.south) node[lbl] {HyperText Transfer Protocol response};
+      \draw[msg-return] ([yshift=-20ex]SC.south) -- ([yshift=-20ex]BT.south) node[lbl] {\texttt{Response}};
+      \draw[msg-return] ([yshift=-24ex]BT.south) -- ([yshift=-24ex]Eng.south) node[lbl] {\texttt{TestResult(PASS | FAIL)}};
+
+      \draw[gray!60, very thick] ([yshift=-28ex]Eng.south) -- ([yshift=-28ex]TGT.south);
+      \node[fill=gray!15, draw=gray!60, rounded corners=2pt, inner sep=3pt, font=\footnotesize\itshape]
+      at ($([yshift=-28ex]Eng.south)!0.5!([yshift=-28ex]TGT.south)$)
+      {scenario alternativo: eccezione imprevista};
+
+      \draw[msg] ([yshift=-34ex]Eng.south) -- ([yshift=-34ex]BT.south) node[lbl] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-38ex]BT.south) -- ([yshift=-38ex]SC.south) node[lbl] {\texttt{request(method, url, ...)}};
+
+      \coordinate (err_start) at ([yshift=-42ex]SC.south);
+
+      \node[note-box] (exc) at ($([yshift=-42ex]SC.south)!0.7!([yshift=-42ex]TGT.south)$) {\texttt{Exception} imprevista};
+
+      \draw[ag-arr, orange!70] (err_start) -- (exc.west);
+
+      \coordinate (bt_return) at ([yshift=-46ex]BT.south);
+      \coordinate (elbow) at (exc.south |- bt_return);
+
+      \draw[ag-arr, orange!70] (exc.south) -- (elbow) -- node[pos=0.6, above, ag-note, font=\footnotesize, align=center, fill=white, inner sep=2pt] {catturata internamente} (bt_return);
+
+      \draw[msg-return, red!60] ([yshift=-50ex]BT.south) -- ([yshift=-50ex]Eng.south)
+      node[lbl, text=red!70] {\texttt{TestResult(ERROR)}: pipeline prosegue};
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Domini di Assurance}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{} c l >{\raggedright\arraybackslash}X @{}}
+      \toprule
+      \textbf{Dominio} & \textbf{Titolo}                   & \textbf{Ambito di verifica}                                                                                                   \\
+      \midrule
+      D0               & API Discovery                     & Inventario degli endpoint esposti; rilevazione di Shadow API non documentate nella specifica.                                 \\
+      \addlinespace
+      D1               & Identity \& Authentication        & Meccanismi di riconoscimento del chiamante; robustezza del trasporto delle credenziali; ciclo di vita e revoca dei JSON Web Token. \\
+      \addlinespace
+      D2               & Authorization                     & Logiche di controllo degli accessi; difetti di segregazione orizzontale e verticale (Role-Based Access Control, Broken Object Level Authorization).                 \\
+      \addlinespace
+      D3               & Data Integrity                    & Coerenza strutturale dei payload; implementazione delle firme crittografiche (Hash-based Message Authentication Code).                                    \\
+      \addlinespace
+      D4               & Availability \& Resilience        & Difese contro l'esaurimento delle risorse; audit di circuit breaker e soglie di rate limiting.                                \\
+      \addlinespace
+      D5               & Observability                     & Qualità e tempestività della telemetria generata dal sistema.                                                                 \\
+      \addlinespace
+      D6               & Configuration \& Hardening        & Rafforzamento della configurazione del gateway; policy di routing; header di sicurezza HyperText Transfer Protocol.                            \\
+      \addlinespace
+      D7               & Business Logic \& Sensitive Flows & Falle semantiche complesse: elusione dei vincoli di processo, Server-Side Request Forgery, race condition su operazioni critiche.              \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Box Gradient}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
+      \toprule
+      \textbf{Strategia}  & \textbf{Prerequisiti}               & \textbf{Razionale}                                                                                                             \\
+      \midrule
+      \texttt{BLACK\_BOX} & Nessuno (solo accesso di rete)      & Controlli perimetrali applicati dal gateway a qualsiasi interlocutore; simulazione di un attaccante esterno senza credenziali. \\
+      \addlinespace
+      \texttt{GREY\_BOX}  & Token per $\geq 2$ ruoli distinti   & Garanzie che presuppongono stato autenticato con identità di ruolo distinte; inaccessibili senza credenziali valide.           \\
+      \addlinespace
+      \texttt{WHITE\_BOX} & Accesso Admin Application Programming Interface del gateway & Configurazione statica verificabile per ispezione diretta tramite piano di controllo del gateway.                              \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Risultati per test}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabular}{@{\hspace{0.5em}} l l c c c @{\hspace{0.5em}}}
+      \toprule
+      \textbf{Test ID}         & \textbf{Dominio}   & \textbf{Tipo} & \textbf{Status} & \textbf{Finding} \\
+      \midrule
+      \texttt{0.1}             & D0: Discovery      & Nativo        & \texttt{FAIL}   & 16               \\
+      \texttt{0.2}             & D0: Discovery      & Nativo        & \texttt{FAIL}   & 1                \\
+      \texttt{0.3}             & D0: Discovery      & Nativo        & \texttt{SKIP}   & 0                \\
+      \addlinespace
+      \texttt{1.1}             & D1: Auth           & Nativo        & \texttt{FAIL}   & 74               \\
+      \texttt{1.4}             & D1: Auth           & Nativo        & \texttt{PASS}   & 0                \\
+      \texttt{1.5}             & D1: Auth           & Nativo        & \texttt{PASS}   & 0                \\
+      \texttt{1.6}             & D1: Auth           & Nativo        & \texttt{SKIP}   & 0                \\
+      \addlinespace
+      \texttt{2.1}             & D2: Authorization  & Nativo        & \texttt{PASS}   & 0                \\
+      \addlinespace
+      \texttt{3.3}             & D3: Data Integrity & Nativo        & \texttt{PASS}   & 0                \\
+      \addlinespace
+      \texttt{4.1}             & D4: Availability   & Nativo        & \texttt{FAIL}   & 2                \\
+      \texttt{4.2}             & D4: Availability   & Nativo        & \texttt{PASS}   & 0                \\
+      \texttt{4.3}             & D4: Availability   & Nativo        & \texttt{PASS}   & 0                \\
+      \addlinespace
+      \texttt{6.2}             & D6: Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+      \texttt{6.4}             & D6: Hardening      & Nativo        & \texttt{PASS}   & 0                \\
+      \addlinespace
+      \texttt{7.2}             & D7: Business Logic & Nativo        & \texttt{FAIL}   & 1                \\
+      \addlinespace
+      \texttt{ext.0.1.nuclei}  & D0: Discovery      & Esterno       & \texttt{PASS}   & 0                \\
+      \texttt{ext.1.5.sslyze}  & D1: Auth           & Esterno       & \texttt{FAIL}   & 1                \\
+      \texttt{ext.1.5.testssl} & D1: Auth           & Esterno       & \texttt{FAIL}   & 3                \\
+      \midrule
+      \textbf{Totale}          &                    &               &                 & \textbf{98}      \\
+      \bottomrule
+    \end{tabular}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{KPI di idempotenza}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabular}{@{\hspace{0.5em}} l @{\hspace{1.5em}} c @{\hspace{1.5em}} c @{\hspace{1.5em}} c @{\hspace{0.5em}}}
+      \toprule
+      \textbf{Key Performance Indicator}                     & \textbf{Run~1}    & \textbf{Run~2}    & \textbf{$\Delta$} \\
+      \midrule
+      PASS / FAIL / SKIP / ERROR             & 9 / 7 / 2 / 0     & 9 / 7 / 2 / 0     & identico          \\
+      \addlinespace
+      Finding count totale                   & 98                & 98                & identico          \\
+      \addlinespace
+      \texttt{pass\_rate\_pct}               & 56.2\%            & 56.2\%            & identico          \\
+      \addlinespace
+      \texttt{assessment\_duration\_seconds} & 290.14\,s         & 290.81\,s         & $+$0.23\%         \\
+      \addlinespace
+      Exit code / label                      & 1 / \texttt{FAIL} & 1 / \texttt{FAIL} & identico          \\
+      \bottomrule
+    \end{tabular}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Performance baseline}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabular}{@{\hspace{0.5em}} l @{\hspace{2em}} c @{\hspace{2em}} c @{\hspace{0.5em}}}
+      \toprule
+      \textbf{Metrica}       & \textbf{Run~1}      & \textbf{Run~2}      \\
+      \midrule
+      Wall-clock elapsed     & 290.14\,s (4:50.14) & 290.81\,s (4:50.81) \\
+      \addlinespace
+      User time              & 35.09\,s            & 34.67\,s            \\
+      \addlinespace
+      System time            & 41.51\,s            & 41.62\,s            \\
+      \addlinespace
+      Peak resident set size & 287\,MB             & 295\,MB             \\
+      \bottomrule
+    \end{tabular}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Analisi statica}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
+      \toprule
+      \textbf{Tool}      & \textbf{Esito}                   & \textbf{Note}                                          \\
+      \midrule
+      \texttt{ruff}      & 0 errori                         &
+      Ruleset \texttt{E/W/F/I/N/UP/B/S/ANN}                                                                          \\
+      \addlinespace
+      \texttt{mypy}      & 0 errori                         &
+      Modalità \texttt{strict}: \texttt{no-implicit-optional},
+      \texttt{disallow-untyped-defs}, \texttt{warn-return-any}                                                       \\
+      \addlinespace
+      \texttt{bandit}    & 0 finding severity $\geq$ medium &
+      3 Low (B404, S603x2) soppressi con \texttt{\# noqa} documentati: invocazione subprocess controllata per design \\
+      \addlinespace
+      \texttt{vulture}   & 0 finding                        &
+      Confidence $\ge$80\%; metodi a dispatching dinamico esclusi via whitelist                                      \\
+      \addlinespace
+      \texttt{pip-audit} & 0 Common Vulnerabilities and Exposures                      &
+      Nessuna vulnerabilità nota nelle dipendenze dichiarate                                                         \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Topologia del DAG (assessment)}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{\hspace{0.5em}} l c >{\raggedright\arraybackslash}X @{\hspace{0.5em}}}
+      \toprule
+      \textbf{Fase DAG}                        & \textbf{Cardinalità} & \textbf{Test}                                                                                                                                                                                                                                                                                           \\
+      \midrule
+      Phase~A (nessuna dipendenza)             & 16 test              &
+      \texttt{0.1} $\cdot$ \texttt{0.2} $\cdot$ \texttt{0.3} $\cdot$ \texttt{1.1} $\cdot$ \texttt{1.5} $\cdot$ \texttt{1.6} $\cdot$ \texttt{3.3} $\cdot$ \texttt{4.1} $\cdot$ \texttt{4.2} $\cdot$ \texttt{4.3} $\cdot$ \texttt{6.2} $\cdot$ \texttt{6.4} $\cdot$ \texttt{7.2} $\cdot$ \texttt{ext.0.1.nuclei} $\cdot$ \texttt{ext.1.5.testssl} $\cdot$ \texttt{ext.1.5.sslyze} \\
+      \addlinespace
+      Phase~B (\texttt{depends\_on = ["1.1"]}) & 2 test               &
+      \texttt{1.4} $\cdot$ \texttt{2.1}                                                                                                                                                                                                                                                                                                                                         \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Verdetto di release}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{\hspace{0.5em}} l l X @{\hspace{0.5em}}}
+      \toprule
+      \textbf{Aspetto}            & \textbf{Stato} & \textbf{Dettaglio}                                                  \\
+      \midrule
+      Analisi statica             & \checkmark     &
+      0 errori su tutti e cinque gli strumenti                                    \\
+      \addlinespace
+      Type safety                 & \checkmark     &
+      0 errori mypy strict; validazione Pydantic attiva su tutti i confini \\
+      \addlinespace
+      Documentazione interna      & \checkmark     &
+      292/292 simboli pubblici con docstring (100\%)                                                                     \\
+      \addlinespace
+      Riproducibilità della build & \checkmark     &
+      SHA-256 identico su due build consecutive (451\,261~byte)                                                          \\
+      \addlinespace
+      Portabilità                 & \checkmark     &
+      Cold install in ambiente pulito: \texttt{apiguard version} $\to$ \texttt{0.1.0}                                    \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Versioni del testbed}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
+      \toprule
+      \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                                                                  \\
+      \midrule
+      \texttt{apiguard-assurance} & 0.1.0                 & Tool sotto validazione                                                                                      \\
+      \addlinespace
+      Python                      & 3.12.3                & Interprete del tool                                                                                         \\
+      \addlinespace
+      Forgejo                     & 14.0.3 (gitea-1.22.0) & Target applicativo: API REST con specifica OpenAPI nativa                                             \\
+      \addlinespace
+      PostgreSQL                  & 15-alpine             & Backend di persistenza di Forgejo (dipendenza funzionale, non componente autonomo)                          \\
+      \addlinespace
+      Kong                        & 3.9 DB-less           & API Gateway: proxy HyperText Transfer Protocol/Hypertext Transfer Protocol Secure, instradamento verso Forgejo, Admin API su porta 8001 \\
+      \addlinespace
+      \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow API discovery (test \texttt{ext.0.1})                                         \\
+      \addlinespace
+      \texttt{nuclei-templates}   & 10.4.3                & Base di template di scansione versioned: garantisce che lo stesso set di firme venga usato in ogni run      \\
+      \addlinespace
+      \texttt{testssl.sh}         & 3.2.3                 & Analisi Transport Layer Security black-box (test \texttt{ext.1.5.testssl})                                                 \\
+      \addlinespace
+      \texttt{sslyze}             & (libreria Python)     & Analisi Transport Layer Security via libreria Python (test \texttt{ext.1.5.sslyze})                                        \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Modelli di esposizione gateway}
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{}
+      >{\raggedright\arraybackslash}p{11em}
+      >{\raggedright\arraybackslash}p{5em}
+      >{\raggedright\arraybackslash\hsize=1.2\hsize}X
+      >{\raggedright\arraybackslash\hsize=0.9\hsize}X
+      >{\raggedright\arraybackslash\hsize=0.9\hsize}X @{}}
+      \toprule
+      \textbf{Modello}
+       & \textbf{Traffico presidiato}
+       & \textbf{Enforcement policy}
+       & \textbf{Accesso al piano di configurazione}
+       & \textbf{Verifica \texttt{WHITE\_BOX}}       \\
+      \midrule
+      Gateway Application Programming Interface Dedicato \newline {\footnotesize (es.\ Kong, Apigee)}
+       & Nord-sud
+       & Centralizzato (singolo strato)
+       & Admin Application Programming Interface diretta
+       & Nativa                                      \\
+      \addlinespace
+      Kubernetes Ingress / Gateway Application Programming Interface
+       & Nord-sud
+       & Centralizzato (via K8s API)
+       & \texttt{kubectl} / Kubernetes Application Programming Interface
+       & Controller-dipendente                       \\
+      \addlinespace
+      Service Mesh \newline {\footnotesize (es.\ Istio)}
+       & Est-ovest
+       & Distribuito per sidecar proxy
+       & Control plane (istiod)
+       & N/A (est-ovest)                             \\
+      \addlinespace
+      Gateway Managed Cloud \newline {\footnotesize (AWS, Azure, GCP)}
+       & Nord-sud
+       & Centralizzato dal provider
+       & Software Development Kit / Application Programming Interface del cloud provider
+       & Adapter dedicato                            \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
 \end{frame}
