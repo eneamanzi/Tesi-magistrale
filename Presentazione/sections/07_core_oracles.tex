@@ -2,20 +2,14 @@
 
 \begin{frame}{Specified oracles: il criterio di valutazione}
   \begin{center}
-    \small\textit{Come si stabilisce automaticamente se il comportamento osservato è una violazione?}
+    \small\textit{Come si stabilisce se un comportamento osservato viola una garanzia di sicurezza?}
   \end{center}
   \vspace{0.4em}
   \begin{itemize}
-    \item Il problema dell'oracolo (Barr et al.\ 2015): generare input è risolto; \alert{valutare il comportamento osservato} è il collo di bottiglia
+    \item Generare input è risolto; \alert{valutare il comportamento osservato} resta il collo di bottiglia del testing automatizzato
 
-    \item APIGuard adotta \alert{specified oracles}: criteri codificati \alert{a priori} nella logica di ogni test, ricavati dalla conoscenza del dominio del controllo
+    \item APIGuard adotta \alert{specified oracles}: criteri codificati \alert{a priori} in ogni test, dalla conoscenza del dominio del controllo
 
-    \item Sorgenti per dominio:
-          \begin{itemize}
-            \item schema OAS \textrightarrow{} conformità strutturale
-            \item standard tecnici (NIST, ASVS) \textrightarrow{} TLS, header
-            \item configurazione gateway \textrightarrow{} policy, routing
-            \item confronto tra ruoli \textrightarrow{} difetti RBAC, BOLA
-          \end{itemize}
+    \item Tre fonti: schema \alert{OAS}, standard tecnici, costruzione ad-hoc sul controllo specifico
   \end{itemize}
 \end{frame}

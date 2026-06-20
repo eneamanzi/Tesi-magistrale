@@ -1,11 +1,11 @@
 % !TEX root = ../main.tex
 
-\begin{frame}{Pipeline di esecuzione e connector}
+\begin{frame}{Pipeline di esecuzione}
   \begin{itemize}
-    \item Pipeline a \alert{7 fasi sequenziali}: prime 4 bloccanti (errore interrompe l'avvio), ultime 3 non bloccanti (errori isolati, pipeline prosegue)
+    \item \textbf{Fasi 1-4 (bloccanti)}: Inizializzazione, OpenAPI Discovery, Costruzione Contesti, Test Discovery + DAG
 
-    \item Connector \alert{gerarchici} a 3 livelli: separano la raccolta dei dati grezzi dalla valutazione dell'esito; lo stesso connector funziona in locale, CI/CD e ambienti containerizzati
+    \item \textbf{Fasi 5-7 (non bloccanti)}: Esecuzione, Teardown LIFO, Report
 
-    \item Discovery \alert{dinamico}: nuove verifiche vengono registrate automaticamente senza modifiche al core
+    \item \textbf{Estensibilità}: connector gerarchici per tool esterni e discovery dinamico dei test, senza modifiche al core
   \end{itemize}
 \end{frame}

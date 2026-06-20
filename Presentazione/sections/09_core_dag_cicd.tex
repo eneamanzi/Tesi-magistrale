@@ -1,27 +1,11 @@
 % !TEX root = ../main.tex
 
-\begin{frame}{DAG scheduler e integrazione CI/CD}
-  \begin{columns}
-    \begin{column}{.50\textwidth}
-      \begin{itemize}
-        \item Le dipendenze tra test sono dichiarate \alert{esplicitamente} e risolte \alert{topologicamente}; nessun test può essere eseguito prima dei suoi prerequisiti
+\begin{frame}{Riproducibilità e integrazione CI/CD}
+  \begin{itemize}
+    \item \textbf{DAG scheduler}: dipendenze dichiarate esplicitamente, risolte in ordine \alert{topologico} — i prerequisiti vengono sempre prima
 
-        \item Senza DAG, i test RBAC eseguiti prima di quelli di autenticazione producono errori non deterministici invece di fallimenti puliti
-      \end{itemize}
-    \end{column}
+    \item \textbf{Config-driven}: \alert{config.yaml} come unica fonte di verità per tutti i parametri operativi
 
-    \begin{column}{.47\textwidth}
-      \textbf{Exit codes semantici per CI/CD}
-      \vspace{0.5em}
-      \begin{itemize}
-        \item \textcolor{green!55!black}{\textbf{\texttt{0} CLEAN}} — tutti PASS/SKIP: pipeline prosegue
-
-        \item \textcolor{red!65!black}{\textbf{\texttt{1} FAIL}} — almeno un FAIL: blocco merge/deploy
-
-        \item \textcolor{orange!75!black}{\textbf{\texttt{2} ERROR}} — malfunzionamento interno: revisione manuale
-
-        \item \textcolor{gray!70!black}{\textbf{\texttt{10} INFRA}} — errore infrastrutturale: diagnosi deployment
-      \end{itemize}
-    \end{column}
-  \end{columns}
+    \item \textbf{Exit code semantici}: \texttt{0} CLEAN, \texttt{1} FAIL, \texttt{2} ERROR, \texttt{10} INFRA — segnale \alert{machine-actionable} per CI/CD
+  \end{itemize}
 \end{frame}
