@@ -1,0 +1,70 @@
+% !TEX root = ../main.tex
+% ALTERNATIVA CON IMMAGINE — confrontare con 07_core_pipeline.tex (versione a bullet)
+
+\begin{frame}{Pipeline di esecuzione}
+  \begin{adjustbox}{width=\textwidth, height=0.82\textheight, keepaspectratio, center}
+    \begin{tikzpicture}[
+        node distance=2ex and 4em,
+        base/.style={draw, rounded corners=1.5pt, inner sep=3pt, align=center, font=\small, minimum height=3ex},
+        phase-startup/.style={base, fill=blue!7, draw=blue!40, minimum width=13.5em},
+        phase-exec/.style={base, fill=green!7, draw=green!45, minimum width=13.5em},
+        err-stop/.style={base, fill=red!6, draw=red!50, minimum width=11.5em},
+        err-warn/.style={base, fill=orange!8, draw=orange!50, minimum width=11.5em},
+        term/.style={draw=gray!50, fill=gray!15, ellipse, minimum height=2.5ex, inner sep=3pt, align=center, font=\footnotesize\ttfamily},
+        lbl/.style={font=\footnotesize\itshape, text=gray!70!black, inner sep=2pt},
+        arr-ok/.style={-latex, semithick, gray!70!black},
+        arr-ko/.style={-latex, semithick, red!60!black},
+        arr-warn/.style={-latex, semithick, dashed, orange!80!black},
+        bg-startup/.style={draw=blue!30, fill=blue!3, dashed, rounded corners=3pt, inner sep=8pt},
+        bg-exec/.style={draw=green!35, fill=green!2, dashed, rounded corners=3pt, inner sep=8pt}
+      ]
+
+      \node[term] (start) {apiguard run};
+
+      \node[phase-startup, below=2ex of start] (p1) {\textbf{Fase~1:} Inizializzazione\\{\footnotesize\texttt{config/loader.py}}};
+      \node[phase-startup, below=of p1]    (p2) {\textbf{Fase~2:} OpenAPI Discovery\\{\footnotesize\texttt{discovery/openapi.py}}};
+      \node[phase-startup, below=of p2]    (p3) {\textbf{Fase~3:} Costruzione Contesti\\{\footnotesize\texttt{engine.py}}};
+      \node[phase-startup, below=of p3]    (p4) {\textbf{Fase~4:} Test Discovery e DAG\\{\footnotesize\texttt{registry.py, dag.py}}};
+
+      \node[phase-exec, below=4ex of p4] (p5) {\textbf{Fase~5:} Esecuzione (per test)\\{\footnotesize\texttt{engine.py}}};
+      \node[phase-exec, below=of p5]   (p6) {\textbf{Fase~6:} Teardown LIFO\\{\footnotesize\texttt{core/context.py}}};
+      \node[phase-exec, below=of p6]   (p7) {\textbf{Fase~7:} Report\\{\footnotesize\texttt{report/renderer.py}}};
+
+      \node[term, below=2ex of p7] (end) {exit code: 0 / 1 / 2 / 10};
+
+      \node[err-stop, right=4em of p1] (s1) {\texttt{ConfigurationError}\\{\footnotesize avvio interrotto}};
+      \node[err-stop, right=4em of p2] (s2) {\texttt{OpenAPILoadError}\\{\footnotesize avvio interrotto}};
+      \node[err-stop, right=4em of p4] (s4) {\texttt{DAGCycleError}\\{\footnotesize avvio interrotto}};
+
+      \node[err-warn, right=4em of p5] (w5) {\texttt{TestResult(ERROR)}\\{\footnotesize isolato, pipeline prosegue}};
+      \node[err-warn, right=4em of p6] (w6) {\texttt{TeardownError}\\{\footnotesize \texttt{WARNING} strutturato}};
+
+      \begin{scope}[on background layer]
+        \node[bg-startup, fit=(p1)(p2)(p3)(p4)] (grp-startup) {};
+        \node[bg-exec, fit=(p5)(p6)(p7)] (grp-exec) {};
+      \end{scope}
+
+      \node[font=\footnotesize\bfseries, text=blue!70!black, align=right, anchor=east]
+      at ([xshift=-0.5em]grp-startup.west) {Fasi 1-4\\(bloccanti)};
+
+      \node[font=\footnotesize\bfseries, text=green!70!black, align=right, anchor=east]
+      at ([xshift=-0.5em]grp-exec.west) {Fasi 5-7\\(non bloccanti)};
+
+      \draw[arr-ok] (start) -- (p1);
+      \draw[arr-ok] (p1) -- node[midway, right, lbl] {OK} (p2);
+      \draw[arr-ok] (p2) -- node[midway, right, lbl] {OK} (p3);
+      \draw[arr-ok] (p3) -- node[midway, right, lbl] {OK} (p4);
+      \draw[arr-ok] (p4) -- node[midway, right, lbl] {OK} (p5);
+      \draw[arr-ok] (p5) -- (p6);
+      \draw[arr-ok] (p6) -- node[midway, right, lbl] {OK} (p7);
+      \draw[arr-ok] (p7) -- (end);
+
+      \draw[arr-ko] (p1.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s1.west);
+      \draw[arr-ko] (p2.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s2.west);
+      \draw[arr-ko] (p4.east) -- node[pos=0.55, above, lbl, text=red!70!black] {KO} (s4.west);
+
+      \draw[arr-warn] (p5.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {eccezione\\interna} (w5.west);
+      \draw[arr-warn] (p6.east) -- node[pos=0.55, above, align=center, lbl, text=orange!80!black] {cleanup\\parziale} (w6.west);
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}

@@ -1,119 +1,125 @@
 # Speech — Slide 01: Contesto
 
-Le architetture a microservizi cloud-native hanno ridistribuito la complessità applicativa su un numero crescente di servizi autonomi, ciascuno responsabile di un sottodominio del sistema e comunicante con gli altri tramite API REST. La conseguenza diretta è la moltiplicazione della superficie esposta: ogni servizio aggiunge endpoint al perimetro, spesso in assenza di un inventario centralizzato e di una governance sistematica del loro ciclo di vita.
+Le architetture a microservizi cloud-native hanno distribuito la complessità su un numero crescente di servizi autonomi, comunicanti tramite API REST. La conseguenza è la moltiplicazione della superficie esposta: ogni servizio aggiunge endpoint al perimetro, spesso senza un inventario centralizzato né una governance del loro ciclo di vita.
 
-In questo scenario, il gateway API è emerso come punto di enforcement centralizzato: concentra in un unico piano di configurazione ispezionabile le politiche di autenticazione, autorizzazione e rate limiting, e costituisce il confine tra i client esterni e i servizi interni.
+Il gateway API è emerso come punto di enforcement centralizzato: concentra autenticazione, autorizzazione e rate limiting in un unico piano di configurazione, e costituisce il confine tra client esterni e servizi interni.
 
-Il problema è che le vulnerabilità più significative in questo spazio non sono sintattiche, sono semantiche. Non emergono dall'analisi del formato di una richiesta HTTP, ma richiedono la conoscenza del comportamento atteso del sistema per essere rilevate. Quattro delle prime cinque categorie di rischio nell'OWASP API Security Top 10 del 2023 appartengono a questa classe. E gli strumenti attuali, come vedremo, non le raggiungono.
+Il problema è che le vulnerabilità più significative non sono sintattiche, sono semantiche: richiedono la conoscenza del comportamento atteso del sistema per essere rilevate. Quattro delle prime cinque categorie OWASP API Security Top 10 2023 appartengono a questa classe, e gli strumenti attuali non le raggiungono.
 
 # Speech — Slide 02: Stato dell'arte e gap
 
-Gli strumenti di security testing esistenti operano sulla sintassi delle richieste HTTP: inviano payload malformati e osservano i codici di risposta. La logica applicativa resta invisibile, protetta da una barriera sintattica che un fuzzer non attraversa mai. Questo è G1, la cecità semantica: le vulnerabilità che richiedono la conoscenza del comportamento atteso del sistema non vengono rilevate.
+Gli strumenti esistenti operano sulla sintassi delle richieste HTTP: payload malformati, codici di risposta. La logica applicativa resta invisibile, protetta da una barriera che un fuzzer non attraversa. Questo è G1, la cecità semantica.
 
-A questo si affianca G2: i pochi strumenti specializzati che raggiungono una certa profondità sono scritti per un target specifico e non si generalizzano; gli strumenti generici, al contrario, restano in superficie. Portabilità e profondità non coesistono.
+G2: i pochi strumenti specializzati che vanno in profondità sono legati a un target specifico; quelli generici restano in superficie. Portabilità e profondità non coesistono.
 
-G3 riguarda la riproducibilità: se i risultati variano tra esecuzioni successive senza un motivo dichiarato, il testing non si può integrare in un ciclo di sviluppo continuativo, perché nessuno può fidarsi di un segnale che cambia da solo. E qui c'è un punto che vale la pena sottolineare a voce: l'obiettivo finale è che l'intero processo funzioni senza un operatore che debba interpretare ogni volta il risultato.
+G3, la riproducibilità: se i risultati variano tra esecuzioni senza un motivo dichiarato, il testing non si integra in un ciclo continuativo, perché nessuno si fida di un segnale che cambia da solo. L'obiettivo finale è che il processo funzioni senza un operatore che interpreti ogni volta il risultato.
 
-Lo stesso vale per G4, il problema dell'oracolo, probabilmente il meno affrontato in letteratura: come si stabilisce automaticamente se un comportamento osservato viola una garanzia di sicurezza? Chi costruisce quel criterio? Anche qui, l'assenza di un meccanismo sistematico significa che oggi quella valutazione richiede quasi sempre un intervento umano per essere considerata affidabile.
+G4, il problema dell'oracolo, forse il meno affrontato in letteratura: come si stabilisce automaticamente se un comportamento viola una garanzia di sicurezza? Anche qui, senza un meccanismo sistematico quella valutazione richiede quasi sempre un intervento umano.
 
 Quattro frizioni distinte, tutte aperte prima di questo lavoro.
 
 # Speech — Slide 03: Obiettivi
 
-L'obiettivo è progettare e implementare un tool contract-driven per la security assurance di qualsiasi API REST documentata, senza modifiche al codice per ogni target diverso.
+L'obiettivo è progettare un tool contract-driven per la security assurance di qualsiasi API REST documentata, senza modifiche al codice per ogni target.
 
-Quattro obiettivi specifici guidano le slide successive, e rispondono direttamente ai quattro gap appena visti. O1, l'agnosticismo applicativo, è il presupposto su cui si fonda tutto il resto: tutta la conoscenza del target deriva dalla specifica OpenAPI e da un file di configurazione, senza nulla hardcoded nel codice. È la base di partenza da cui costruiamo le altre proprietà.
+Quattro obiettivi rispondono direttamente ai quattro gap. O1, l'agnosticismo applicativo, è il presupposto di tutto il resto: la conoscenza del target deriva solo dalla specifica OpenAPI e da un file di configurazione, niente hardcoded.
 
-O2 risponde a G2: il box gradient, che vedremo più avanti, scala la profondità dell'assessment in base ai privilegi effettivamente disponibili nel momento del test, risolvendo il compromesso tra portabilità e profondità senza dover scegliere l'una o l'altra.
+O2 risponde a G2: il box gradient scala la profondità dell'assessment ai privilegi disponibili nel test, risolvendo il compromesso tra portabilità e profondità senza dover scegliere.
 
-O3 risponde a G3: riproducibilità deterministica dell'output, prerequisito per l'integrazione nei cicli di sviluppo continuativo, e — come accennavo — condizione necessaria perché il processo funzioni senza che un operatore debba interpretare ogni volta il risultato.
+O3 risponde a G3: riproducibilità deterministica dell'output, condizione necessaria perché il processo funzioni senza che un operatore interpreti ogni volta il risultato.
 
-O4, insieme a O1, risponde a G1 e in modo specifico a G4: gli specified oracles sono criteri di valutazione affidabili, derivati dalla conoscenza del dominio di ogni singolo controllo, applicati deterministicamente. È qui che il problema dell'oracolo trova una risposta sistematica, di nuovo senza bisogno di un intervento umano per giudicare l'esito.
+O4, insieme a O1, risponde a G1 e in modo specifico a G4: gli specified oracles sono criteri affidabili derivati dalla conoscenza del dominio, applicati deterministicamente, di nuovo senza bisogno di un intervento umano per giudicare l'esito.
 
-Vediamo ora come questi obiettivi si traducono in scelte architetturali concrete.
+Vediamo ora come si traducono in scelte architetturali concrete.
 
 # Speech — Slide 04: Agnosticismo applicativo e contract-driven
 
-Il primo principio è l'agnosticismo applicativo. Le uniche due sorgenti di conoscenza del target a runtime sono la specifica OpenAPI e un file di configurazione, con le credenziali e l'URL di base. Non c'è nulla nel codice che faccia riferimento a un target specifico: il tool è deployabile su qualsiasi API REST documentata senza modificare una singola riga.
+Il primo principio è l'agnosticismo applicativo: le uniche due sorgenti di conoscenza del target a runtime sono la specifica OpenAPI e un file di configurazione. Niente nel codice fa riferimento a un target specifico: il tool è deployabile su qualsiasi API REST documentata senza modificare una riga.
 
-Questo presupposto rende possibile il paradigma contract-driven. La specifica OpenAPI guida la costruzione di probe sintatticamente valide: richieste che superano i controlli di formato e raggiungono la logica applicativa, invece di payload malformati generici che si fermano al primo errore di sintassi.
+Questo rende possibile il paradigma contract-driven: la specifica OpenAPI guida la costruzione di probe sintatticamente valide, richieste che superano i controlli di formato e raggiungono la logica applicativa, invece di fermarsi al primo errore di sintassi.
 
-È importante essere precisi su un punto: la specifica OAS da sola garantisce solo la validità sintattica delle probe. Alcune informazioni semantiche si possono dedurre direttamente da essa, come quali endpoint richiedono autenticazione, ma la profondità semantica vera e propria del controllo nasce dalla combinazione di questo contratto con la conoscenza del dominio di sicurezza, che vedremo più avanti con gli specified oracles.
+Una precisazione: la OAS da sola garantisce solo la validità sintattica. Alcune informazioni semantiche si deducono direttamente da essa, ma la profondità semantica vera nasce dalla combinazione col dominio di sicurezza, che vedremo con gli specified oracles.
 
-# Speech — Slide 05: Tassonomia
+# Speech — Slide 04 ALT: Agnosticismo e contract-driven (con immagine)
 
-Prima di costruire qualsiasi test, è stato necessario studiare il target su cui il tool avrebbe operato: non un'applicazione specifica, ma la categoria intera di API REST esposte tramite gateway. Da questo studio è nata una tassonomia di otto domini, ciascuno corrispondente a una famiglia di rischio distinta, allineata anche ai controlli runtime descritti nello standard NIST SP 800-228.
+Questa è l'architettura completa, e ci torneremo pezzo per pezzo. Per ora guardate solo la parte a sinistra: le due uniche sorgenti di conoscenza del target sono openapi.yaml e config.yaml, che alimentano l'Assessment Engine. Niente nel codice fa riferimento a Forgejo o a un altro target specifico: l'engine è deployabile su qualsiasi API REST documentata senza modificare una riga.
 
-D0, D1 e D2 seguono una catena di precondizioni logiche: non ha senso verificare l'autorizzazione senza prima sapere che l'autenticazione funziona, né l'autenticazione senza conoscere la superficie di attacco. D3 verifica l'integrità dei dati, D4 la disponibilità, D6 la configurazione del gateway, D7 le falle di logica applicativa più complesse come SSRF e race condition. D5, l'osservabilità, è architetturalmente predisposto ma i suoi test sono pianificati come sviluppo futuro, non ancora implementati in questa versione.
+Da lì, l'engine costruisce probe HTTP sintatticamente valide e le invia al gateway, che le instrada verso il target reale. È importante essere precisi: la specifica OpenAPI da sola garantisce solo questa validità sintattica. La profondità semantica vera nasce più avanti, quando combiniamo questo contratto con la conoscenza del dominio negli specified oracles.
 
-I numeri in fondo raccontano due cose diverse: quanti test sono già implementati e quanti sono stati individuati durante questo lavoro di ricerca ma restano pianificati per il futuro. In totale, 18 test attivi e 14 pianificati, 32 garanzie distinte mappate su 8 domini: la parte più impegnativa di questo lavoro non è stata scrivere i singoli test, è stata individuare in modo sistematico quali controlli avessero senso fare.
+Il resto del diagramma, DAG Scheduler ed EvidenceStore, lo riprenderemo nelle prossime slide.
 
-# Speech — Slide 06: Box gradient
+# Speech — Slide 05: Tassonomia e box gradient
 
-Il box gradient nasce da una domanda semplice: quante credenziali ha a disposizione il tester? La risposta determina quali verifiche sono eseguibili.
+Prima di costruire qualsiasi test, ho dovuto studiare il target su cui il tool avrebbe operato: non un'applicazione specifica, ma la categoria intera di API REST esposte tramite gateway. Da questo studio è nata una tassonomia di otto domini, allineata anche ai controlli runtime descritti nello standard NIST SP 800-228. D0, D1 e D2 seguono una catena di precondizioni logiche: non ha senso verificare l'autorizzazione senza sapere che l'autenticazione funziona. D3 verifica l'integrità dei dati, D4 la disponibilità, D6 la configurazione del gateway, D7 le falle di logica applicativa più complesse. D5, l'osservabilità, è predisposto architetturalmente ma i suoi test sono ancora pianificati. In totale: 18 test implementati, 14 pianificati, 32 garanzie distinte. La parte più impegnativa non è stata scrivere i singoli test, è stata individuare sistematicamente quali avesse senso fare.
 
-In modalità Black Box non ci sono credenziali. Si simula un attaccante esterno e si verificano solo i controlli perimetrali che il gateway applica a qualsiasi interlocutore: autenticazione obbligatoria, rifiuto di metodi non autorizzati, header di sicurezza.
+Ogni singolo test, indipendentemente dal dominio a cui appartiene, dichiara anche il proprio livello di accesso necessario: il box gradient. In Black Box non servono credenziali, si simula un attaccante esterno e si verificano solo i controlli perimetrali del gateway. In Grey Box bastano token per almeno due ruoli distinti, e si sbloccano le verifiche di autorizzazione come RBAC e BOLA. In White Box serve l'accesso diretto all'Admin API del gateway, per ispezionare la configurazione. Non è una classificazione imposta dall'esterno: è la conseguenza diretta di cosa il tester ha a disposizione nel momento dell'assessment.
 
-In modalità Grey Box si dispone di token validi per almeno due ruoli distinti. Questo rende accessibili le garanzie che presuppongono stato autenticato: difetti di segregazione orizzontale come BOLA, violazioni RBAC, escalation di privilegi.
+# Speech — Slide 06: Specified oracles
 
-In modalità White Box si ha accesso all'Admin API del gateway e si può ispezionare direttamente la configurazione e le policy di routing.
+Come si stabilisce automaticamente se un comportamento osservato viola una garanzia di sicurezza? Generare input è un problema in gran parte risolto nella letteratura sul testing; giudicare se la risposta è corretta resta il collo di bottiglia, il cosiddetto problema dell'oracolo.
 
-Il gradiente non è una classificazione teorica applicata retroattivamente: è la conseguenza diretta di cosa il tester porta con sé nel momento dell'assessment.
+APIGuard adotta specified oracles: per ogni test, il criterio è codificato a priori, ricavato dalla conoscenza del dominio del controllo specifico. Una precisazione: nella letteratura classica gli oracoli "specified" derivano solo da specifiche formali; qui il termine è più ampio, perché le fonti concrete sono tre. Lo schema OpenAPI per la conformità strutturale. Gli standard tecnici pubblicati, come le linee guida NIST sul TLS, per i requisiti protocollari. E una costruzione ad-hoc sul controllo specifico: confronto tra ruoli per l'autorizzazione, ispezione del gateway per le garanzie infrastrutturali.
 
-# Speech — Slide 07: Specified oracles
+Il risultato è che ogni test produce un verdetto da solo, PASS, FAIL o SKIP, senza interpretazione manuale. E poiché il criterio è fisso, lo stesso sistema nella stessa configurazione produce sempre lo stesso verdetto: è questa proprietà a fondare la riproducibilità che vedremo più avanti.
 
-Come si stabilisce automaticamente se quello che si osserva viola una garanzia di sicurezza? Nella letteratura sul testing del software, generare automaticamente input verso il sistema è un problema in larga parte risolto; stabilire se il comportamento osservato è corretto resta invece il collo di bottiglia strutturale. È il cosiddetto problema dell'oracolo, e nel testing delle API REST la verifica esplicita delle garanzie di sicurezza è l'ambito ancora meno sviluppato.
+# Speech — Slide 07: Pipeline di esecuzione
 
-APIGuard adotta specified oracles: per ogni test, il criterio di valutazione è codificato a priori nella logica della classe, ricavato dalla conoscenza del dominio del controllo specifico. È importante essere precisi qui: nella letteratura classica gli oracoli "specified" derivano solo da specifiche formali. In questo lavoro il termine è usato in senso più ampio, perché le tre fonti concrete da cui derivano i criteri sono diverse tra loro. La prima è lo schema contrattuale della specifica OpenAPI, usato per verificare la conformità strutturale delle risposte. La seconda sono gli standard tecnici pubblicati, come le linee guida NIST sul TLS, usati per i requisiti protocollari. La terza è una costruzione ad-hoc basata sul controllo specifico da eseguire: il confronto tra risposte ottenute con credenziali di ruolo diverso per verificare un'autorizzazione, oppure l'ispezione diretta della configurazione del gateway per le garanzie infrastrutturali.
+L'esecuzione si articola in sette fasi, divise in due gruppi con comportamento d'errore diverso.
 
-Il risultato è che ogni test produce un verdetto autonomamente: PASS, FAIL o SKIP, senza che nessun operatore debba interpretare il comportamento osservato caso per caso. E poiché il criterio è fisso, lo stesso sistema interrogato nella stessa configurazione produce sempre lo stesso verdetto: è questa proprietà a fondare empiricamente la riproducibilità che vedremo più avanti.
+Le prime quattro sono bloccanti: un errore qui interrompe l'avvio. Fase 1, lettura di config.yaml. Fase 2, discovery della specifica OpenAPI e costruzione della superficie di assessment. Fase 3, costruzione dei due contesti, target e test. Fase 4, discovery dei test e costruzione del grafo delle dipendenze.
 
-# Speech — Slide 08: Pipeline di esecuzione
+Le ultime tre sono non bloccanti: un errore qui viene isolato e la pipeline prosegue. Fase 5, esecuzione dei test nell'ordine stabilito dal DAG. Fase 6, teardown delle risorse in ordine LIFO, opposto alla creazione. Fase 7, report finale.
 
-L'esecuzione si articola in sette fasi sequenziali, divise in due gruppi con un comportamento d'errore diverso.
+Questa struttura rende il sistema estensibile in due modi: i tool esterni si integrano tramite connector gerarchici a tre livelli, e lo stesso connector funziona in locale, CI/CD e containerizzato; il discovery dinamico della Fase 4 significa che aggiungere un test richiede solo un file nella directory giusta, senza toccare il resto del codice.
 
-Le prime quattro sono bloccanti: se falliscono, l'avvio si interrompe prima che qualsiasi test venga eseguito. La Fase 1 legge ed interpreta config.yaml. La Fase 2 scarica e interpreta la specifica OpenAPI del target, costruendo la superficie di assessment. La Fase 3 costruisce i due contesti che abbiamo visto, quello del target e quello mutabile dei test. La Fase 4 scopre dinamicamente tutti i test disponibili e costruisce il grafo delle dipendenze, ordinandoli topologicamente.
+# Speech — Slide 07 ALT: Pipeline di esecuzione (con immagine)
 
-Le ultime tre sono non bloccanti: un errore qui viene isolato e la pipeline prosegue sugli altri test. La Fase 5 esegue effettivamente i test, uno per uno, secondo l'ordine stabilito dal DAG. La Fase 6 esegue il teardown delle risorse create durante i test, in ordine LIFO, l'opposto dell'ordine di creazione. La Fase 7 genera il report finale con tutti i risultati e l'evidenza raccolta.
+Sette fasi, due gruppi. Le prime quattro, in alto, sono bloccanti: leggono la configurazione, scaricano la specifica OpenAPI, costruiscono i contesti, e infine scoprono i test e costruiscono il grafo delle dipendenze. Se una di queste fallisce, come vedete a destra, l'avvio si interrompe subito, prima che un solo test venga eseguito.
 
-Questa architettura a pipeline è anche ciò che rende il sistema facilmente estensibile in due direzioni concrete. I tool esterni si integrano tramite connector gerarchici a tre livelli: un contratto universale alla base, una biforcazione per natura del tool (subprocess o libreria Python), e il connector specifico in cima. Lo stesso connector funziona senza modifiche in locale, in CI/CD e in ambienti containerizzati. E il discovery dinamico della Fase 4 significa che aggiungere un nuovo test è semplice: basta creare il file nella directory di dominio corretta, senza toccare nessun altro punto del codice.
+Le ultime tre, in verde, sono diverse per natura: eseguono i test, fanno il teardown delle risorse in ordine inverso a come sono state create, e generano il report. Qui un errore non blocca più tutto: viene isolato, come vedete con le frecce arancioni, e la pipeline prosegue.
 
-# Speech — Slide 09: Riproducibilità e integrazione CI/CD
+Il risultato finale è uno dei quattro exit code in basso, che è quello che permette a un sistema di CI/CD di reagire automaticamente senza interpretare nulla.
 
-Questa slide raccoglie i tre meccanismi che insieme rendono l'assessment riproducibile, e che per questo permettono di integrarlo in una pipeline di sviluppo continuativo.
+# Speech — Slide 08: Riproducibilità e integrazione CI/CD
 
-Il primo è il DAG scheduler. Alcuni test presuppongono che altri abbiano già prodotto risorse sul target: i test di autorizzazione RBAC, per esempio, richiedono che il test di autenticazione abbia già ottenuto i token validi. Ordine topologico significa esattamente questo: ogni test viene eseguito solo dopo tutti i suoi prerequisiti dichiarati, mai prima. Senza questa garanzia, l'esecuzione in ordine arbitrario produrrebbe errori non deterministici invece di fallimenti puliti.
+Tre meccanismi rendono l'assessment riproducibile, e per questo integrabile in un ciclo di sviluppo continuativo.
 
-Il secondo è il config-driven development. Tutti i parametri operativi del tool, non solo la conoscenza del target, risiedono in un unico file: soglie, timeout, filtri sui test, configurazione dei tool esterni. Questo significa che la stessa configurazione produce sempre lo stesso comportamento: se la configurazione è fissa, l'output è fisso.
+Il DAG scheduler: alcuni test presuppongono risorse prodotte da altri, ad esempio i test RBAC richiedono che l'autenticazione abbia già ottenuto i token. Ordine topologico significa che ogni test viene eseguito solo dopo i suoi prerequisiti, mai prima; altrimenti l'ordine arbitrario produrrebbe errori non deterministici.
 
-Il terzo sono gli exit code semantici. Zero significa che tutti i test sono PASS o SKIP, e la pipeline può procedere. Uno indica almeno un FAIL, e blocca il merge o il deploy. Due segnala un malfunzionamento interno del tool, da rivedere manualmente. Dieci indica un errore infrastrutturale, come la specifica OpenAPI non raggiungibile. Questa distinzione tra fallimento del target e fallimento del tool è ciò che permette a un sistema come GitHub Actions o GitLab CI di consumare il risultato senza fare parsing dei log: il segnale è già nell'exit code.
+Il config-driven development: tutti i parametri operativi, non solo la conoscenza del target, risiedono in un unico file. Stessa configurazione, stesso output.
 
-# Speech — Slide 10: Validazione sperimentale
+Gli exit code semantici: zero significa tutti PASS o SKIP, la pipeline procede. Uno indica almeno un FAIL, blocca merge o deploy. Due segnala un malfunzionamento interno da rivedere manualmente. Dieci un errore infrastrutturale, come la specifica non raggiungibile. Questa distinzione tra fallimento del target e fallimento del tool è ciò che permette a GitHub Actions o GitLab CI di consumare il risultato senza fare parsing dei log.
 
-La validazione è stata condotta su Forgejo 14.0.3, una piattaforma Git self-hosted, esposta tramite Kong 3.9 in modalità DB-less in ambiente Docker locale. Forgejo è stato scelto perché fornisce una specifica OpenAPI generata nativamente, autenticazione reale con ruoli distinti — amministratore e utenti standard — e endpoint con gradi diversi di protezione. L'assenza di qualsiasi riferimento a Forgejo nel codice del tool ha confermato in modo pratico l'agnosticismo applicativo.
+# Speech — Slide 08 ALT: Riproducibilità e integrazione CI/CD (con immagine)
 
-I 18 test attivi su 7 domini hanno prodotto 9 PASS, 7 FAIL, 2 SKIP e 0 ERROR, per un totale di 98 finding. I 7 FAIL non sono errori del tool: sono configurazioni deliberatamente non conformi nel testbed, progettate per produrre esiti negativi attesi. Il tool ha distinto correttamente tutti i casi.
+Questo è il grafo delle dipendenze costruito alla Fase 4. La Phase A in arancione, sedici test, non ha dipendenze e parte subito. Il test 1.1, l'autenticazione, sblocca però la Phase B in blu: i test 1.4 e 2.1, di autorizzazione, dichiarano esplicitamente di dipendere da 1.1 e aspettano che produca i token validi prima di partire. Senza questa garanzia, eseguirli in ordine arbitrario produrrebbe errori non deterministici invece di fallimenti puliti. La Phase C, in grigio, è già predisposta per dipendenze future.
 
-Il risultato più interessante è la discrepanza evidenziata nel box sotto i numeri: Forgejo dichiara globalmente il requisito di autenticazione nella sua specifica, ma alcuni endpoint genuinamente pubblici rispondono correttamente anche senza credenziali. Il tool ha rilevato questo disallineamento tra contratto e implementazione, che è esattamente la classe di anomalia che il paradigma contract-driven è progettato per individuare. È un risultato a tutti gli effetti, non un'eccezione ai numeri sopra: è il finding più significativo dei 98 raccolti.
+Gli altri due meccanismi che rendono tutto questo riproducibile non sono in figura, ma sono altrettanto importanti. Il config-driven development: tutti i parametri operativi, non solo la conoscenza del target, risiedono in un unico file, quindi stessa configurazione, stesso output. E gli exit code semantici, da zero a dieci, che distinguono un fallimento del target da un malfunzionamento del tool, permettendo a GitHub Actions o GitLab CI di reagire senza fare parsing dei log.
 
-Due run indipendenti sullo stesso target hanno prodotto risultati byte-identici, con un delta sul wall-clock inferiore allo 0.3%, validando empiricamente il determinismo dichiarato.
+# Speech — Slide 09: Validazione sperimentale
 
-# Speech — Slide 11: Conclusioni
+La validazione è stata condotta su Forgejo 14.0.3, esposto tramite Kong 3.9 in modalità DB-less, in Docker locale. Forgejo è stato scelto perché offre una specifica OpenAPI nativa, autenticazione reale con ruoli distinti (amministratore e utenti standard), ed endpoint con gradi diversi di protezione. L'assenza di riferimenti a Forgejo nel codice ha confermato in pratica l'agnosticismo applicativo.
 
-Voglio essere preciso su un punto prima di chiudere: questo lavoro non risolve il testing della sicurezza delle API REST, è un settore ancora troppo giovane perché abbia senso parlare di soluzioni definitive. Quello che presento sono contributi concreti, verificati empiricamente, su quattro frizioni che all'inizio ho chiamato gap.
+I 18 test attivi su 7 domini hanno prodotto 9 PASS, 7 FAIL, 2 SKIP, 0 ERROR, per 98 finding totali. I FAIL non sono errori del tool: sono configurazioni deliberatamente non conformi nel testbed, per produrre esiti negativi attesi, e il tool li ha distinti correttamente.
 
-I quattro obiettivi che vi ho mostrato — agnosticismo, profondità graduata, riproducibilità, specified oracles — hanno trovato risposta nelle scelte architetturali che abbiamo visto: design contract-driven, box gradient, DAG scheduler, e i criteri di valutazione codificati a priori in ogni test.
+Il risultato più interessante è la discrepanza nel box sotto i numeri: Forgejo dichiara autenticazione globale, ma alcuni endpoint pubblici rispondono correttamente senza credenziali. Il tool ha rilevato questo disallineamento tra contratto e implementazione, esattamente la classe di anomalia che il paradigma contract-driven è progettato per individuare. È il finding più significativo dei 98 raccolti.
 
-I contributi si collocano su due piani distinti. Sul piano metodologico: una tassonomia a otto domini che organizza la superficie di sicurezza di un'API esposta tramite gateway in categorie distinte, applicabile a qualsiasi assessment indipendentemente dagli strumenti impiegati; e una metodologia sistematica per definire specified oracles, distinguendo le sorgenti del criterio in funzione del controllo specifico. Sul piano ingegneristico: un assessment engine deterministico basato su DAG, che garantisce la correttezza semantica dell'ordine di esecuzione anche in presenza di dipendenze tra test.
+Due run indipendenti hanno prodotto risultati byte-identici, con un delta sul wall-clock inferiore allo 0.3%.
 
-E poi c'è la validazione: non su uno scenario sintetico costruito apposta per il tool, ma su Forgejo dietro Kong, un target con specifica OpenAPI nativa e autenticazione reale, scelto per le sue proprietà strutturali, non per affinità con lo strumento.
+# Speech — Slide 10: Conclusioni
 
-La differenza che voglio lasciarvi non è di scala, è di natura. Un penetration testing tradizionale produce un'osservazione puntuale, condotta da un operatore in un momento specifico: rieseguirlo in condizioni nominalmente identiche produce risultati comparabili solo per convenzione. Questo lavoro produce invece risultati deterministicamente identici a ogni riesecuzione, verificabili da chiunque senza dover ricostruire il processo di chi li ha generati. Da osservazione puntuale a garanzia misurabile.
+Prima di chiudere, una precisazione: questo lavoro non risolve il testing della sicurezza delle API REST, il settore è troppo giovane per soluzioni definitive. Quello che presento sono contributi concreti, verificati empiricamente.
 
-# Speech — Slide 12: Sviluppi futuri
+Si collocano su due piani. Sul piano metodologico: una tassonomia a otto domini applicabile indipendentemente dagli strumenti impiegati, e una metodologia sistematica per definire specified oracles. Sul piano ingegneristico: un assessment engine deterministico basato su DAG, che garantisce la correttezza dell'ordine di esecuzione anche con dipendenze tra test.
 
-Prima di chiudere, va detto onestamente qual è il limite strutturale principale di questo lavoro: il tool dipende dalla qualità della specifica OpenAPI del target. Un contratto incompleto o disallineato con l'implementazione reale produce un assessment parziale, senza che il sistema possa accorgersene da solo. È un limite intrinseco a qualsiasi approccio contract-driven, non qualcosa che si risolve con un'estensione.
+La validazione non è su uno scenario sintetico costruito per il tool, ma su Forgejo dietro Kong, scelto per le sue proprietà strutturali, non per affinità con lo strumento.
 
-Da questo limite, e da quello già visto sui deployment cloud managed, nascono le priorità operative. Gli adapter per i gateway cloud come AWS API Gateway e Azure APIM recupererebbero le informazioni di configurazione tramite le API proprietarie del vendor, anche dove non c'è un piano di controllo ispezionabile direttamente. A questo si aggiunge il completamento del dominio Observability, oggi predisposto architetturalmente ma senza test attivi.
+La differenza che voglio lasciarvi non è di scala, è di natura. Un penetration testing tradizionale produce un'osservazione puntuale, condotta da un operatore in un momento specifico: rieseguirlo produce risultati comparabili solo per convenzione. Questo lavoro produce risultati deterministicamente identici a ogni riesecuzione, verificabili da chiunque senza ricostruire il processo di chi li ha generati. Da osservazione puntuale a garanzia misurabile.
 
-Sul fronte della ricerca, quattro direzioni. La trasformazione in piattaforma modulare per protocolli eterogenei come gRPC e GraphQL, dove il contratto formale non è più OAS ma Protobuf o lo schema GraphQL. La formalizzazione degli oracoli di sicurezza, per verificarne la correttezza in modo rigoroso e non solo empirico. La coverage augmentation progressiva, che guiderebbe le esecuzioni successive verso le aree meno coperte in base ai risultati precedenti. E la parallelizzazione intra-batch, per ridurre i tempi di esecuzione mantenendo la correttezza dell'ordinamento garantita dal DAG.
+# Speech — Slide 11: Sviluppi futuri
+
+Va detto onestamente il limite strutturale principale: il tool dipende dalla qualità della specifica OpenAPI del target. Un contratto incompleto o disallineato produce un assessment parziale, senza che il sistema se ne accorga da solo. È un limite intrinseco a qualsiasi approccio contract-driven, non qualcosa che si risolve con un'estensione.
+
+Da qui nascono le priorità operative: adapter per i gateway cloud come AWS API Gateway e Azure APIM, che recupererebbero le informazioni di configurazione tramite le API del vendor; e il completamento del dominio Observability, già predisposto architetturalmente ma senza test attivi.
+
+Sul fronte della ricerca, quattro direzioni: una piattaforma modulare per protocolli eterogenei come gRPC e GraphQL; la formalizzazione degli oracoli di sicurezza, per verificarne la correttezza in modo rigoroso; la coverage augmentation progressiva verso le aree meno coperte; e la parallelizzazione intra-batch, mantenendo la correttezza dell'ordinamento garantita dal DAG.
