@@ -4,52 +4,104 @@
 % ==================/// APPENDICE: FIGURE E TABELLE
 % ==================///==================///==================///
 
-\begin{frame}{Limite strutturale del fuzzing sintattico}
-  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
-    \begin{tikzpicture}[
-        node distance=4ex and 1em,
-        base/.style={draw, rounded corners=1.5pt, inner sep=3pt, align=center, font=\footnotesize, minimum height=3em},
-        col1/.style={minimum width=7.5em},
-        viaA/.style={base, fill=red!6, draw=red!50},
-        invis/.style={base, fill=gray!6, draw=gray!40, dashed, text=gray!70!black},
-        viaB/.style={base, fill=green!7, draw=green!45},
-        vis/.style={base, fill=green!7, draw=green!50!black},
-        lbl/.style={font=\footnotesize\bfseries, inner sep=1pt},
-        arrA/.style={-latex, semithick, red!60!black},
-        arrB/.style={-latex, semithick, green!50!black},
-        arr-wall/.style={-latex, semithick, dashed, gray!60},
-        note/.style={font=\scriptsize\itshape, text=gray!70!black, align=center, inner sep=1.5pt}
-      ]
+% ==================///==================///==================///
+% ==================/// 1. TASSONOMIA E CONTESTO
+% ==================///==================///==================///
 
-      \node[viaA, col1] (a1) {Fuzzer\\sintattico};
-      \node[viaA, right=of a1, text width=6.5em] (a2) {Payload casuali\\malformati};
-      \node[viaA, right=of a2, text width=6.5em] (a3) {\texttt{400 Bad}\\\texttt{Request}};
+\begin{chapter}{maincolor}{Tassonomia e Contesto}
+\end{chapter}
 
-      \node[invis, right=3.5em of a3, text width=7em] (a4) {Logica\\applicativa\\{\scriptsize [invisibile]}};
-
-      \node[viaB, col1, below=6ex of a1] (b1) {Engine\\contract-driven};
-
-      \node[viaB] (b2) at (a2 |- b1) {Payload validi\\dalla OAS};
-      \node[viaB] (b3) at (a3 |- b1) {\texttt{2xx} / \texttt{4xx}\\semantici};
-      \node[vis]  (b4) at (a4 |- b1) {Logica\\applicativa\\{\scriptsize [visibile]}};
-
-      \node[lbl, text=red!70!black, left=1em of a1] (lblA) {Via~A};
-      \node[lbl, text=green!60!black] (lblB) at (lblA |- b1) {Via~B};
-
-      \draw[arrA] (a1) -- (a2);
-      \draw[arrA] (a2) -- (a3);
-      \draw[arr-wall] (a3) -- node[midway, below, yshift=-0.5ex, note] {barriera\\sintattica} (a4);
-
-      \draw[arrB] (b1) -- (b2);
-      \draw[arrB] (b2) -- (b3);
-      \draw[arrB] (b3) -- (b4);
-
-      \path (a1.south) ++(0, -3ex) coordinate (mid-y);
-      \draw[gray!40, dashed, thick] ([xshift=-0.5em]lblA.west |- mid-y) -- ([xshift=0.5em]a4.east |- mid-y);
-
-    \end{tikzpicture}%
+% --- font aggiunto: \scriptsize (contenuto denso, righe multiple) ---
+\begin{frame}{Domini di Assurance}
+  \scriptsize
+  \renewcommand{\arraystretch}{0.85}
+  \begin{adjustbox}{max width=\textwidth, max height=0.87\textheight, center}
+    \begin{tabularx}{\textwidth}{@{} c l >{\raggedright\arraybackslash}X @{}}
+      \toprule
+      \textbf{Dominio} & \textbf{Titolo}                   & \textbf{Ambito di verifica}                                                                                             \\
+      \midrule
+      D0               & API Discovery                     & Inventario degli endpoint esposti; rilevazione di Shadow API non documentate nella specifica.                           \\
+      D1               & Identity \& Authentication        & Meccanismi di riconoscimento del chiamante; robustezza del trasporto delle credenziali; ciclo di vita e revoca dei JWT. \\
+      D2               & Authorization                     & Logiche di controllo degli accessi; difetti di segregazione orizzontale e verticale (RBAC, BOLA).                       \\
+      D3               & Data Integrity                    & Coerenza strutturale dei payload; implementazione delle firme crittografiche (HMAC).                                    \\
+      D4               & Availability \& Resilience        & Difese contro l'esaurimento delle risorse; audit di circuit breaker e soglie di rate limiting.                          \\
+      D5               & Observability                     & Qualità e tempestività della telemetria generata dal sistema.                                                           \\
+      D6               & Configuration \& Hardening        & Rafforzamento della configurazione del gateway; policy di routing; header di sicurezza HTTP.                            \\
+      D7               & Business Logic \& Sensitive Flows & Falle semantiche complesse: elusione dei vincoli di processo, SSRF, race condition su operazioni critiche.              \\
+      \bottomrule
+    \end{tabularx}
   \end{adjustbox}
 \end{frame}
+
+% --- font aggiunto: \footnotesize; acronimi riportati a forma breve nella colonna Prerequisiti (Causa 2) ---
+\begin{frame}{Box Gradient}
+  \footnotesize
+  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
+    \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
+      \toprule
+      \textbf{Strategia}  & \textbf{Prerequisiti}             & \textbf{Razionale}                                                                                                             \\
+      \midrule
+      \texttt{BLACK\_BOX} & Nessuno (solo accesso di rete)    & Controlli perimetrali applicati dal gateway a qualsiasi interlocutore; simulazione di un attaccante esterno senza credenziali. \\
+      \addlinespace
+      \texttt{GREY\_BOX}  & Token per $\geq 2$ ruoli distinti & Garanzie che presuppongono stato autenticato con identità di ruolo distinte; inaccessibili senza credenziali valide.           \\
+      \addlinespace
+      \texttt{WHITE\_BOX} & Accesso Admin API del gateway     & Configurazione statica verificabile per ispezione diretta tramite piano di controllo del gateway.                              \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+% --- font aggiunto: \scriptsize; acronimi riportati a forma breve nelle colonne fisse (Causa 2) ---
+\begin{frame}{Modelli di esposizione gateway}
+  \scriptsize
+  \begin{adjustbox}{max width=\textwidth, max height=0.8\textheight, center}
+    \begin{tabularx}{\textwidth}{@{}
+      >{\raggedright\arraybackslash}p{9em}
+      >{\raggedright\arraybackslash}p{4.5em}
+      >{\raggedright\arraybackslash\hsize=1.2\hsize}X
+      >{\raggedright\arraybackslash\hsize=0.9\hsize}X
+      >{\raggedright\arraybackslash\hsize=0.9\hsize}X @{}}
+      \toprule
+      \textbf{Modello}
+       & \textbf{Traffico presidiato}
+       & \textbf{Enforcement policy}
+       & \textbf{Accesso al piano di configurazione}
+       & \textbf{Verifica \texttt{WHITE\_BOX}}       \\
+      \midrule
+      Gateway API Dedicato \newline {\footnotesize (es.\ Kong, Apigee)}
+       & Nord-sud
+       & Centralizzato (singolo strato)
+       & Admin API diretta
+       & Nativa                                      \\
+      \addlinespace
+      Kubernetes Ingress / Gateway API
+       & Nord-sud
+       & Centralizzato (via K8s API)
+       & \texttt{kubectl} / Kubernetes API
+       & Controller-dipendente                       \\
+      \addlinespace
+      Service Mesh \newline {\footnotesize (es.\ Istio)}
+       & Est-ovest
+       & Distribuito per sidecar proxy
+       & Control plane (istiod)
+       & N/A (est-ovest)                             \\
+      \addlinespace
+      Gateway Managed Cloud \newline {\footnotesize (AWS, Azure, GCP)}
+       & Nord-sud
+       & Centralizzato dal provider
+       & SDK / API del cloud provider
+       & Adapter dedicato                            \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+% ==================///==================///==================///
+% ==================/// 2. ARCHITETTURA E STATO
+% ==================///==================///==================///
+
+\begin{chapter}{maincolor}{Architettura e Stato}
+\end{chapter}
 
 \begin{frame}{Architettura di APIGuard Assurance}
   \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
@@ -119,81 +171,87 @@
   \end{adjustbox}
 \end{frame}
 
-\begin{frame}{Batch generati dal DAG}
+\begin{frame}{Struttura interna del TestContext}
   \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
     \begin{tikzpicture}[
-        node distance=1.8ex and 0.8em,
-        tst/.style={draw=orange!55, fill=yellow!18, rounded corners=1.5pt, minimum width=4.5em, minimum height=4.5ex, font=\small\ttfamily, align=center},
-        tst-hl/.style={tst, draw=orange!70, fill=yellow!35, thick},
-        ext/.style={tst, minimum width=7em, font=\footnotesize\ttfamily},
-        phB/.style={draw=blue!40, fill=blue!7, rounded corners=1.5pt, minimum width=5.5em, minimum height=4.5ex, font=\small\ttfamily, align=center},
-        phC/.style={draw=gray!40, fill=gray!8, dashed, rounded corners=1.5pt, minimum width=7em, minimum height=5ex, font=\small, align=center},
-        bg-A/.style={draw=orange!50, fill=yellow!6, dashed, rounded corners=3pt, inner sep=12pt},
-        bg-B/.style={draw=blue!40, fill=blue!4, dashed, rounded corners=3pt, inner sep=10pt},
-        arr/.style={-latex, semithick, blue!60},
-        darr/.style={-latex, semithick, dashed, gray!60}
+        node distance=1.2ex and 0.8em,
+        ch-hdr/.style={draw=green!60!black, fill=green!18, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=2.5em, font=\small\bfseries, align=center},
+        ch-row/.style={draw=green!50!black, fill=green!7, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=18pt,
+            inner sep=4pt, font=\footnotesize\ttfamily, align=left},
+        ch-api/.style={draw=gray!40, fill=gray!10, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=3.8em, inner sep=3pt, font=\footnotesize, align=left},
+        ph-badge/.style={draw=gray!50, fill=gray!15, rounded corners=1.5pt,
+            minimum width=11.5em, minimum height=3.5em, inner sep=3pt, font=\small, align=center},
       ]
 
-      \node[tst] (d0a) {0.1};
-      \node[tst, right=of d0a] (d0b) {0.2};
-      \node[tst, right=of d0b] (d0c) {0.3};
+      \node[ch-hdr] (tok-hdr) {Canale Token};
 
-      \node[tst-hl, below=of d0a] (a11) {\textbf{1.1}};
-      \node[tst, right=of a11] (d1b) {1.5};
-      \node[tst, right=of d1b] (d1c) {1.6};
+      \node[ch-row, below=0.6ex of tok-hdr] (tok-r1) {\texttt{ROLE\_ADMIN}};
+      \node[ch-row, below=0.6ex of tok-r1]  (tok-r2) {\texttt{ROLE\_USER\_A}};
+      \node[ch-row, below=0.6ex of tok-r2]  (tok-r3) {\texttt{ROLE\_USER\_B}};
 
-      \node[tst, below=3.5ex of a11] (d3a) {3.3};
+      \node[ch-api, below=0.6ex of tok-r3] (tok-api) {
+        \texttt{set\_token(role, tok)}\\[1pt]
+        \texttt{get\_token(role) \textrightarrow{} tok}\\[1pt]
+        \texttt{has\_token(role) \textrightarrow{} bool}
+      };
 
-      \node[tst, below=of d3a] (d4a) {4.1};
-      \node[tst, right=of d4a] (d4b) {4.2};
-      \node[tst, right=of d4b] (d4c) {4.3};
+      \node[ph-badge, below=1.2ex of tok-api] (tok-ph) {\textbf{Fase~5:} test autenticati\\scrivono e leggono};
 
-      \node[tst, below=of d4a] (d6a) {6.2};
-      \node[tst, right=of d6a] (d6b) {6.4};
+      \node[ch-hdr, right=of tok-hdr] (td-hdr) {Canale Teardown \footnotesize[LIFO]};
 
-      \node[tst, below=of d6a] (d7a) {7.2};
+      \node[ch-row, below=0.6ex of td-hdr] (td-r1) {push(fn\_C)};
+      \node[ch-row, below=0.6ex of td-r1]  (td-r2) {push(fn\_B)};
+      \node[ch-row, below=0.6ex of td-r2]  (td-r3) {push(fn\_A)};
 
-      \node[ext, below=of d7a.south west, anchor=north west] (ex0) {ext.0.1.nuclei};
-      \node[ext, below=of ex0.south west, anchor=north west] (ex1) {ext.1.5.sslyze};
-      \node[ext, right=of ex1] (ex2) {ext.1.5.testssl};
+      \node[ch-api, below=0.6ex of td-r3] (td-api) {
+      \texttt{push\_teardown(callable)}\\[1pt]
+      {\itshape drain order:}\\[1pt]
+      \texttt{fn\_A \textrightarrow{} fn\_B \textrightarrow{} fn\_C}
+      };
+
+      \node[ph-badge, below=1.2ex of td-api] (td-ph) {\textbf{Fase~5:} push\\\textbf{Fase~6:} drain inv.};
+
+      \node[ch-hdr, right=of td-hdr] (sh-hdr) {Canale Shared Data};
+
+      \node[ch-row, below=0.6ex of sh-hdr] (sh-r1) {\texttt{"1.1.token"}};
+      \node[ch-row, below=0.6ex of sh-r1]  (sh-r2) {\texttt{"1.1.repos"}};
+      \node[ch-row, below=0.6ex of sh-r2]  (sh-r3) {\texttt{"ext.0.1.hits"}};
+
+      \node[ch-api, below=0.6ex of sh-r3] (sh-api) {
+        \texttt{set\_shared("{id}.{k}", v)}\\[1pt]
+        \texttt{get\_shared("{id}.{k}")}\\[1pt]
+        \texttt{~~\textrightarrow{} v}
+      };
+
+      \node[ph-badge, below=1.2ex of sh-api] (sh-ph) {\textbf{Fase~5:} produttore scrive\\batch successivi leggono};
 
       \begin{scope}[on background layer]
-        \node[bg-A, fit=(d0a)(d0c)(a11)(d1c)(d4c)(d7a)(ex1)(ex2)] (phaseA) {};
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
+          fit=(tok-hdr)(tok-r1)(tok-r2)(tok-r3)(tok-api)(tok-ph)] {};
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
+          fit=(td-hdr)(td-r1)(td-r2)(td-r3)(td-api)(td-ph)] {};
+        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
+          fit=(sh-hdr)(sh-r1)(sh-r2)(sh-r3)(sh-api)(sh-ph)] {};
       \end{scope}
 
-      \node[font=\footnotesize\bfseries, text=orange!80!black, anchor=south west]
-      at ([xshift=1ex, yshift=0.5ex]phaseA.north west) {Phase A (16 test, nessuna dipendenza)};
-
-      \path (a11.south) ++(0, -1.75ex) coordinate (bus-y);
-
-      \path (phaseA.east |- bus-y) coordinate (exitA);
-
-      \path (exitA) ++(2.5em, 0) coordinate (split);
-
-      \node[phB, anchor=west] (b14) at ([xshift=1.5em, yshift=3ex]split) {1.4};
-      \node[phB, anchor=west] (b21) at ([xshift=1.5em, yshift=-3ex]split) {2.1};
-
-      \begin{scope}[on background layer]
-        \node[bg-B, fit=(b14)(b21)] (phaseB) {};
-      \end{scope}
-
-      \node[font=\footnotesize\bfseries, text=blue!80!black, anchor=south west]
-      at ([xshift=1ex, yshift=0.5ex]phaseB.north west) {Phase B (\texttt{depends\_on=["1.1"]})};
-
-      \node[phC, anchor=west] (phaseC) at ([xshift=3.5em]phaseB.east |- split) {\textit{Phase C}\\{\scriptsize (pianificata)}};
-
-      \draw[blue!60, semithick] (a11.south) |- (exitA) --
-      node[above, yshift=0.3ex, font=\scriptsize\itshape, text=gray!80!black, fill=white, inner sep=0.1pt] {\texttt{1.1} $\rightarrow$} (split);
-
-      \draw[arr] (split) |- (b14.west);
-      \draw[arr] (split) |- (b21.west);
-
-      \draw[darr] (phaseB.east |- split) --
-      node[above, yshift=0.3ex, font=\scriptsize\itshape, text=gray!80!black, fill=white, inner sep=0.1pt] {dipendenze} (phaseC.west |- split);
+      \node[draw=green!60!black, fill=green!25, rounded corners=2pt,
+        minimum width=36.9em, font=\small\bfseries, align=center,
+        above=3ex of td-hdr.north] (tc-master)
+      {\texttt{TestContext} [mutable]: tre canali tipizzati con responsabilità distinte};
 
     \end{tikzpicture}
   \end{adjustbox}
 \end{frame}
+
+% ==================///==================///==================///
+% ==================/// 3. IMPLEMENTAZIONE E FLUSSO
+% ==================///==================///==================///
+
+\begin{chapter}{maincolor}{Implementazione e Flusso}
+\end{chapter}
 
 \begin{frame}{Gerarchia delle classi}
   \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
@@ -338,80 +396,273 @@
   \end{adjustbox}
 \end{frame}
 
-\begin{frame}{Struttura interna del TestContext}
+\begin{frame}{Batch generati dal DAG}
   \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
     \begin{tikzpicture}[
-        node distance=1.2ex and 0.8em,
-        ch-hdr/.style={draw=green!60!black, fill=green!18, rounded corners=1.5pt,
-            minimum width=11.5em, minimum height=2.5em, font=\small\bfseries, align=center},
-        ch-row/.style={draw=green!50!black, fill=green!7, rounded corners=1.5pt,
-            minimum width=11.5em, minimum height=18pt,
-            inner sep=4pt, font=\footnotesize\ttfamily, align=left},
-        ch-api/.style={draw=gray!40, fill=gray!10, rounded corners=1.5pt,
-            minimum width=11.5em, minimum height=3.8em, inner sep=3pt, font=\footnotesize, align=left},
-        ph-badge/.style={draw=gray!50, fill=gray!15, rounded corners=1.5pt,
-            minimum width=11.5em, minimum height=3.5em, inner sep=3pt, font=\small, align=center},
+        node distance=1.8ex and 0.8em,
+        tst/.style={draw=orange!55, fill=yellow!18, rounded corners=1.5pt, minimum width=4.5em, minimum height=4.5ex, font=\small\ttfamily, align=center},
+        tst-hl/.style={tst, draw=orange!70, fill=yellow!35, thick},
+        ext/.style={tst, minimum width=7em, font=\footnotesize\ttfamily},
+        phB/.style={draw=blue!40, fill=blue!7, rounded corners=1.5pt, minimum width=5.5em, minimum height=4.5ex, font=\small\ttfamily, align=center},
+        phC/.style={draw=gray!40, fill=gray!8, dashed, rounded corners=1.5pt, minimum width=7em, minimum height=5ex, font=\small, align=center},
+        bg-A/.style={draw=orange!50, fill=yellow!6, dashed, rounded corners=3pt, inner sep=12pt},
+        bg-B/.style={draw=blue!40, fill=blue!4, dashed, rounded corners=3pt, inner sep=10pt},
+        arr/.style={-latex, semithick, blue!60},
+        darr/.style={-latex, semithick, dashed, gray!60}
       ]
 
-      \node[ch-hdr] (tok-hdr) {Canale Token};
+      \node[tst] (d0a) {0.1};
+      \node[tst, right=of d0a] (d0b) {0.2};
+      \node[tst, right=of d0b] (d0c) {0.3};
 
-      \node[ch-row, below=0.6ex of tok-hdr] (tok-r1) {\texttt{ROLE\_ADMIN}};
-      \node[ch-row, below=0.6ex of tok-r1]  (tok-r2) {\texttt{ROLE\_USER\_A}};
-      \node[ch-row, below=0.6ex of tok-r2]  (tok-r3) {\texttt{ROLE\_USER\_B}};
+      \node[tst-hl, below=of d0a] (a11) {\textbf{1.1}};
+      \node[tst, right=of a11] (d1b) {1.5};
+      \node[tst, right=of d1b] (d1c) {1.6};
 
-      \node[ch-api, below=0.6ex of tok-r3] (tok-api) {
-        \texttt{set\_token(role, tok)}\\[1pt]
-        \texttt{get\_token(role) \textrightarrow{} tok}\\[1pt]
-        \texttt{has\_token(role) \textrightarrow{} bool}
-      };
+      \node[tst, below=3.5ex of a11] (d3a) {3.3};
 
-      \node[ph-badge, below=1.2ex of tok-api] (tok-ph) {\textbf{Fase~5:} test autenticati\\scrivono e leggono};
+      \node[tst, below=of d3a] (d4a) {4.1};
+      \node[tst, right=of d4a] (d4b) {4.2};
+      \node[tst, right=of d4b] (d4c) {4.3};
 
-      \node[ch-hdr, right=of tok-hdr] (td-hdr) {Canale Teardown \footnotesize[LIFO]};
+      \node[tst, below=of d4a] (d6a) {6.2};
+      \node[tst, right=of d6a] (d6b) {6.4};
 
-      \node[ch-row, below=0.6ex of td-hdr] (td-r1) {push(fn\_C)};
-      \node[ch-row, below=0.6ex of td-r1]  (td-r2) {push(fn\_B)};
-      \node[ch-row, below=0.6ex of td-r2]  (td-r3) {push(fn\_A)};
+      \node[tst, below=of d6a] (d7a) {7.2};
 
-      \node[ch-api, below=0.6ex of td-r3] (td-api) {
-      \texttt{push\_teardown(callable)}\\[1pt]
-      {\itshape drain order:}\\[1pt]
-      \texttt{fn\_A \textrightarrow{} fn\_B \textrightarrow{} fn\_C}
-      };
-
-      \node[ph-badge, below=1.2ex of td-api] (td-ph) {\textbf{Fase~5:} push\\\textbf{Fase~6:} drain inv.};
-
-      \node[ch-hdr, right=of td-hdr] (sh-hdr) {Canale Shared Data};
-
-      \node[ch-row, below=0.6ex of sh-hdr] (sh-r1) {\texttt{"1.1.token"}};
-      \node[ch-row, below=0.6ex of sh-r1]  (sh-r2) {\texttt{"1.1.repos"}};
-      \node[ch-row, below=0.6ex of sh-r2]  (sh-r3) {\texttt{"ext.0.1.hits"}};
-
-      \node[ch-api, below=0.6ex of sh-r3] (sh-api) {
-        \texttt{set\_shared("{id}.{k}", v)}\\[1pt]
-        \texttt{get\_shared("{id}.{k}")}\\[1pt]
-        \texttt{~~\textrightarrow{} v}
-      };
-
-      \node[ph-badge, below=1.2ex of sh-api] (sh-ph) {\textbf{Fase~5:} produttore scrive\\batch successivi leggono};
+      \node[ext, below=of d7a.south west, anchor=north west] (ex0) {ext.0.1.nuclei};
+      \node[ext, below=of ex0.south west, anchor=north west] (ex1) {ext.1.5.sslyze};
+      \node[ext, right=of ex1] (ex2) {ext.1.5.testssl};
 
       \begin{scope}[on background layer]
-        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
-          fit=(tok-hdr)(tok-r1)(tok-r2)(tok-r3)(tok-api)(tok-ph)] {};
-        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
-          fit=(td-hdr)(td-r1)(td-r2)(td-r3)(td-api)(td-ph)] {};
-        \node[draw=green!50!black, fill=green!3, rounded corners=3pt, inner sep=0.4em,
-          fit=(sh-hdr)(sh-r1)(sh-r2)(sh-r3)(sh-api)(sh-ph)] {};
+        \node[bg-A, fit=(d0a)(d0c)(a11)(d1c)(d4c)(d7a)(ex1)(ex2)] (phaseA) {};
       \end{scope}
 
-      \node[draw=green!60!black, fill=green!25, rounded corners=2pt,
-        minimum width=36.9em, font=\small\bfseries, align=center,
-        above=3ex of td-hdr.north] (tc-master)
-      {\texttt{TestContext} [mutable]: tre canali tipizzati con responsabilità distinte};
+      \node[font=\footnotesize\bfseries, text=orange!80!black, anchor=south west]
+      at ([xshift=1ex, yshift=0.5ex]phaseA.north west) {Phase A (16 test, nessuna dipendenza)};
+
+      \path (a11.south) ++(0, -1.75ex) coordinate (bus-y);
+
+      \path (phaseA.east |- bus-y) coordinate (exitA);
+
+      \path (exitA) ++(2.5em, 0) coordinate (split);
+
+      \node[phB, anchor=west] (b14) at ([xshift=1.5em, yshift=3ex]split) {1.4};
+      \node[phB, anchor=west] (b21) at ([xshift=1.5em, yshift=-3ex]split) {2.1};
+
+      \begin{scope}[on background layer]
+        \node[bg-B, fit=(b14)(b21)] (phaseB) {};
+      \end{scope}
+
+      \node[font=\footnotesize\bfseries, text=blue!80!black, anchor=south west]
+      at ([xshift=1ex, yshift=0.5ex]phaseB.north west) {Phase B (\texttt{depends\_on=["1.1"]})};
+
+      \node[phC, anchor=west] (phaseC) at ([xshift=3.5em]phaseB.east |- split) {\textit{Phase C}\\{\scriptsize (pianificata)}};
+
+      \draw[blue!60, semithick] (a11.south) |- (exitA) --
+      node[above, yshift=0.3ex, font=\scriptsize\itshape, text=gray!80!black, fill=white, inner sep=0.1pt] {\texttt{1.1} $\rightarrow$} (split);
+
+      \draw[arr] (split) |- (b14.west);
+      \draw[arr] (split) |- (b21.west);
+
+      \draw[darr] (phaseB.east |- split) --
+      node[above, yshift=0.3ex, font=\scriptsize\itshape, text=gray!80!black, fill=white, inner sep=0.1pt] {dipendenze} (phaseC.west |- split);
 
     \end{tikzpicture}
   \end{adjustbox}
 \end{frame}
+
+% --- COMPRESSA: step verticale 4ex->3ex, scala uniforme di tutti gli yshift x0.75, lifeline 55ex->41ex ---
+\begin{frame}{Error isolation in Fase~5}
+  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
+    \begin{tikzpicture}[
+        actor/.style={ag-blue, minimum width=7em, minimum height=2.2em, align=center, font=\small},
+        lifeline/.style={draw=gray!50, dashed, very thin},
+        msg/.style={ag-arr, black!70},
+        msg-return/.style={ag-darr, black!50},
+        lbl/.style={midway, above, font=\footnotesize, fill=white, inner sep=2pt},
+        note-box/.style={draw=orange!50, fill=yellow!12, rounded corners=2pt, inner sep=3pt, font=\footnotesize},
+      ]
+
+      \node[actor] (Eng) {\texttt{Engine}};
+      \node[actor, right=3.2em of Eng] (BT) {\texttt{BaseTest}};
+      \node[actor, right=3.2em of BT] (SC) {\texttt{SecurityClient}};
+      \node[actor, right=3.2em of SC] (TGT) {Target (Kong)};
+
+      \draw[lifeline] (Eng.south) -- ++(0,-41ex);
+      \draw[lifeline] (BT.south) -- ++(0,-41ex);
+      \draw[lifeline] (SC.south) -- ++(0,-41ex);
+      \draw[lifeline] (TGT.south) -- ++(0,-41ex);
+
+      \draw[msg] ([yshift=-3ex]Eng.south) -- ([yshift=-3ex]BT.south) node[lbl] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-6ex]BT.south) -- ([yshift=-6ex]SC.south) node[lbl] {\texttt{request(method, url, ...)}};
+      \draw[msg] ([yshift=-9ex]SC.south) -- ([yshift=-9ex]TGT.south) node[lbl] {HTTP request};
+      \draw[msg-return] ([yshift=-12ex]TGT.south) -- ([yshift=-12ex]SC.south) node[lbl] {HTTP response};
+      \draw[msg-return] ([yshift=-15ex]SC.south) -- ([yshift=-15ex]BT.south) node[lbl] {\texttt{Response}};
+      \draw[msg-return] ([yshift=-18ex]BT.south) -- ([yshift=-18ex]Eng.south) node[lbl] {\texttt{TestResult(PASS | FAIL)}};
+
+      \draw[gray!60, very thick] ([yshift=-21ex]Eng.south) -- ([yshift=-21ex]TGT.south);
+      \node[fill=gray!15, draw=gray!60, rounded corners=2pt, inner sep=3pt, font=\footnotesize\itshape]
+      at ($([yshift=-21ex]Eng.south)!0.5!([yshift=-21ex]TGT.south)$)
+      {scenario alternativo: eccezione imprevista};
+
+      \draw[msg] ([yshift=-25.5ex]Eng.south) -- ([yshift=-25.5ex]BT.south) node[lbl] {\texttt{execute(target, ctx)}};
+      \draw[msg] ([yshift=-28.5ex]BT.south) -- ([yshift=-28.5ex]SC.south) node[lbl] {\texttt{request(method, url, ...)}};
+
+      \coordinate (err_start) at ([yshift=-31.5ex]SC.south);
+
+      \node[note-box] (exc) at ($([yshift=-31.5ex]SC.south)!0.7!([yshift=-31.5ex]TGT.south)$) {\texttt{Exception} imprevista};
+
+      \draw[ag-arr, orange!70] (err_start) -- (exc.west);
+
+      \coordinate (bt_return) at ([yshift=-34.5ex]BT.south);
+      \coordinate (elbow) at (exc.south |- bt_return);
+
+      \draw[ag-arr, orange!70] (exc.south) -- (elbow) -- node[pos=0.6, above, ag-note, font=\footnotesize, align=center, fill=white, inner sep=2pt] {catturata internamente} (bt_return);
+
+      \draw[msg-return, red!60] ([yshift=-37.5ex]BT.south) -- ([yshift=-37.5ex]Eng.south)
+      node[lbl, text=red!70] {\texttt{TestResult(ERROR)}: pipeline prosegue};
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+\begin{frame}{Routing degli exit code}
+  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
+    \begin{tikzpicture}[
+        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
+        cmd/.style={base, fill=blue!5, draw=blue!40, font=\small\ttfamily, minimum width=16em},
+        decision/.style={draw, shape=diamond, aspect=2.5, inner sep=2pt, align=center, font=\small, fill=orange!10, draw=orange!50},
+        code0/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
+        code1/.style={base, fill=red!10, draw=red!60!black, minimum width=8.5em},
+        code2/.style={base, fill=orange!10, draw=orange!60!black, minimum width=8.5em},
+        code10/.style={base, fill=gray!15, draw=gray!60!black, minimum width=8.5em},
+        act0/.style={base, fill=green!5, draw=green!40, minimum width=13em},
+        act1/.style={base, fill=red!5, draw=red!40, minimum width=13em},
+        act2/.style={base, fill=orange!5, draw=orange!40, minimum width=13em},
+        act10/.style={base, fill=gray!5, draw=gray!40, minimum width=13em},
+      ]
+
+      \node[base, fill=gray!10, draw=gray!40, font=\small\bfseries] (start) {Runner CI/CD};
+      \node[cmd, below=3ex of start] (cmd) {apiguard run -{}-config config.yaml};
+      \node[decision, below=3ex of cmd] (dec) {exit code?};
+
+      \path (dec.south) ++(4em, -4ex) node[code0, anchor=north west] (e0) {\textbf{\texttt{0}: CLEAN}\\{\scriptsize tutti PASS/SKIP}};
+      \path (e0.south west) ++(0, -2.5ex) node[code1, anchor=north west] (e1) {\textbf{\texttt{1}: FAIL}\\{\scriptsize almeno un FAIL}};
+      \path (e1.south west) ++(0, -2.5ex) node[code2, anchor=north west] (e2) {\textbf{\texttt{2}: ERROR}\\{\scriptsize ERROR senza FAIL}};
+      \path (e2.south west) ++(0, -2.5ex) node[code10, anchor=north west] (e10) {\textbf{\texttt{10}: INFRA}\\{\scriptsize errore infrastrutturale}};
+
+      \path (e0.east) ++(3em, 0) node[act0, anchor=west] (a0) {\textbf{Pipeline prosegue}\\{\scriptsize (merge / deploy consentito)}};
+      \path (e1.east) ++(3em, 0) node[act1, anchor=west] (a1) {\textbf{Blocco merge/deploy}\\{\scriptsize Report allegato come artefatto}};
+      \path (e2.east) ++(3em, 0) node[act2, anchor=west] (a2) {\textbf{Alert malfunzionamento}\\{\scriptsize Revisione manuale richiesta}};
+      \path (e10.east) ++(3em, 0) node[act10, anchor=west] (a10) {\textbf{Diagnosi deployment}\\{\scriptsize Verifica \texttt{config.yaml}}};
+
+      \draw[-latex, semithick] (start) -- (cmd);
+      \draw[-latex, semithick] (cmd) -- (dec);
+
+      \coordinate (bus-end) at (dec.south |- e10.west);
+      \draw[gray!70, semithick] (dec.south) -- (bus-end);
+
+      \draw[-latex, semithick, green!50!black] (dec.south |- e0.west) -- (e0.west);
+      \fill[gray!70] (dec.south |- e0.west) circle (1.5pt);
+
+      \draw[-latex, semithick, red!60!black] (dec.south |- e1.west) -- (e1.west);
+      \fill[gray!70] (dec.south |- e1.west) circle (1.5pt);
+
+      \draw[-latex, semithick, orange!60!black] (dec.south |- e2.west) -- (e2.west);
+      \fill[gray!70] (dec.south |- e2.west) circle (1.5pt);
+
+      \draw[-latex, semithick, gray!60!black] (dec.south |- e10.west) -- (e10.west);
+      \fill[gray!70] (dec.south |- e10.west) circle (1.5pt);
+
+      \draw[-latex, semithick, green!50!black] (e0.east) -- (a0.west);
+      \draw[-latex, semithick, red!60!black] (e1.east) -- (a1.west);
+      \draw[-latex, semithick, orange!60!black] (e2.east) -- (a2.west);
+      \draw[-latex, semithick, gray!60!black] (e10.east) -- (a10.west);
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+% ==================///==================///==================///
+% ==================/// 4. SETUP SPERIMENTALE
+% ==================///==================///==================///
+
+\begin{chapter}{maincolor}{Setup Sperimentale}
+\end{chapter}
+
+\begin{frame}{Topologia del testbed}
+  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
+    \begin{tikzpicture}[
+        node distance=4ex and 2.5em,
+        cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
+        host/.style={cls, fill=orange!10, draw=orange!50, minimum width=13.5em},
+        infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=13.5em},
+        app/.style={cls, fill=green!7, draw=green!45, minimum width=9em},
+        backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
+        users/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
+        group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
+        arr/.style={-latex, semithick, gray!80!black},
+        darr/.style={-latex, semithick, dashed, gray!80!black},
+        barr/.style={latex-latex, semithick, gray!80!black},
+      ]
+
+      \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
+
+      \node[infra, below=7ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HTTP proxy)}\\{\footnotesize :8443 (HTTPS proxy)}\\{\footnotesize :8001 (Admin API)}};
+
+      \node[app, right=2.5em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target applicativo}};
+
+      \node[users, left=2.5em of kong] (rbac) {\textbf{Utenti RBAC}\\{\footnotesize thesis-admin}\\{\footnotesize user-a}\\{\footnotesize user-b}};
+
+      \node[backend, below=4ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize backend Forgejo}};
+
+      \begin{scope}[on background layer]
+        \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
+      \end{scope}
+      \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
+
+      \draw[arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
+
+      \draw[arr] (kong.east) -- node[midway, above, align=center, font=\footnotesize\itshape, text=gray!70!black] {proxy/ \\route} (forgejo.west);
+
+      \draw[barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
+
+      \draw[darr] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
+
+    \end{tikzpicture}
+  \end{adjustbox}
+\end{frame}
+
+% --- font aggiunto: \footnotesize ---
+\begin{frame}{Versioni del testbed}
+  \scriptsize
+  \renewcommand{\arraystretch}{0.85}
+  \begin{adjustbox}{max width=\textwidth, max height=0.87\textheight, center}
+    \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
+      \toprule
+      \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                                                             \\
+      \midrule
+      \texttt{apiguard-assurance} & 0.1.0                 & Tool sotto validazione                                                                                 \\
+      Python                      & 3.12.3                & Interprete del tool                                                                                    \\
+      Forgejo                     & 14.0.3 (gitea-1.22.0) & Target applicativo: API REST con specifica OpenAPI nativa                                              \\
+      PostgreSQL                  & 15-alpine             & Backend di persistenza di Forgejo (dipendenza funzionale, non componente autonomo)                     \\
+      Kong                        & 3.9 DB-less           & API Gateway: proxy HTTP/HTTPS, instradamento verso Forgejo, Admin API su porta 8001                    \\
+      \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow API discovery (test \texttt{ext.0.1})                                          \\
+      \texttt{nuclei-templates}   & 10.4.3                & Base di template di scansione versioned: garantisce che lo stesso set di firme venga usato in ogni run \\
+      \texttt{testssl.sh}         & 3.2.3                 & Analisi TLS black-box (test \texttt{ext.1.5.testssl})                                                  \\
+      \texttt{sslyze}             & (libreria Python)     & Analisi TLS via libreria Python (test \texttt{ext.1.5.sslyze})                                         \\
+      \bottomrule
+    \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+% ==================///==================///==================///
+% ==================/// 5. VALIDAZIONE E RISULTATI
+% ==================///==================///==================///
+
+\begin{chapter}{maincolor}{Validazione e Risultati}
+\end{chapter}
 
 \begin{frame}{Mappa di copertura}
   \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
@@ -480,309 +731,6 @@
   \end{adjustbox}
 \end{frame}
 
-\begin{frame}{Topologia del testbed}
-  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
-    \begin{tikzpicture}[
-        node distance=4ex and 2.5em,
-        cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
-        host/.style={cls, fill=orange!10, draw=orange!50, minimum width=13.5em},
-        infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=13.5em},
-        app/.style={cls, fill=green!7, draw=green!45, minimum width=9em},
-        backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
-        users/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
-        group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
-        arr/.style={-latex, semithick, gray!80!black},
-        darr/.style={-latex, semithick, dashed, gray!80!black},
-        barr/.style={latex-latex, semithick, gray!80!black},
-      ]
-
-      \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
-
-      \node[infra, below=7ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HTTP proxy)}\\{\footnotesize :8443 (HTTPS proxy)}\\{\footnotesize :8001 (Admin API)}};
-
-      \node[app, right=2.5em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target applicativo}};
-
-      \node[users, left=2.5em of kong] (rbac) {\textbf{Utenti RBAC}\\{\footnotesize thesis-admin}\\{\footnotesize user-a}\\{\footnotesize user-b}};
-
-      \node[backend, below=4ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize backend Forgejo}};
-
-      \begin{scope}[on background layer]
-        \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
-      \end{scope}
-      \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
-
-      \draw[arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
-
-      \draw[arr] (kong.east) -- node[midway, above, align=center, font=\footnotesize\itshape, text=gray!70!black] {proxy/ \\route} (forgejo.west);
-
-      \draw[barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
-
-      \draw[darr] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
-
-    \end{tikzpicture}
-  \end{adjustbox}
-\end{frame}
-
-\begin{frame}{Routing degli exit code}
-  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
-    \begin{tikzpicture}[
-        base/.style={draw, rounded corners=1pt, inner sep=6pt, align=center, font=\small, minimum height=3.5ex},
-        cmd/.style={base, fill=blue!5, draw=blue!40, font=\small\ttfamily, minimum width=16em},
-        decision/.style={draw, shape=diamond, aspect=2.5, inner sep=2pt, align=center, font=\small, fill=orange!10, draw=orange!50},
-        code0/.style={base, fill=green!10, draw=green!50!black, minimum width=8.5em},
-        code1/.style={base, fill=red!10, draw=red!60!black, minimum width=8.5em},
-        code2/.style={base, fill=orange!10, draw=orange!60!black, minimum width=8.5em},
-        code10/.style={base, fill=gray!15, draw=gray!60!black, minimum width=8.5em},
-        act0/.style={base, fill=green!5, draw=green!40, minimum width=13em},
-        act1/.style={base, fill=red!5, draw=red!40, minimum width=13em},
-        act2/.style={base, fill=orange!5, draw=orange!40, minimum width=13em},
-        act10/.style={base, fill=gray!5, draw=gray!40, minimum width=13em},
-      ]
-
-      \node[base, fill=gray!10, draw=gray!40, font=\small\bfseries] (start) {Runner CI/CD};
-      \node[cmd, below=3ex of start] (cmd) {apiguard run -{}-config config.yaml};
-      \node[decision, below=3ex of cmd] (dec) {exit code?};
-
-      \path (dec.south) ++(4em, -4ex) node[code0, anchor=north west] (e0) {\textbf{\texttt{0}: CLEAN}\\{\scriptsize tutti PASS/SKIP}};
-      \path (e0.south west) ++(0, -2.5ex) node[code1, anchor=north west] (e1) {\textbf{\texttt{1}: FAIL}\\{\scriptsize almeno un FAIL}};
-      \path (e1.south west) ++(0, -2.5ex) node[code2, anchor=north west] (e2) {\textbf{\texttt{2}: ERROR}\\{\scriptsize ERROR senza FAIL}};
-      \path (e2.south west) ++(0, -2.5ex) node[code10, anchor=north west] (e10) {\textbf{\texttt{10}: INFRA}\\{\scriptsize errore infrastrutturale}};
-
-      \path (e0.east) ++(3em, 0) node[act0, anchor=west] (a0) {\textbf{Pipeline prosegue}\\{\scriptsize (merge / deploy consentito)}};
-      \path (e1.east) ++(3em, 0) node[act1, anchor=west] (a1) {\textbf{Blocco merge/deploy}\\{\scriptsize Report allegato come artefatto}};
-      \path (e2.east) ++(3em, 0) node[act2, anchor=west] (a2) {\textbf{Alert malfunzionamento}\\{\scriptsize Revisione manuale richiesta}};
-      \path (e10.east) ++(3em, 0) node[act10, anchor=west] (a10) {\textbf{Diagnosi deployment}\\{\scriptsize Verifica \texttt{config.yaml}}};
-
-      \draw[-latex, semithick] (start) -- (cmd);
-      \draw[-latex, semithick] (cmd) -- (dec);
-
-      \coordinate (bus-end) at (dec.south |- e10.west);
-      \draw[gray!70, semithick] (dec.south) -- (bus-end);
-
-      \draw[-latex, semithick, green!50!black] (dec.south |- e0.west) -- (e0.west);
-      \fill[gray!70] (dec.south |- e0.west) circle (1.5pt);
-
-      \draw[-latex, semithick, red!60!black] (dec.south |- e1.west) -- (e1.west);
-      \fill[gray!70] (dec.south |- e1.west) circle (1.5pt);
-
-      \draw[-latex, semithick, orange!60!black] (dec.south |- e2.west) -- (e2.west);
-      \fill[gray!70] (dec.south |- e2.west) circle (1.5pt);
-
-      \draw[-latex, semithick, gray!60!black] (dec.south |- e10.west) -- (e10.west);
-      \fill[gray!70] (dec.south |- e10.west) circle (1.5pt);
-
-      \draw[-latex, semithick, green!50!black] (e0.east) -- (a0.west);
-      \draw[-latex, semithick, red!60!black] (e1.east) -- (a1.west);
-      \draw[-latex, semithick, orange!60!black] (e2.east) -- (a2.west);
-      \draw[-latex, semithick, gray!60!black] (e10.east) -- (a10.west);
-
-    \end{tikzpicture}
-  \end{adjustbox}
-\end{frame}
-
-\begin{frame}{Verso una piattaforma modulare}
-  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
-    \begin{tikzpicture}[
-        node distance=4.5ex and 2.5em,
-        base/.style={draw, rounded corners=2pt, inner sep=8pt, align=center, font=\small},
-        core/.style={base, fill=blue!8, draw=blue!45, minimum width=22em, thick},
-        active/.style={base, fill=green!10, draw=green!50!black, minimum width=20em},
-        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=8em},
-        arr-active/.style={-latex, thick, green!50!black},
-        arr-planned/.style={-latex, thick, dashed, gray!50}
-      ]
-
-      \node[core] (core) {
-      \textbf{Core: infrastruttura immutabile}\\[1.5ex]
-      {\footnotesize \texttt{Engine} \textbar{} \texttt{DAGScheduler} \textbar{} \texttt{EvidenceStore}}\\[0.8ex]
-      {\footnotesize \texttt{TestContext} \textbar{} \texttt{TargetContext}}\\[0.8ex]
-      {\footnotesize \texttt{BaseTest} \textbar{} \texttt{BaseConnector} \textbar{} \texttt{BaseGatewayAdapter}}\\[0.8ex]
-      {\footnotesize \texttt{TestResult} \textbar{} \texttt{Finding} \textbar{} \texttt{EvidenceRecord}}
-      };
-
-      \node[active, above=of core] (rest) {
-      \textbf{Plugin REST (OAS)} \ {\footnotesize\itshape (attivo)}\\[1.5ex]
-      {\footnotesize \texttt{OpenAPI discovery} \textbar{} \texttt{AttackSurface}}\\[0.8ex]
-      {\footnotesize \texttt{SecurityClient} \textbar{} \texttt{KongGatewayAdapter}}\\[0.8ex]
-      {\footnotesize 18 Test nativi (Domini D0--D7)}
-      };
-
-      \node[planned, right=of core] (gql) {\textbf{GraphQL}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
-      \node[planned, below=of core] (grpc) {\textbf{gRPC}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
-      \node[planned, left=of core] (ws) {\textbf{WebSocket}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
-
-      \draw[arr-active] (rest.south) -- (core.north);
-      \draw[arr-planned] (gql.west) -- (core.east);
-      \draw[arr-planned] (grpc.north) -- (core.south);
-      \draw[arr-planned] (ws.east) -- (core.west);
-
-      \node[font=\footnotesize, text=gray!80!black, below=4ex of grpc, align=center] (note) {
-      frecce continue: modulo attivo \quad frecce tratteggiate: moduli pianificati\\[1ex]
-      {\itshape Il discovery dinamico via \texttt{pkgutil} permette il caricamento trasparente di moduli di terze parti}
-      };
-
-    \end{tikzpicture}
-  \end{adjustbox}
-\end{frame}
-
-% --- COMPRESSA: gap verticale tra stadi 11ex->8ex, gap iniziale 4ex->3ex ---
-\begin{frame}{Sanitizzazione a imbuto dell'evidenza}
-  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
-    \begin{tikzpicture}[
-        base/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small},%
-        stage/.style={base, ag-blue, minimum width=15em, minimum height=3ex},%
-        redact/.style={base, ag-red, minimum width=7em, minimum height=3ex},%
-        pass/.style={base, ag-green, minimum width=7em, minimum height=3ex},%
-        decision/.style={ag-diamond, minimum width=5em, align=center, inner sep=2pt, font=\small},%
-      ]
-      %
-      \node[base, ag-gray, minimum width=15em] (inp) {Record grezzo (\texttt{dict})\\{\scriptsize output connector / transazione HTTP}};
-      %
-      \node[stage, below=3ex of inp] (s1) {Stadio~1: Key-pattern regex\\{\scriptsize 11 pattern: password, token, api\_key, ...}};
-      \node[stage, below=8ex of s1] (s2) {Stadio~2: JWT heuristic\\{\scriptsize stringa con 2 punti + base64}};
-      \node[stage, below=8ex of s2] (s3) {Stadio~3: Header prefix\\{\scriptsize Authorization, X-API-Key, ...}};
-      \node[base, ag-violet, minimum width=15em, below=8ex of s3] (out) {\texttt{EvidenceStore.pin\_artifact()}\\{\scriptsize record sanitizzato scritto su JSONL}};
-      %
-      \node[decision, right=3em of s1] (d1) {match?};
-      \node[redact, right=2.5em of d1] (r1) {\texttt{[REDACTED]}};
-      \node[pass, below=2ex of d1] (p1) {chiave pulita};
-      %
-      \node[decision, right=3em of s2] (d2) {match?};
-      \node[redact, right=2.5em of d2] (r2) {\texttt{[REDACTED]}};
-      \node[pass, below=2ex of d2] (p2) {valore pulito};
-      %
-      \node[decision, right=3em of s3] (d3) {match?};
-      \node[redact, right=2.5em of d3] (r3) {\texttt{[REDACTED]}};
-      \node[pass, below=2ex of d3] (p3) {header pulito};
-      %
-      \draw[ag-arr] (inp) -- (s1);
-      %
-      \draw[ag-arr] (s1.east) -- (d1.west);
-      \draw[ag-arr] (d1.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r1.west);
-      \draw[ag-arr] (d1.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p1.north);
-      \coordinate (m1) at ([yshift=2ex]s2.north);
-      \draw[gray!70, semithick] (r1.south) |- (m1);
-      \draw[gray!70, semithick] (p1.south) |- (m1);
-      \fill[gray!70] (m1) circle (1.5pt);
-      \draw[ag-arr] (m1) -- (s2.north);
-      %
-      \draw[ag-arr] (s2.east) -- (d2.west);
-      \draw[ag-arr] (d2.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r2.west);
-      \draw[ag-arr] (d2.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p2.north);
-      \coordinate (m2) at ([yshift=2ex]s3.north);
-      \draw[gray!70, semithick] (r2.south) |- (m2);
-      \draw[gray!70, semithick] (p2.south) |- (m2);
-      \fill[gray!70] (m2) circle (1.5pt);
-      \draw[ag-arr] (m2) -- (s3.north);
-      %
-      \draw[ag-arr] (s3.east) -- (d3.west);
-      \draw[ag-arr] (d3.east) -- node[midway, above, font=\scriptsize, red!70!black] {sì} (r3.west);
-      \draw[ag-arr] (d3.south) -- node[midway, right, font=\scriptsize, green!50!black] {no} (p3.north);
-      \coordinate (m3) at ([yshift=2ex]out.north);
-      \draw[gray!70, semithick] (r3.south) |- (m3);
-      \draw[gray!70, semithick] (p3.south) |- (m3);
-      \fill[gray!70] (m3) circle (1.5pt);
-      \draw[ag-arr] (m3) -- (out.north);
-      %
-    \end{tikzpicture}
-  \end{adjustbox}
-\end{frame}
-
-% --- COMPRESSA: step verticale 4ex->3ex, scala uniforme di tutti gli yshift x0.75, lifeline 55ex->41ex ---
-\begin{frame}{Error isolation in Fase~5}
-  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
-    \begin{tikzpicture}[
-        actor/.style={ag-blue, minimum width=7em, minimum height=2.2em, align=center, font=\small},
-        lifeline/.style={draw=gray!50, dashed, very thin},
-        msg/.style={ag-arr, black!70},
-        msg-return/.style={ag-darr, black!50},
-        lbl/.style={midway, above, font=\footnotesize, fill=white, inner sep=2pt},
-        note-box/.style={draw=orange!50, fill=yellow!12, rounded corners=2pt, inner sep=3pt, font=\footnotesize},
-      ]
-
-      \node[actor] (Eng) {\texttt{Engine}};
-      \node[actor, right=3.2em of Eng] (BT) {\texttt{BaseTest}};
-      \node[actor, right=3.2em of BT] (SC) {\texttt{SecurityClient}};
-      \node[actor, right=3.2em of SC] (TGT) {Target (Kong)};
-
-      \draw[lifeline] (Eng.south) -- ++(0,-41ex);
-      \draw[lifeline] (BT.south) -- ++(0,-41ex);
-      \draw[lifeline] (SC.south) -- ++(0,-41ex);
-      \draw[lifeline] (TGT.south) -- ++(0,-41ex);
-
-      \draw[msg] ([yshift=-3ex]Eng.south) -- ([yshift=-3ex]BT.south) node[lbl] {\texttt{execute(target, ctx)}};
-      \draw[msg] ([yshift=-6ex]BT.south) -- ([yshift=-6ex]SC.south) node[lbl] {\texttt{request(method, url, ...)}};
-      \draw[msg] ([yshift=-9ex]SC.south) -- ([yshift=-9ex]TGT.south) node[lbl] {HTTP request};
-      \draw[msg-return] ([yshift=-12ex]TGT.south) -- ([yshift=-12ex]SC.south) node[lbl] {HTTP response};
-      \draw[msg-return] ([yshift=-15ex]SC.south) -- ([yshift=-15ex]BT.south) node[lbl] {\texttt{Response}};
-      \draw[msg-return] ([yshift=-18ex]BT.south) -- ([yshift=-18ex]Eng.south) node[lbl] {\texttt{TestResult(PASS | FAIL)}};
-
-      \draw[gray!60, very thick] ([yshift=-21ex]Eng.south) -- ([yshift=-21ex]TGT.south);
-      \node[fill=gray!15, draw=gray!60, rounded corners=2pt, inner sep=3pt, font=\footnotesize\itshape]
-      at ($([yshift=-21ex]Eng.south)!0.5!([yshift=-21ex]TGT.south)$)
-      {scenario alternativo: eccezione imprevista};
-
-      \draw[msg] ([yshift=-25.5ex]Eng.south) -- ([yshift=-25.5ex]BT.south) node[lbl] {\texttt{execute(target, ctx)}};
-      \draw[msg] ([yshift=-28.5ex]BT.south) -- ([yshift=-28.5ex]SC.south) node[lbl] {\texttt{request(method, url, ...)}};
-
-      \coordinate (err_start) at ([yshift=-31.5ex]SC.south);
-
-      \node[note-box] (exc) at ($([yshift=-31.5ex]SC.south)!0.7!([yshift=-31.5ex]TGT.south)$) {\texttt{Exception} imprevista};
-
-      \draw[ag-arr, orange!70] (err_start) -- (exc.west);
-
-      \coordinate (bt_return) at ([yshift=-34.5ex]BT.south);
-      \coordinate (elbow) at (exc.south |- bt_return);
-
-      \draw[ag-arr, orange!70] (exc.south) -- (elbow) -- node[pos=0.6, above, ag-note, font=\footnotesize, align=center, fill=white, inner sep=2pt] {catturata internamente} (bt_return);
-
-      \draw[msg-return, red!60] ([yshift=-37.5ex]BT.south) -- ([yshift=-37.5ex]Eng.south)
-      node[lbl, text=red!70] {\texttt{TestResult(ERROR)}: pipeline prosegue};
-
-    \end{tikzpicture}
-  \end{adjustbox}
-\end{frame}
-
-% --- font aggiunto: \scriptsize (contenuto denso, righe multiple) ---
-\begin{frame}{Domini di Assurance}
-  \scriptsize
-  \renewcommand{\arraystretch}{0.85}
-  \begin{adjustbox}{max width=\textwidth, max height=0.87\textheight, center}
-    \begin{tabularx}{\textwidth}{@{} c l >{\raggedright\arraybackslash}X @{}}
-      \toprule
-      \textbf{Dominio} & \textbf{Titolo}                   & \textbf{Ambito di verifica}                                                                                             \\
-      \midrule
-      D0               & API Discovery                     & Inventario degli endpoint esposti; rilevazione di Shadow API non documentate nella specifica.                           \\
-      D1               & Identity \& Authentication        & Meccanismi di riconoscimento del chiamante; robustezza del trasporto delle credenziali; ciclo di vita e revoca dei JWT. \\
-      D2               & Authorization                     & Logiche di controllo degli accessi; difetti di segregazione orizzontale e verticale (RBAC, BOLA).                       \\
-      D3               & Data Integrity                    & Coerenza strutturale dei payload; implementazione delle firme crittografiche (HMAC).                                    \\
-      D4               & Availability \& Resilience        & Difese contro l'esaurimento delle risorse; audit di circuit breaker e soglie di rate limiting.                          \\
-      D5               & Observability                     & Qualità e tempestività della telemetria generata dal sistema.                                                           \\
-      D6               & Configuration \& Hardening        & Rafforzamento della configurazione del gateway; policy di routing; header di sicurezza HTTP.                            \\
-      D7               & Business Logic \& Sensitive Flows & Falle semantiche complesse: elusione dei vincoli di processo, SSRF, race condition su operazioni critiche.              \\
-      \bottomrule
-    \end{tabularx}
-  \end{adjustbox}
-\end{frame}
-
-% --- font aggiunto: \footnotesize; acronimi riportati a forma breve nella colonna Prerequisiti (Causa 2) ---
-\begin{frame}{Box Gradient}
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth, max height=0.82\textheight, center}
-    \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
-      \toprule
-      \textbf{Strategia}  & \textbf{Prerequisiti}             & \textbf{Razionale}                                                                                                             \\
-      \midrule
-      \texttt{BLACK\_BOX} & Nessuno (solo accesso di rete)    & Controlli perimetrali applicati dal gateway a qualsiasi interlocutore; simulazione di un attaccante esterno senza credenziali. \\
-      \addlinespace
-      \texttt{GREY\_BOX}  & Token per $\geq 2$ ruoli distinti & Garanzie che presuppongono stato autenticato con identità di ruolo distinte; inaccessibili senza credenziali valide.           \\
-      \addlinespace
-      \texttt{WHITE\_BOX} & Accesso Admin API del gateway     & Configurazione statica verificabile per ispezione diretta tramite piano di controllo del gateway.                              \\
-      \bottomrule
-    \end{tabularx}
-  \end{adjustbox}
-\end{frame}
-
 % --- font aggiunto: \footnotesize ---
 \begin{frame}{Risultati per test}
   \scriptsize
@@ -845,70 +793,54 @@
   \end{adjustbox}
 \end{frame}
 
-% --- font aggiunto: \footnotesize ---
-\begin{frame}{Versioni del testbed}
-  \scriptsize
-  \renewcommand{\arraystretch}{0.85}
-  \begin{adjustbox}{max width=\textwidth, max height=0.87\textheight, center}
-    \begin{tabularx}{\textwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
-      \toprule
-      \textbf{Componente}         & \textbf{Versione}     & \textbf{Ruolo nel testbed}                                                                             \\
-      \midrule
-      \texttt{apiguard-assurance} & 0.1.0                 & Tool sotto validazione                                                                                 \\
-      Python                      & 3.12.3                & Interprete del tool                                                                                    \\
-      Forgejo                     & 14.0.3 (gitea-1.22.0) & Target applicativo: API REST con specifica OpenAPI nativa                                              \\
-      PostgreSQL                  & 15-alpine             & Backend di persistenza di Forgejo (dipendenza funzionale, non componente autonomo)                     \\
-      Kong                        & 3.9 DB-less           & API Gateway: proxy HTTP/HTTPS, instradamento verso Forgejo, Admin API su porta 8001                    \\
-      \texttt{nuclei}             & 3.8.0                 & Tool esterno per Shadow API discovery (test \texttt{ext.0.1})                                          \\
-      \texttt{nuclei-templates}   & 10.4.3                & Base di template di scansione versioned: garantisce che lo stesso set di firme venga usato in ogni run \\
-      \texttt{testssl.sh}         & 3.2.3                 & Analisi TLS black-box (test \texttt{ext.1.5.testssl})                                                  \\
-      \texttt{sslyze}             & (libreria Python)     & Analisi TLS via libreria Python (test \texttt{ext.1.5.sslyze})                                         \\
-      \bottomrule
-    \end{tabularx}
-  \end{adjustbox}
-\end{frame}
+% ==================///==================///==================///
+% ==================/// 6. SVILUPPI FUTURI
+% ==================///==================///==================///
 
-% --- font aggiunto: \scriptsize; acronimi riportati a forma breve nelle colonne fisse (Causa 2) ---
-\begin{frame}{Modelli di esposizione gateway}
-  \scriptsize
-  \begin{adjustbox}{max width=\textwidth, max height=0.8\textheight, center}
-    \begin{tabularx}{\textwidth}{@{}
-      >{\raggedright\arraybackslash}p{9em}
-      >{\raggedright\arraybackslash}p{4.5em}
-      >{\raggedright\arraybackslash\hsize=1.2\hsize}X
-      >{\raggedright\arraybackslash\hsize=0.9\hsize}X
-      >{\raggedright\arraybackslash\hsize=0.9\hsize}X @{}}
-      \toprule
-      \textbf{Modello}
-       & \textbf{Traffico presidiato}
-       & \textbf{Enforcement policy}
-       & \textbf{Accesso al piano di configurazione}
-       & \textbf{Verifica \texttt{WHITE\_BOX}}       \\
-      \midrule
-      Gateway API Dedicato \newline {\footnotesize (es.\ Kong, Apigee)}
-       & Nord-sud
-       & Centralizzato (singolo strato)
-       & Admin API diretta
-       & Nativa                                      \\
-      \addlinespace
-      Kubernetes Ingress / Gateway API
-       & Nord-sud
-       & Centralizzato (via K8s API)
-       & \texttt{kubectl} / Kubernetes API
-       & Controller-dipendente                       \\
-      \addlinespace
-      Service Mesh \newline {\footnotesize (es.\ Istio)}
-       & Est-ovest
-       & Distribuito per sidecar proxy
-       & Control plane (istiod)
-       & N/A (est-ovest)                             \\
-      \addlinespace
-      Gateway Managed Cloud \newline {\footnotesize (AWS, Azure, GCP)}
-       & Nord-sud
-       & Centralizzato dal provider
-       & SDK / API del cloud provider
-       & Adapter dedicato                            \\
-      \bottomrule
-    \end{tabularx}
+\begin{chapter}{maincolor}{Sviluppi Futuri}
+\end{chapter}
+
+\begin{frame}{Verso una piattaforma modulare}
+  \begin{adjustbox}{width=\textwidth, height=0.85\textheight, keepaspectratio, center}
+    \begin{tikzpicture}[
+        node distance=4.5ex and 2.5em,
+        base/.style={draw, rounded corners=2pt, inner sep=8pt, align=center, font=\small},
+        core/.style={base, fill=blue!8, draw=blue!45, minimum width=22em, thick},
+        active/.style={base, fill=green!10, draw=green!50!black, minimum width=20em},
+        planned/.style={base, fill=gray!4, draw=gray!40, dashed, minimum width=8em},
+        arr-active/.style={-latex, thick, green!50!black},
+        arr-planned/.style={-latex, thick, dashed, gray!50}
+      ]
+
+      \node[core] (core) {
+      \textbf{Core: infrastruttura immutabile}\\[1.5ex]
+      {\footnotesize \texttt{Engine} \textbar{} \texttt{DAGScheduler} \textbar{} \texttt{EvidenceStore}}\\[0.8ex]
+      {\footnotesize \texttt{TestContext} \textbar{} \texttt{TargetContext}}\\[0.8ex]
+      {\footnotesize \texttt{BaseTest} \textbar{} \texttt{BaseConnector} \textbar{} \texttt{BaseGatewayAdapter}}\\[0.8ex]
+      {\footnotesize \texttt{TestResult} \textbar{} \texttt{Finding} \textbar{} \texttt{EvidenceRecord}}
+      };
+
+      \node[active, above=of core] (rest) {
+      \textbf{Plugin REST (OAS)} \ {\footnotesize\itshape (attivo)}\\[1.5ex]
+      {\footnotesize \texttt{OpenAPI discovery} \textbar{} \texttt{AttackSurface}}\\[0.8ex]
+      {\footnotesize \texttt{SecurityClient} \textbar{} \texttt{KongGatewayAdapter}}\\[0.8ex]
+      {\footnotesize 18 Test nativi (Domini D0--D7)}
+      };
+
+      \node[planned, right=of core] (gql) {\textbf{GraphQL}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+      \node[planned, below=of core] (grpc) {\textbf{gRPC}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+      \node[planned, left=of core] (ws) {\textbf{WebSocket}\\[0.5ex]{\footnotesize\itshape (pianificato)}};
+
+      \draw[arr-active] (rest.south) -- (core.north);
+      \draw[arr-planned] (gql.west) -- (core.east);
+      \draw[arr-planned] (grpc.north) -- (core.south);
+      \draw[arr-planned] (ws.east) -- (core.west);
+
+      \node[font=\footnotesize, text=gray!80!black, below=4ex of grpc, align=center] (note) {
+      frecce continue: modulo attivo \quad frecce tratteggiate: moduli pianificati\\[1ex]
+      {\itshape Il discovery dinamico via \texttt{pkgutil} permette il caricamento trasparente di moduli di terze parti}
+      };
+
+    \end{tikzpicture}
   \end{adjustbox}
 \end{frame}
