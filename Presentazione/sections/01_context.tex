@@ -1,36 +1,14 @@
 % !TEX root = ../main.tex
-% PATTERN FRAME DISPONIBILI (usati nella triennale):
-%
-% Frame con colonne testo 70% / icona 30%:
-%   \begin{frame}{Titolo}
-%     \begin{columns}
-%       \begin{column}{.7\textwidth}\begin{itemize}\item \alert{punto}\end{itemize}\end{column}
-%       \begin{column}{.2\textwidth}\includegraphics[scale=.2]{assets/icon/nome.png}\end{column}
-%     \end{columns}
-%   \end{frame}
-%
-% Frame con enumerate nidificate:
-%   \begin{enumerate}\item \alert{Step}\begin{enumerate}\item \textbf{Sub}: desc\end{enumerate}\end{enumerate}
-%
-% Frame fullscreen image:
-%   \includegraphics[width=\textwidth,height=0.9\textheight,keepaspectratio]{assets/file.pdf}
-%
-% Slide divisore capitolo (da chapters/special_slides.tex):
-%   \begin{chapter}[assets/background_negative]{maincolor}{Titolo}\end{chapter}
-%   Colori: maincolor, stataledarkgreen, statalered, stataleyellow, statalelilla
-%
-% Slide con immagine laterale:
-%   \begin{sidepic}{assets/path/image}{Titolo}\end{sidepic}
 
 \begin{frame}{Contesto}
     \begin{itemize}
-        \item Architetture a \alert{microservizi} cloud-native: la superficie di attacco cresce con la \alert{proliferazione di endpoint}, spesso priva di governance sistematica
+        \item Architetture a \alert{microservizi} cloud-native: la superficie di attacco cresce con la \alert{proliferazione di endpoint}
 
-        \item Il \alert{gateway API} come punto di enforcement centralizzato: autenticazione, autorizzazione, rate limiting
+        \item Il \alert{gateway API} risponde centralizzando l'enforcement delle policy di sicurezza
 
-        \item Le vulnerabilità più significative sono \alert{semantiche}, non sintattiche
+        \item La maggior parte degli strumenti di testing verifica la \alert{funzionalità}, non la \alert{sicurezza}
               \begin{itemize}
-                  \item 4 delle prime 5 categorie OWASP API Security Top 10 2023
+                  \item sintassi delle richieste, non semantica dei contratti
               \end{itemize}
     \end{itemize}
 \end{frame}

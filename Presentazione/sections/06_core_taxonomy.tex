@@ -5,32 +5,32 @@
             \begin{column}{.48\textwidth}
                   \begin{itemize}
                         \item \textbf{D0} \alert{API Discovery}\\
-                              {\scriptsize\itshape shadow API, inventario endpoint}
+                              {\scriptsize\itshape shadow API, inventario endpoint,  \dots}
 
                         \item \textbf{D1} \alert{Authentication}\\
-                              {\scriptsize\itshape JWT, trasporto credenziali, revoca}
+                              {\scriptsize\itshape trasporto e revoca credenziali, TLS, \dots}
 
                         \item \textbf{D2} \alert{Authorization}\\
-                              {\scriptsize\itshape RBAC, BOLA, segregazione}
+                              {\scriptsize\itshape RBAC, \textcolor{gray}{BOLA}, \dots}
 
                         \item \textbf{D3} \alert{Data Integrity}\\
-                              {\scriptsize\itshape coerenza payload, HMAC}
+                              {\scriptsize\itshape HMAC, \textcolor{gray}{coerenza payload}, \dots}
                   \end{itemize}
             \end{column}
 
             \begin{column}{.48\textwidth}
                   \begin{itemize}
                         \item \textbf{D4} \alert{Availability}\\
-                              {\scriptsize\itshape rate limiting, circuit breaker}
+                              {\scriptsize\itshape rate limiting, circuit breaker, \dots}
 
                         \item \textbf{D5} \textcolor{gray}{Observability}\\
-                              {\scriptsize\itshape\textcolor{gray}{audit logging, alerting}}
+                              {\scriptsize\itshape\textcolor{gray}{audit logging, alerting}, \dots}
 
                         \item \textbf{D6} \alert{Config \& Hardening}\\
-                              {\scriptsize\itshape gateway, header HTTP}
+                              {\scriptsize\itshape header HTTP, credenziali gateway hardcoded, \dots}
 
                         \item \textbf{D7} \alert{Business Logic}\\
-                              {\scriptsize\itshape SSRF, race condition}
+                              {\scriptsize\itshape SSRF, \textcolor{gray}{race condition}, \dots}
                   \end{itemize}
             \end{column}
       \end{columns}
@@ -40,8 +40,7 @@
             \small \alert{18 test implementati}, 14 pianificati, su 8 domini
       \end{center}
 
-      \vspace{0.4em}
       \begin{center}
-            \small Ogni \alert{test} (non il dominio) dichiara il proprio livello d'accesso: \texttt{BLACK\_BOX} $\rightarrow$ \texttt{GREY\_BOX} $\rightarrow$ \texttt{WHITE\_BOX}
+            \small Ogni \alert{test} dichiara il proprio livello d'accesso: \texttt{BLACK\_BOX} $\rightarrow$ \texttt{GREY\_BOX} $\rightarrow$ \texttt{WHITE\_BOX}
       \end{center}
 \end{frame}

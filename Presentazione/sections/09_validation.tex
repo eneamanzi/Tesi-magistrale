@@ -4,37 +4,28 @@
   \begin{columns}
     \begin{column}{.48\textwidth}
       \textbf{Testbed}
-      \vspace{-0.3em}
       \begin{itemize}
-        \setlength{\itemsep}{0.3em}
-        \item \alert{Forgejo} 14.0.3 esposto tramite \alert{Kong} 3.9 DB-less, Docker locale
+        \item \alert{Forgejo} 14.0.3 -- \alert{Kong} 3.9 DB-less
 
-        \item Nessun riferimento a Forgejo nel codice: conferma pratica dell'agnosticismo
+        \item Scelto per le sue proprietà strutturali: \alert{OAS nativa}, ruoli multipli
+
+        \item Codebase verificata: \alert{5 strumenti} di analisi statica, 0 errori\\
+              {\scriptsize\itshape ruff, mypy, bandit, vulture, pip-audit}
       \end{itemize}
     \end{column}
 
     \begin{column}{.48\textwidth}
       \textbf{Risultati}
-      \begin{center}
-        \begin{tabular}{@{}ll@{}}
-          Test attivi                               & \textbf{18} su 7 domini \\[0.1em]
-          \textcolor{green!55!black}{\textbf{PASS}} & 9                       \\
-          \textcolor{red!60!black}{\textbf{FAIL}}   & 7                       \\
-          \textcolor{gray!60!black}{\textbf{SKIP}}  & 2                       \\
-          \textbf{ERROR}                            & 0                       \\[0.1em]
-          Finding totali                            & \textbf{98}             \\
-        \end{tabular}
-      \end{center}
+      \begin{itemize}
+        \item \textbf{Idempotenza}: 2 run indipendenti producono risultati \alert{byte-identici}
+
+        \item 18 test, 7 domini: \textcolor{green!50!black}{\textbf{9 PASS}}, \textcolor{red!60!black}{\textbf{7 FAIL}}, \textcolor{orange!80!black}{\textbf{2 SKIP}}, \textcolor{violet!60!black}{\textbf{0 ERROR}} -- \alert{98 finding}
+      \end{itemize}
     \end{column}
   \end{columns}
 
-  \vspace{-0.3em}
-  \begin{colorblock}[black!80]{maincolor!10}{Discrepanza rilevata}
-    \footnotesize Forgejo dichiara autenticazione globale; alcuni endpoint pubblici rispondono senza credenziali — il tool ha distinto specifica da implementazione.
+  \vspace{0.5em}
+  \begin{colorblock}[black!80]{maincolor!10}{Una discrepanza reale}
+    \small Alcuni endpoint pubblici, marcati erroneamente come protetti, rispondono correttamente senza richiedere credenziali.
   \end{colorblock}
-
-  \vspace{-0.3em}
-  \begin{center}
-    \footnotesize \textbf{Idempotenza}: 2 run indipendenti, risultati \alert{byte-identici}, $\Delta$ wall-clock \alert{$<$ 0.3\%}
-  \end{center}
 \end{frame}

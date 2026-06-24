@@ -1,17 +1,13 @@
 % !TEX root = ../main.tex
 
 \begin{frame}{Obiettivi}
-  \begin{center}
-    \textbf{Un tool \alert{contract-driven} per la security assurance\\di \alert{qualsiasi API REST documentata}: agnostico, sistematico, riproducibile.}
-  \end{center}
-  \vspace{0.8em}
   \begin{itemize}
-    \item \textbf{O1} \alert{Agnosticismo applicativo}: OAS e config.yaml come uniche sorgenti \alert{di conoscenza} a runtime, nessun riferimento hardcoded al target
+    \item \textbf{O1} \alert{Tool contract-driven agnostico}: OAS e config.yaml, uniche sorgenti di conoscenza a runtime
 
-    \item \textbf{O2} \alert{Portabilità con profondità graduata}: il box gradient scala la profondità di assessment ai privilegi disponibili
+    \item \textbf{O2} Conseguenza di O1: applicabile a qualsiasi sistema REST; profondità legata alla \alert{specifica}, non alla \alert{piattaforma}
 
-    \item \textbf{O3} \alert{Riproducibilità deterministica}: output stabile e integrabile nei cicli di sviluppo continuativo
+    \item \textbf{O3} \alert{Riproducibilità deterministica}: stessa configurazione, stesso output; indipendente dall'operatore
 
-    \item \textbf{O4} \alert{Specified oracles}: criteri di valutazione affidabili derivati dalla conoscenza del dominio
+    \item \textbf{O4} Ogni test ricava il proprio criterio dalla \alert{conoscenza del dominio} e lo applica \alert{deterministicamente}
   \end{itemize}
 \end{frame}
