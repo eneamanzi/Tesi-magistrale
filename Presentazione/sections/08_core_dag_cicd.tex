@@ -2,9 +2,11 @@
 
 \begin{frame}{Riproducibilità e integrazione CI/CD}
   \begin{itemize}
-    \item \textbf{DAG scheduler}: \alert{ordine topologico} tra dipendenze, \alert{ordine lessicografico} a parità di livello
+    \item \textbf{Specified oracles} (richiamo): criterio di valutazione \alert{fisso}
 
-    \item \textbf{Config-driven} (richiamo): \texttt{config.yaml} come unica fonte di verità per tutti i parametri operativi
+    \item \textbf{Config-driven} (richiamo): \texttt{config.yaml} come fonte di verità
+
+    \item \textbf{DAG scheduler}: \alert{ordine topologico} tra dipendenze, \alert{ordine lessicografico} a parità di livello
 
     \item \textbf{Exit code semantico}: \alert{consumabile direttamente dalla pipeline}, distingue l'esito del target, un malfunzionamento del tool e un errore infrastrutturale
           \begin{itemize}
