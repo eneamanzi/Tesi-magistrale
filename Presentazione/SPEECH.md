@@ -3,19 +3,29 @@ Buongiorno a tutti. Sono Enea Manzi e oggi vi presento il mio lavoro di tesi mag
 
 # Speech — Slide 01: Contesto
 
-Le architetture a **microservizi** cloud-native distribuiscono la complessità su un numero crescente di servizi autonomi, che comunicano tra loro tramite **API REST**. La conseguenza è una *proliferazione di endpoint* che spesso cresce senza un inventario centralizzato e senza una vera governance del loro ciclo di vita.
+Le architetture a **microservizi** cloud-native distribuiscono la complessità su un numero crescente di servizi autonomi, che comunicano tra loro tramite **API REST**. 
+La conseguenza è una *proliferazione di endpoint* che spesso cresce senza un *inventario centralizzato* e senza una vera governance del loro ciclo di vita.
 
 Per governare questa complessità è nato il **gateway API**: un punto unico, posto davanti a tutti i servizi, dove si concentrano e si controllano le regole di accesso, invece di doverle ripetere e verificare singolarmente su ognuno di essi.
 
-Detto questo, la maggior parte degli strumenti di testing esistenti verifica se un'API *funziona correttamente*, non se è *sicura*. Una revisione sistematica di **92 contributi** pubblicati tra il 2009 e il 2022 mostra che circa l'**80% (72 contributi)** si concentra su questo tipo di verifica funzionale, e meno del **10% (8 contributi)** affronta esplicitamente la sicurezza in modo specifico. Questo lavoro nasce proprio in questo spazio ancora poco esplorato: una valutazione di sicurezza che guardi sia al **gateway** che alla **logica applicativa** delle API che vi sono dietro.
+Detto questo, la maggior parte degli strumenti di testing esistenti verifica se un'API *funziona correttamente*, non se è *sicura*. 
+Una revisione sistematica di **92 contributi** pubblicati tra il 2009 e il 2022 mostra che circa l'**80% (72 contributi)** si concentra su questo tipo di verifica funzionale, e meno del **10% (8 contributi)** affronta esplicitamente la sicurezza in modo specifico. 
+Questo lavoro nasce proprio in questo spazio ancora poco esplorato: una valutazione di sicurezza che guardi sia al **gateway** che alla **logica applicativa** delle API che vi sono dietro.
 
 Vediamo allora più precisamente quali sono i limiti specifici degli approcci esistenti, da cui partiamo.
 
 # Speech — Slide 02: Gaps
 
-Gli scanner **DAST** e i **fuzzer** generici lavorano osservando la *sintassi* delle richieste e delle risposte HTTP: generano payload, guardano i codici di errore, cercano anomalie nella forma di quello che inviano o ricevono. Ma molte vulnerabilità delle API REST non sono di forma, sono di sostanza: una richiesta può essere sintatticamente perfetta e violare comunque le regole di accesso del sistema, per esempio chiedendo una risorsa con un ruolo che non dovrebbe poterla vedere. Per accorgersene serve conoscere il *contratto*/*comportamento atteso* dietro ogni interazione: chi può accedere a cosa, quanto dura un token, quali sequenze di operazioni hanno senso. Senza questa conoscenza, uno scanner non può costruire in modo sistematico le richieste che arrivano davvero a toccare questa logica. Questo è **G1, la cecità semantica**, ed è uno dei due gap su cui questo lavoro si concentra maggiormente.
+Gli scanner **DAST** e i **fuzzer** generici lavorano osservando la *sintassi* delle richieste e delle risposte HTTP: generano payload, guardano i codici di errore, cercano anomalie nella forma di quello che inviano o ricevono. 
+Ma molte vulnerabilità delle API REST non sono di forma, sono di sostanza: una richiesta può essere sintatticamente perfetta e violare comunque le regole di accesso del sistema, per esempio chiedendo una risorsa con un ruolo che non dovrebbe poterla vedere. 
+Per accorgersene serve conoscere il *contratto*/*comportamento atteso* dietro ogni interazione: chi può accedere a cosa, quanto dura un token, quali sequenze di operazioni hanno senso. 
+Senza questa conoscenza, uno scanner non può costruire in modo sistematico le richieste che arrivano davvero a toccare questa logica. 
+Questo è **G1, la cecità semantica**, ed è uno dei due gap su cui questo lavoro si concentra maggiormente.
 
-**G2** riguarda invece un compromesso che si ripete in letteratura. Gli strumenti pensati per un gateway o una piattaforma specifica riescono ad andare in *profondità*, ma solo in quel contesto. Quelli generici, che funzionano su qualsiasi target, restano invece più *superficiali*: non solo perché usano la specifica solo per costruire richieste valide e non per giudicarne la sicurezza, ma anche perché le verifiche di sicurezza più approfondite richiedono conoscenze specifiche che un approccio generico, per sua natura, non porta con sé. (concetto del G4) *Profondità* e *portabilità* finiscono quindi per essere due obiettivi che oggi si ottengono separatamente, non insieme.
+**G2** riguarda invece un compromesso che si ripete in letteratura. 
+Gli strumenti pensati per un gateway o una piattaforma specifica riescono ad andare in *profondità*, ma solo in quel contesto. 
+Quelli generici, che funzionano su qualsiasi target, restano invece più *superficiali*: non solo perché usano la specifica solo per costruire richieste valide e non per giudicarne la sicurezza, ma anche perché le verifiche di sicurezza più approfondite richiedono conoscenze specifiche che un approccio generico, per sua natura, non porta con sé (concetto del G4).
+*Profondità* e *portabilità* finiscono quindi per essere due obiettivi che oggi si ottengono separatamente, non insieme.
 
 **G3** riguarda la **riproducibilità**. In un ciclo di sviluppo continuativo, dove il sistema *cambia di continuo*, un operatore non riesce a tenere il passo con la frequenza delle modifiche, e ogni sua *scelta metodologica* introduce una variabile in più nel risultato. Senza un modo per rendere queste verifiche *ripetibili con esattezza*, diventa impossibile distinguere una vera regressione di sicurezza da una semplice differenza nel modo in cui è stata condotta la verifica.
 
