@@ -27,16 +27,20 @@ Gli strumenti pensati per un gateway o una piattaforma specifica riescono ad and
 Quelli generici, che funzionano su qualsiasi target, restano invece più *superficiali*: non solo perché usano la specifica solo per costruire richieste valide e non per giudicarne la sicurezza, ma anche perché le verifiche di sicurezza più approfondite richiedono conoscenze specifiche che un approccio generico, per sua natura, non porta con sé (concetto del G4).
 *Profondità* e *portabilità* finiscono quindi per essere due obiettivi che oggi si ottengono separatamente, non insieme.
 
-**G3** riguarda la **riproducibilità**. In un ciclo di sviluppo continuativo, dove il sistema *cambia di continuo*, un operatore non riesce a tenere il passo con la frequenza delle modifiche, e ogni sua *scelta metodologica* introduce una variabile in più nel risultato. Senza un modo per rendere queste verifiche *ripetibili con esattezza*, diventa impossibile distinguere una vera regressione di sicurezza da una semplice differenza nel modo in cui è stata condotta la verifica.
+**G3** riguarda la **riproducibilità**. 
+In un ciclo di sviluppo continuativo, dove il sistema *cambia di continuo*, un operatore non riesce a tenere il passo con la frequenza delle modifiche, e ogni sua *scelta metodologica* introduce una variabile in più nel risultato.
+Senza un modo per rendere queste verifiche *ripetibili con esattezza*, diventa impossibile distinguere una vera regressione di sicurezza da una semplice differenza nel modo in cui è stata condotta la verifica.
 
-**G4** è il **problema dell'oracolo**. Generare automaticamente delle richieste verso un sistema è un compito che la letteratura ha già affrontato con buoni risultati; stabilire *automaticamente* se quello che si osserva costituisce una *violazione di sicurezza*, invece, richiede un criterio che la specifica da sola non può fornire, perché dipende dalla *conoscenza del dominio* del controllo specifico. 
+**G4** è il **problema dell'oracolo**. 
+Generare automaticamente delle richieste verso un sistema è un compito che la letteratura ha già affrontato con buoni risultati; stabilire *automaticamente* se quello che si osserva costituisce una *violazione di sicurezza*, invece, richiede un criterio che la specifica da sola non può fornire, perché dipende dalla *conoscenza del dominio* del controllo specifico. 
 La *costruzione di criteri sistematici* è un problema che la letteratura sul testing automatico ha affrontato solo in parte, ed è il secondo gap su cui questo lavoro si concentra con particolare attenzione.
 
 # Speech — Slide 03: Obiettivi
 
 Da queste quattro lacune nascono quattro obiettivi, tutti orientati allo stesso scopo complessivo, anche se il primo e il quarto pesano più degli altri nell'impianto di questo lavoro.
 
-Il primo obiettivo è progettare un tool **contract-driven** e **agnostico**. La specifica **OpenAPI** fornisce il fondamento contrattuale per costruire probe sintatticamente valide, mentre il file di **configurazione** porta la conoscenza concreta del deployment, come le credenziali dei ruoli e i parametri/configurazioni dei test. 
+Il primo obiettivo è progettare un tool **contract-driven** e **agnostico**. 
+La specifica **OpenAPI** fornisce il fondamento contrattuale per costruire probe sintatticamente valide, mentre il file di **configurazione** porta la conoscenza concreta del deployment, come le credenziali dei ruoli e i parametri/configurazioni dei test. 
 Insieme, le due cose eliminano qualsiasi riferimento *hardcoded* a un sistema specifico. 
 In aggiunta si organizzano le verifiche in una *tassonomia di domini* con priorità esplicite ciascuna corredata dei riferimenti normativi corrispondenti, così che ogni risultato sia tracciabile verso standard come **OWASP** e **CWE**.
 
