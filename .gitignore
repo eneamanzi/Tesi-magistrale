@@ -5,9 +5,10 @@
 textidote.html
 result*
 
-Tesi/*.pdf
-Riassunto/*.pdf
-Presentazione/*.pdf
+Tesi/main.pdf
+Riassunto/main.pdf
+Presentazione/main.pdf
+Article/main.pdf
 
 # Markdown docs 
 #docs/

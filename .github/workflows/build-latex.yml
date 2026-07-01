@@ -4,10 +4,11 @@ on:
   push:
     branches: [ main, master ]
     paths:
-      - 'Presentazione/**' 
-      - 'Riassunto/**'     
-      - 'Tesi/**'          
-      - '.github/**'       
+      - 'Presentazione/**'
+      - 'Riassunto/**'
+      - 'Tesi/**'
+      - 'Article/**'
+      - '.github/**'
   workflow_dispatch:
 
 concurrency:
@@ -49,7 +50,15 @@ jobs:
         root_file: main.tex
         args: -pdflua -interaction=nonstopmode -jobname=Tesi
 
-    # --- 4. PUSH DEI PDF SUL BRANCH pdf-release ---
+    # --- 4. COMPILAZIONE ARTICLE ---
+    - name: 'Compile 4 - Article'
+      uses: xu-cheng/latex-action@v3
+      with:
+        working_directory: Article
+        root_file: main.tex
+        args: -pdflua -interaction=nonstopmode -jobname=Article
+
+    # --- 5. PUSH DEI PDF SUL BRANCH pdf-release ---
     - name: 'Push PDFs to pdf-release branch'
       run: |
         git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -59,6 +68,7 @@ jobs:
         cp Presentazione/Presentazione.pdf /tmp/Presentazione.pdf
         cp Riassunto/Riassunto.pdf /tmp/Riassunto.pdf
         cp Tesi/Tesi.pdf /tmp/Tesi.pdf
+        cp Article/Article.pdf /tmp/Article.pdf
 
         # Passa al branch pdf-release (crea orphan al primo run, checkout negli altri)
         git fetch origin
@@ -69,13 +79,14 @@ jobs:
         mv /tmp/Presentazione.pdf .
         mv /tmp/Riassunto.pdf .
         mv /tmp/Tesi.pdf .
+        mv /tmp/Article.pdf .
 
         git add *.pdf
         git diff --staged --quiet || git commit -m "Auto-update PDFs [skip ci]"
         git push origin pdf-release
     
-    # --- 5. UPLOAD ARTIFACTS (Backup) ---
-    - name: 'Upload all PDFs as artifacts' 
+    # --- 6. UPLOAD ARTIFACTS (Backup) ---
+    - name: 'Upload all PDFs as artifacts'
       uses: actions/upload-artifact@v4
       with:
         name: All-Documents-PDF
@@ -83,3 +94,4 @@ jobs:
           Presentazione/*.pdf
           Riassunto/*.pdf
           Tesi/*.pdf
+          Article/*.pdf
