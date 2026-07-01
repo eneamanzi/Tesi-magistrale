@@ -7,7 +7,7 @@ Buongiorno a tutti. Sono Enea Manzi e oggi vi presento il mio lavoro di tesi mag
 Le architetture a **microservizi** cloud-native distribuiscono la complessità su un numero crescente di *servizi autonomi* che comunicano tramite **API REST**, con una *proliferazione di endpoint* spesso priva di una vera governance.
 Per gestirla è nato il **gateway API**, *punto unico* che centralizza le *policy di sicurezza* invece di verificarle singolarmente su ogni servizio.
 
-La maggior parte degli strumenti di testing esistenti verifica se un'API *funziona correttamente*, non se è *sicura*: un problema di *sintassi* più che di *semantica dei contratti*.
+La maggior parte degli strumenti di testing esistenti verifica se un'API *funziona correttamente* (conformità funzionale), non se è *sicura*: un problema di *sintassi* più che di *semantica dei contratti*.
 Questo lavoro nasce in questo *spazio poco esplorato*, con una valutazione che guarda sia al **gateway** che alla **logica applicativa** dietro di esso.
 
 # Speech — Slide 03: Gaps
