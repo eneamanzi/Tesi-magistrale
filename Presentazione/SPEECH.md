@@ -4,114 +4,115 @@ Buongiorno a tutti. Sono Enea Manzi e oggi vi presento il mio lavoro di tesi mag
 
 # Speech — Slide 02: Contesto
 
-Le architetture a **microservizi** cloud-native distribuiscono la complessità su un numero crescente di *servizi autonomi* che comunicano tramite **API REST**, con una *proliferazione di endpoint* spesso priva di una vera governance.
-Per gestirla è nato il **gateway API**, *punto unico* che centralizza le *policy di sicurezza* invece di verificarle singolarmente su ogni servizio.
+Le architetture a **microservizi** cloud-native distribuiscono la complessità su un numero crescente di *servizi autonomi* che comunicano tramite **API REST**, portando a una *proliferazione di endpoint* spesso priva di una *vera governance*.
+Per gestire questa complessità è nato il **gateway API**, un *punto unico* che *centralizza* le *policy di sicurezza* e la *gestione delle API* esposte.
 
-La maggior parte degli strumenti di testing esistenti verifica se un'API *funziona correttamente* (conformità funzionale), non se è *sicura*: un problema di *sintassi* più che di *semantica dei contratti*.
-Questo lavoro nasce in questo *spazio poco esplorato*, con una valutazione che guarda sia al **gateway** che alla **logica applicativa** dietro di esso.
+Tuttavia, la maggior parte degli strumenti di testing odierni sono *sbilanciati*: verificano se un'API *funziona correttamente* (conformità funzionale), ma non la sua vera **sicurezza**. 
+Si fermano alla pura *sintassi* delle richieste, trascurando la *semantica dei contratti*.
+Questo lavoro si inserisce in questo *spazio poco esplorato*, proponendo una valutazione che copra sia il **gateway** che la **logica applicativa** sottostante.
 
 # Speech — Slide 03: Gaps
 
-**G1** è la **cecità semantica**: i tool di assessment generici osservano la *sintassi* delle richieste, non la *semantica*, e una richiesta sintatticamente perfetta, per esempio chiedendo una risorsa con un ruolo che non dovrebbe vederla, può violare le *regole di accesso del sistema*.
-Manca la *conoscenza del comportamento atteso* dietro ogni interazione, la stessa che servirà più avanti per costruire gli **specified oracles**.
+**G1** è la **cecità semantica**. I tool di assessment attuali si fermano principalmente alla *sintassi* del contratto. 
+Tuttavia, una richiesta *sintatticamente ineccepibile* può benissimo richiedere l'accesso a un *dato non autorizzato*, **violando le regole semantiche** del sistema.
+A questi strumenti *manca la conoscenza del comportamento atteso*.
 
-**G2** riguarda il compromesso tra **profondità e portabilità**: gli strumenti **specifici** per un gateway o una piattaforma vanno in *profondità solo in quel contesto*, quelli **generici** restano *superficiali per l'assenza di conoscenze mirate*.
+**G2** riguarda il compromesso tra **profondità e portabilità**: 
+da un lato abbiamo strumenti **specifici** ma ancorati a una *singola piattaforma*; dall'altro, strumenti **generici** che funzionano ovunque, ma restano *inevitabilmente superficiali* per l'*assenza di conoscenze mirate*.
 
-**G3** riguarda la **riproducibilità**: in un *ciclo di sviluppo continuativo*, dove il sistema cambia continuamente, solo verifiche *ripetibili con esattezza* permettono al tool di restare al passo con i cambiamenti senza perdere il controllo sul risultato.
+**G3** riguarda la **riproducibilità**: in un *ciclo di sviluppo continuativo*, dove il sistema cambia continuamente, solo verifiche *ripetibili con esattezza* consentono *automazione e confronti affidabili*
 
-**G4** è il **problema dell'oracolo**: generare *automaticamente delle richieste* verso un sistema è un compito che la letteratura ha già affrontato con buoni risultati, mentre stabilire se quello che si osserva viola una *garanzia di sicurezza* richiede un criterio che la specifica da sola non può fornire, perché dipende dalla *conoscenza del dominio* del controllo specifico.
+Infine, **G4** è il **problema dell'oracolo**. 
+Mentre generare *automaticamente delle richieste* è un compito che la letteratura ha già affrontato con buoni risultati, stabilire se il *comportamento osservato violi* una *garanzia di sicurezza* è ancora una sfida. 
+Questo richiede un criterio che la *specifica da sola non può fornire*, proprio perché dipende dalla **conoscenza del dominio del controllo specifico**.
 
 # Speech — Slide 04: Obiettivi
 
-Da queste quattro lacune nascono quattro obiettivi speculari, anche se il primo e il quarto pesano più degli altri nell'impianto di questo lavoro.
+Da queste quattro lacune nascono quattro obiettivi speculari, con il primo e il quarto che rappresentano i veri pilastri di questo lavoro.
 
-Il primo obiettivo è progettare un tool **contract-driven** e **agnostico**: la specifica **OpenAPI** fornisce il fondamento contrattuale per costruire *probe sintatticamente valide*, mentre il file di **configurazione** porta la *conoscenza* concreta del *deployment*, come i *parametri e le configurazioni dei test*.
+Il primo obiettivo è progettare un tool che sia **contract-driven** e **totalmente agnostico**, capace cioè di *testare qualsiasi API REST*, esposta tramite *gateway o meno*, **senza dover scrivere codice specifico** per il target. 
 
-O2 è restare **generici senza perdere profondità**: con un'adeguata *astrazione* è possibile mantenere verifiche approfondite pur restando *applicabili a qualsiasi sistema.*
+Il secondo è riuscire a **restare generici senza perdere profondità**: vogliamo un'*astrazione* che mantenga le *verifiche rigorose* pur *adattandosi a sistemi diversi*.
 
-O3 è il **determinismo** dell'output a *parità di configurazione e target*, condizione necessaria per l'integrazione nei *cicli di sviluppo continuativo*.
+Il terzo è garantire il **determinismo** dell'output a *parità di condizioni*, un requisito fondamentale se vogliamo che il tool sia *integrabile nei cicli di sviluppo continuativo*.
 
-Il quarto obiettivo è, insieme al primo, quello su cui questo lavoro investe maggiormente: dimostrare che per ogni *verifica di sicurezza* è possibile ricavare un **criterio di valutazione** dalla *conoscenza del dominio* del controllo specifico, e *codificarlo* nella logica del test.
+Infine, il quarto obiettivo: **superare l'interpretazione manuale**.
+Vogliamo dimostrare che per ogni *verifica di sicurezza* è possibile ricavare un **criterio di valutazione** oggettivo dalla *conoscenza del dominio* di ogni controllo, *codificandolo* direttamente nella logica del test.
 
 Vediamo ora come questi obiettivi prendono forma concreta.
 
 # Speech — Slide 05: Agnosticismo applicativo e contract-driven
 
-Il primo principio è l'**agnosticismo applicativo**: le uniche due sorgenti di conoscenza del target a runtime sono la specifica **OpenAPI** e un file di **configurazione**, e proprio per questo nel codice non c'è nulla di *hardcoded* e il tool è deployabile su *qualsiasi API REST documentata* senza modificare una riga.
+Il primo principio fondante è l'**agnosticismo applicativo**. 
+Per ottenerlo, abbiamo *estratto tutta la conoscenza del target dal codice sorgente*, *confinandola a due sole risorse* lette a runtime: la **specifica OpenAPI** e un **file di configurazione**, che fornisce i *parametri* e i *dettagli di deployment* specifici per il target.
+In questo modo non c'è *nulla di hardcoded* e il tool è quindi deployabile su *qualsiasi API REST documentata* senza modificare una singola riga.
 
-A questo si affianca il paradigma **contract-driven**, che la specifica OpenAPI realizza in **tre modi**: guida la costruzione di probe *sintatticamente valide* invece di payload che si fermano a un errore di formato, spostando l'osservazione dalla *sintassi* alla *logica applicativa*; delimita la **superficie di attacco** al perimetro degli endpoint documentati; e fornisce un primo **criterio di valutazione** strutturale, anche se la profondità *semantica* vera nasce solo combinandolo con la *conoscenza del dominio*.
+A questo si unisce il paradigma **contract-driven**. 
+La specifica OpenAPI non è solo un documento, ma diventa il *motore del nostro strumento* in tre modi:
+Primo, guida la costruzione di **probe sintatticamente valide**, permettendoci di superare i banali errori di formato e spostare l'osservazione *dalla sintassi* alla vera *logica applicativa*.
+Secondo, *delimita* chirurgicamente la **superficie di attacco** ai soli endpoint esposti.
+Terzo, fornisce un primo **criterio di valutazione strutturale**, anche se la profondità *semantica* vera nasce solo combinandolo con la *conoscenza del dominio*.
 
 # Speech — Slide 06: Specified oracles
 
-Abbiamo visto che la OAS da sola garantisce solo una validità *strutturale*.
-Per giudicare se un *comportamento osservato* viola davvero una *garanzia di sicurezza* serve qualcosa in più: è il **problema dell'oracolo**.
-Generare richieste verso un sistema è un problema maturo in letteratura, ma *giudicarne la correttezza* resta molto più aperto, ed è esattamente lo spazio in cui entrano gli **specified oracles**.
+In letteratura, mentre la *generazione delle richieste* è un ambito di ricerca maturo, *la valutazione* della **correttezza del comportamento osservato** resta un problema aperto, noto come **problema dell'oracolo**.
+Come abbiamo visto, fermarsi alla sola *specifica OpenAPI* garantisce unicamente una *validità strutturale*. 
+Per fare il salto di qualità e individuare le reali *violazioni di sicurezza*, abbiamo quindi affrontato questo ostacolo applicando il concetto di **specified oracles**.
 
-Il tool codifica per ogni test un **criterio definito a priori**, ricavato dalla *conoscenza del dominio* del controllo specifico.
-Le fonti sono eterogenee: a volte lo **schema della specifica**, per esempio il tipo e i campi attesi in una risposta; a volte **standard tecnici pubblicati**, come le linee guida **NIST** sul TLS; a volte un **confronto ad-hoc** per quel controllo, come osservare le risposte ottenute con credenziali di ruolo diverso.
+Il tool definisce per ogni test un **criterio a priori** basato sulla *conoscenza del dominio* del controllo specifico, permettendogli di generare un **verdetto in autonomia**.
+Poiché questo *metro di giudizio è fisso*, a *parità di condizioni il risultato sarà sempre identico*, fondando il principio di **riproducibilità** di cui parleremo a breve.
 
-Il risultato è che ogni test produce un **verdetto in autonomia**, senza interpretazione manuale, perché il *criterio con cui giudica è fisso*: lo *stesso sistema*, interrogato nella *stessa configurazione*, produce quindi sempre lo *stesso verdetto*, ed è questa proprietà a fondare la **riproducibilità** di cui parleremo più avanti.
+Le fonti sono eterogenee: a volte lo **schema della specifica**, per esempio il *tipo e i campi attesi* in una risposta; 
+a volte **standard tecnici pubblicati**, come le linee guida **NIST** sul TLS; 
+a volte un **confronto ad-hoc** per quel controllo, come osservare le risposte ottenute con *credenziali di ruolo diverso*.
 
 # Speech — Slide 07: Tassonomia e box gradient
 
-Costruire i test ha richiesto uno studio a fondo dell'*intera categoria* delle **API REST esposte tramite gateway**, che ha condotto alla realizzazione di una **tassonomia di otto domini** di sicurezza.
+Costruire i test ha richiesto uno *studio approfondito* dell'*intera categoria* delle **API REST esposte tramite gateway**, che ha condotto alla realizzazione di una **tassonomia di otto domini** di sicurezza.
 
-I primi tre domini seguono una **catena di precondizioni logiche**: non ha senso verificare se un utente può accedere a una risorsa, l'*autorizzazione* (D2), se non si sa già che l'*autenticazione* (D1) funziona, né verificare l'autenticazione senza conoscere prima quali endpoint esistono, la *superficie di attacco* (D0).
-Gli altri domini coprono l'*integrità dei dati* (D3), la *disponibilità* (D4), l'*osservabilità* (D5), la *configurazione del gateway* (D6), e le falle di *logica applicativa* più complesse come SSRF e race condition (D7).
-In totale, **18 test** sono già **implementati** e altri **14** pianificati come sviluppi futuri.
+I primi tre seguono una precisa **catena di precondizioni logiche**: non ha senso verificare l'*autorizzazione* (un utente può svolgere un'azione) (**D2**) se l'*autenticazione* (**D1**) non funziona, ed è *impossibile testare l'autenticazione* senza conoscere prima quali endpoint esistono, la *superficie di attacco* (**D0**).
+I restanti cinque domini completano lo *spettro di sicurezza*, spaziando dall'*integrità dei dati* (D3), alla *disponibilità* (D4) fino alla falle di *logica applicativa* (D7) più complesse come SSRF
+Ad oggi, su questi otto domini contiamo **18 test già implementati** e *14 pianificati.*
 
-Ogni test dichiara anche il proprio *livello di accesso necessario*: il **box gradient**; dal **Black Box** senza credenziali per i *controlli perimetrali*, al **Grey Box** con token validi per almeno *due ruoli* per le verifiche di *autorizzazione* (RBAC e BOLA), fino al **White Box** con accesso diretto all'**Admin API** del gateway.
-Non è una scelta arbitraria: *riflette ciò che ogni garanzia richiede per essere verificata*.
+Infine, per ogni test abbiamo definito il **box gradient**, ovvero il *livello di accesso necessario*: dal **Black Box** per i controlli *perimetrali*, al **Grey Box** con *token e credenziali valide*, fino al **White Box** con accesso diretto all'*Admin API* del gateway. 
+Non è una scelta arbitraria, ma riflette esattamente le *precondizioni* che ogni specifica *garanzia richiede per essere verificata*.
 
 # Speech — Slide 08: Pipeline di esecuzione e riproducibilità
 
-Le prime **quattro** fasi, in rosso, sono **bloccanti**: un errore interrompe l'avvio prima che un solo test venga eseguito.
-Si parte dalla lettura del file di **configurazione**, si passa poi allo scaricamento e validazione della specifica **OpenAPI**, si costruiscono i due **contesti** necessari all'esecuzione (uno *fisso*, con la conoscenza del target, e uno *mutabile*, che accumula lo stato durante l'esecuzione), e infine, in **Fase 4**, il *discovery dinamico* dei test scopre tutti quelli disponibili e il **DAG** costruisce il **grafo delle dipendenze**: il suo *ordine topologico* assicura che ogni test venga eseguito solo *dopo i suoi prerequisiti*, e per i test allo stesso livello, senza dipendenze reciproche, è un **ordinamento lessicografico** sul nome a stabilire l'*ordine totale*.
+Le prime **quattro** fasi, in rosso, sono **bloccanti**: un errore qui ferma tutto prima di lanciare qualsiasi test.
+Si parte dalla *lettura* del file di **configurazione**,
+per poi passare allo *scaricamento e validazione* della specifica **OpenAPI**.
+Nella fase 3 si costruiscono i due **contesti** necessari all'esecuzione (uno *fisso* con la conoscenza del target, e uno *mutabile* per la consocenza a runtime).
+Infine, la **Fase** 4 **scopre i test dinamicamente** e costruisce il **grafo delle dipendenze**: l'*ordine topologico* garantisce che ogni test attenda i suoi *prerequisiti*; per i test senza dipendenze reciproche vengono poi *ordinati lessicograficamente* sul nome, producendo un *ordine totale* che garantisce *determinismo*
 
-(sono questi due elementi, insieme agli *specified oracles fissi* e al *file di configurazione*, a garantire **riproducibilità e determinismo**).
+Le ultime **tre fasi**, in verde, sono invece **non bloccanti**: un errore viene *isolato* per far *proseguire comunque la pipeline*.
+Si **eseguono i test** nell'ordine stabilito dal grafo, si fa il **teardown** delle risorse create in *ordine inverso*, e si genera il **report** finale. 
 
-Le ultime **tre**, in verde, sono invece **non bloccanti**: un errore qui viene isolato, e la *pipeline prosegue comunque.*
-Si **eseguono i test** nell'ordine stabilito dal grafo, si fa il **teardown** delle risorse create durante i test nell'ordine esattamente *opposto* a come sono state create, e infine si genera il **report** finale.
-
-Il risultato si traduce in quattro **exit code**, che distinguono il *fallimento del target* (**1**) da un *malfunzionamento del tool* (**2**) o da un *errore infrastrutturale* (**10**), permettendo a una pipeline **CI/CD** di reagire automaticamente senza analizzare i log.
-
--> malfunzionamento del tool -> errori imrpevisit ma gestiti
--> infrastrutturale tipo mancanza OAS o parametri test
+Tutto questo si traduce in quattro **exit code semantici**, che distinguono il *fallimento del target* (1), da un *malfunzionamento imprevisto del tool* (2), o da *errori infrastrutturali*, come la mancanza dell'OpenAPI spec (10). 
+Questo permette a una **pipeline CI/CD** di *reagire automaticamente*
 
 # Speech — Slide 09: Validazione sperimentale
 
-La validazione è stata condotta su **Forgejo 14.0.3**, esposto tramite **Kong 3.9** in modalità **DB-less**, in un ambiente *Docker* in cloud.
-È stato scelto per le sue *proprietà strutturali*: una *specifica OpenAPI* nativa e un'*autenticazione* reale con più livelli di privilegio, *senza* che il codice del tool *contenga alcun riferimento a Forgejo*, conferma pratica dell'**agnosticismo applicativo** dichiarato.
+La validazione è stata condotta contro *Forgejo*, esposto tramite *Kong* DB-less.
+Abbiamo scelto il target *applicativo di test* per le sue **proprietà strutturali** in quanto offre una *specifica OpenAPI nativa* e gestisce veri *livelli di privilegio*.
+Poiché nel codice del tool *non c'è alcun riferimento esplicito a Forgejo*, si dimostra empiricamente l'**agnosticismo applicativo**.
 
-Due run *indipendenti* hanno prodotto risultati **byte-identici**, confermando empiricamente il **determinismo**.
-Il **testbed** è stato costruito *deliberatamente* con configurazioni pensate per generare sia *esiti positivi che negativi attesi*, producendo **9 PASS** e **7 FAIL** distinti correttamente dal tool.
+Il **determinismo** è stato confermato eseguendo *run indipendenti* che hanno restituito risultati **byte-identici**.
+Il **testbed** è stato *configurato deliberatamente* per presentare sia *successi* che *vulnerabilità attese*, e il tool li ha *distinti correttamente* producendo **9 PASS e 7 FAIL**.
 
 C'è poi un dato ancora più significativo: Forgejo dichiara nella sua specifica un'*autenticazione globale*, ma alcuni endpoint sono *genuinamente pubblici per progettazione* e rispondono correttamente anche *senza credenziali*.
 È esattamente la classe di anomalia che il **contract-driven testing** è pensato per individuare, un *disallineamento* tra quello che il **contratto promette** e quello che il **sistema fa** davvero.
 
-# Speech — Slide 10: Conclusioni
+# Speech — Slide 10: Conclusioni e Sviluppi Futuri
 
-Questo lavoro *non risolve il testing della sicurezza delle API REST*: è un settore ancora *troppo giovane* per parlare di *soluzioni definitive*.
-Quello che presento sono **contributi concreti**, *verificati empiricamente su un caso reale*.
+In sintesi, questo lavoro ha costruito una **tassonomia per la security assurance**, definito gli **specified oracles** come *criterio di valutazione*, e *orchestrato* tutto con un **motore deterministico**;
+si ottiene quindi un tool **agnostico** (O1), **portabile** (O2) e **riproducibile** (O3) con **oracoli fissi** (O4). 
 
-Sul piano **metodologico** c'è la **tassonomia a otto domini**, *applicabile indipendentemente dagli strumenti*, e la *metodologia sistematica* per gli **specified oracles**; 
-sul piano **ingegneristico**, l'**assessment engine basato sul DAG**, che garantisce un *ordinamento assoluto* dei test (determinismo).
+Restano quindi alcuni sviluppi futuri: 
+il completamento dei **domini parziali**, con nuovi *test e connector*, e *adapter* per i *gateway cloud managed*; 
+e due **direzioni di ricerca** più ampie, l'estensione a piattaforma modulare per *protocolli eterogenei* come gRPC e GraphQL (dove cambia il contratto formale),
+e soprattutto continuare la **formalizzazione degli oracoli di sicurezza**, un problema di *ricerca ancora aperto* a cui questo lavoro fornisce un *contributo*
 
-Un **penetration testing tradizionale** produce un'**osservazione puntuale**, legata a un *operatore e a un momento specifico*.
-Questo lavoro produce invece risultati **deterministicamente identici** a ogni riesecuzione, *verificabili da chiunque*.
-**Da osservazione puntuale a garanzia misurabile.**
-
-# Speech — Slide 11: Sviluppi futuri
-
-Ogni approccio *contract-driven* ha un **limite intrinseco**: dipende dalla *qualità della specifica OpenAPI* del target, e un contratto *incompleto o disallineato* produce un assessment parziale senza che il sistema possa accorgersene.
-
-Restano due fronti aperti. 
-Il primo è un'**estensione operativa**: completare i domini *parzialmente coperti* e i relativi connector, ed estendere il supporto ai **gateway cloud managed** come *AWS o Azure*, che esponendo solo *API proprietarie* limitano oggi la copertura a Black Box e Grey Box.
-(kong è un gateway api dedicato invece)
-
-Gli altri due sono **direzioni di ricerca**: una **piattaforma modulare** per *protocolli eterogenei* come *gRPC e GraphQL*, dove il *contratto formale non sarebbe più la specifica OpenAPI* ma uno schema diverso, 
-e la **formalizzazione degli oracoli di sicurezza**, un problema di ricerca *ancora aperto* a cui questo lavoro fornisce un *contributo*.
-
-# Speech — Slide 12: Ringraziamenti
+# Speech — Slide 11: Ringraziamenti
 
 Vi *ringrazio per l'attenzione* e rimango a vostra disposizione per eventuali domande e chiarimenti.
