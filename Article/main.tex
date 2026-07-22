@@ -242,16 +242,6 @@ None of these failures is visible to an assessment conducted one level below, on
 NIST SP~800-228 formalises the same limit for cloud-native APIs, observing that payload-level defences cannot operate at the semantic level of the interface, and prescribing a formal specification with declared request and response schemas as a precondition for any automated verification~\cite{chandramouliGuidelinesAPIProtection2026}.
 
 The assurance problem we address is therefore the following: given a service of this kind, described by an OpenAPI specification and exposed through a gateway, decide automatically and reproducibly whether the security guarantees its contract declares are actually enforced.
-Figure~\ref{fig:architecture} shows the resulting architecture, whose components are described in Section~\ref{sec:method}.
-
-\begin{figure}[t]
-  \centering
-  %% SOURCE: Tesi/assets/figures/3-architettura-apiguard.tex — reuse, simplify
-  %% the module labels for a single-column CEUR page.
-  \fbox{\parbox{0.9\textwidth}{\centering\vspace{3em}FIGURE PLACEHOLDER\vspace{3em}}}
-  \caption{Architecture of the assessment process: the OpenAPI specification and the configuration file are the only sources of target knowledge; the engine schedules and executes the checks against the service exposed through the gateway, and emits a machine-actionable report.}
-  \label{fig:architecture}
-\end{figure}
 
 
 
@@ -279,33 +269,33 @@ This is the property that turns an assessment from a single observation into a c
 
 \subsection{An Eight-Domain Assurance Taxonomy}
 
-Security guarantees are organised in eight domains, reported in Table~\ref{tab:domains}.
+Security guarantees are organised in eight domains, reported in Table~\ref{tab:domains}, aligned with the risk categories and runtime controls that NIST SP~800-228 identifies for cloud-native APIs~\cite{chandramouliGuidelinesAPIProtection2026}.
 The taxonomy is independent of any implementation: it partitions the security surface of an API exposed through a gateway into semantically distinct categories, each with its own evaluation criteria and priorities, and it is applicable to any structured assessment regardless of the tooling employed.
-
-The first three domains form a chain of preconditions.
-Verifying authorization (D2) without having established that authentication works (D1) collects evidence about a system whose behaviour under compromised authentication is unknown, and verifying authentication without knowing the attack surface (D0) leaves that evidence incomplete.
-Domains D3--D7 belong to distinct semantic families with no mutual ordering constraint.
-Domain D5 (Observability) is architecturally provisioned but carries no active checks in the implementation evaluated here; its numbering is reserved to preserve the coherence of the sequence.
 
 \begin{table}
   \caption{The eight assurance domains.}
   \label{tab:domains}
   %% SOURCE: Tesi/assets/tables/3-domini.tex — translate, shorten the scope column.
-  \begin{tabular}{cll}
+  \begin{tabular}{p{0.08\textwidth} p{0.22\textwidth} p{0.58\textwidth}}
     \toprule
-    \textbf{Domain} & \textbf{Title}                    & \textbf{Scope of verification}                                                                      \\
+    \textbf{Domain} & \textbf{Title}                    & \textbf{Scope of verification}                                                                    \\
     \midrule
-    D0              & API Discovery                     & Inventory of exposed endpoints; detection of shadow APIs not documented in the specification.       \\
-    D1              & Identity \& Authentication        & Caller recognition mechanisms; robustness of credential transport; token life cycle and revocation. \\
-    D2              & Authorization                     & Access control logic; horizontal and vertical segregation defects (RBAC, BOLA).                     \\
-    D3              & Data Integrity                    & Structural coherence of payloads; implementation of cryptographic signatures.                       \\
-    D4              & Availability \& Resilience        & Defences against resource exhaustion; audit of circuit breakers and rate-limiting thresholds.       \\
-    D5              & Observability                     & Quality and timeliness of the telemetry the system produces.                                        \\
-    D6              & Configuration \& Hardening        & Hardening of the gateway configuration; routing policies; HTTP security headers.                    \\
-    D7              & Business Logic \& Sensitive Flows & Complex semantic flaws: process constraint evasion, SSRF, race conditions on critical operations.   \\
+    D0              & API Discovery                     & Inventory of exposed endpoints; detection of shadow APIs not documented in the specification.     \\
+    D1              & Identity \& Authentication        & Caller recognition mechanisms; robustness of credential transport; JWT life cycle and revocation. \\
+    D2              & Authorization                     & Access control logic; horizontal and vertical segregation defects (RBAC, BOLA).                   \\
+    D3              & Data Integrity                    & Structural coherence of payloads; implementation of cryptographic signatures (HMAC).              \\
+    D4              & Availability \& Resilience        & Defences against resource exhaustion; audit of circuit breakers and rate-limiting thresholds.     \\
+    D5              & Observability                     & Quality and timeliness of the telemetry the system produces.                                      \\
+    D6              & Configuration \& Hardening        & Hardening of the gateway configuration; routing policies; HTTP security headers.                  \\
+    D7              & Business Logic \& Sensitive Flows & Complex semantic flaws: process constraint evasion, SSRF, race conditions on critical operations. \\
     \bottomrule
   \end{tabular}
 \end{table}
+
+The first three domains form a chain of preconditions.
+Verifying authorization (D2) without having established that authentication works (D1) collects evidence about a system whose behaviour under compromised authentication is unknown, and verifying authentication without knowing the attack surface (D0) leaves that evidence incomplete.
+Domains D3--D7 belong to distinct semantic families with no mutual ordering constraint.
+Domain D5 (Observability) is architecturally provisioned but carries no active tests in the implementation evaluated here; its numbering is reserved to preserve the coherence of the sequence.
 
 \subsection{Specified Oracles for Security Guarantees}
 \label{sec:oracles}
@@ -313,24 +303,24 @@ Domain D5 (Observability) is architecturally provisioned but carries no active c
 Generating inputs automatically is a largely solved problem; deciding whether the observed behaviour is correct is the structural bottleneck of test automation.
 Barr et al. formalise a test oracle as a partial function $D: T_A \to \mathbb{B}$ mapping a sequence of activities to a verdict, and distribute automation techniques over four categories: \emph{specified} oracles, derived from formal specifications; \emph{derived} oracles, inferred from artefacts such as previous executions; \emph{implicit} oracles, covering universal anomalies such as crashes; and \emph{no-oracle} strategies~\cite{barrOracleProblemSoftware2015}.
 
-We adopt \emph{specified oracles} defined a~priori for every individual check and derived from the domain knowledge of the security control being exercised.
-The methodological procedure is uniform: the class of verification is analysed, the relevant failure conditions are identified, and the criterion is encoded in the logic of the corresponding check.
+We adopt \emph{specified oracles} defined a~priori for every individual test and derived from the domain knowledge of the security control being exercised.
+The methodological procedure is uniform: the class of verification is analysed, the relevant failure conditions are identified, and the criterion is encoded in the logic of the corresponding test.
 What varies is the source from which the criterion is drawn, and that source is determined by the control, not by the target.
-Table~\ref{tab:oracles} maps the classes of guarantee we cover to their respective sources.
+Table~\ref{tab:oracles} illustrates this mapping with representative tests drawn from across the eight domains; the same procedure applies uniformly to every test in the suite.
 
 \begin{table}
   \caption{Sources of the evaluation criterion, by class of guarantee.}
   \label{tab:oracles}
-  \begin{tabular}{lll}
+  \begin{tabular}{p{0.20\textwidth} p{0.33\textwidth} p{0.39\textwidth}}
     \toprule
-    \textbf{Class of guarantee}     & \textbf{Source of the criterion}                                             & \textbf{Verdict rule (example)}                                                                        \\
+    \textbf{Class of guarantee}     & \textbf{Source of the criterion}                                             & \textbf{Verdict rule (example)}                                                                              \\
     \midrule
-    Attack-surface conformance      & Set difference between responding and documented endpoints                   & an endpoint that responds without being declared is a shadow API                                       \\
-    Response structural conformance & Contractual schema declared in the specification                             & a field absent from the declared response schema is a violation                                        \\
-    Protocol-level requirements     & Published technical standards                                                & a deprecated endpoint returning neither \texttt{410 Gone} nor a \texttt{Sunset} header is a violation  \\
-    Authentication enforcement      & \texttt{security} markers of the specification, plus credential-less probing & a \texttt{2xx} response to an unauthenticated request on an endpoint declared as protected is a bypass \\
-    Authorization                   & Comparison of responses obtained with credentials of distinct roles          & a resource of one role readable with the credentials of another is a violation                         \\
-    Infrastructural guarantees      & Direct inspection of the gateway configuration plane                         & the absence of an active rate-limiting policy is a violation                                           \\
+    Attack-surface conformance      & Set difference between responding and documented endpoints                   & an endpoint that responds without being declared is a shadow API                                             \\
+    Response structural conformance & Contractual schema declared in the specification                             & a field present in the response but absent from the declared schema is a violation                           \\
+    Protocol-level requirements     & Published technical standards                                                & a deprecated endpoint returning neither \texttt{410 Gone} nor a \texttt{Sunset} header is a violation        \\
+    Authentication enforcement      & \texttt{security} markers of the specification, plus credential-less probing & a \texttt{2xx} response to an unauthenticated request on an endpoint declared as protected is a bypass       \\
+    Authorization                   & Comparison of responses obtained with credentials of distinct roles          & a resource of one role readable with the credentials of another is a violation                               \\
+    Infrastructural guarantees      & Direct inspection of the gateway configuration plane                         & the absence of a required security header (e.g. HSTS) in the gateway's declared configuration is a violation \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -348,29 +338,32 @@ We return to this limit in Section~\ref{sec:threats}, and Section~\ref{sec:discr
 
 \subsection{Privilege-Aware Coverage}
 
-Some guarantees are physically unreachable without a specific level of privilege, and that inaccessibility -- not a retroactive label -- is what determines the visibility level of a check.
-Perimeter controls that the gateway applies to any interlocutor presuppose no knowledge of the internal infrastructure, and executing them without credentials is the only way to obtain evidence uncontaminated by implicit privileges: these are \texttt{BLACK\_BOX} checks, requiring network access alone.
-An RBAC authorization control requires the system to be in an authenticated state under at least two distinct role identities, because the defect emerges only from comparing what two identities obtain on the same resource: these are \texttt{GREY\_BOX} checks.
-Guarantees that reside in the static configuration of the gateway are verifiable only by direct inspection of its control plane, since no response on the exposed endpoints carries that information: these are \texttt{WHITE\_BOX} checks.
+Some guarantees are physically unreachable without a specific level of privilege, and that inaccessibility -- not a retroactive label -- is what determines the visibility level of a test.
+Perimeter controls that the gateway applies to any interlocutor presuppose no knowledge of the internal infrastructure, and executing them without credentials is the only way to obtain evidence uncontaminated by implicit privileges: these are \texttt{BLACK\_BOX} tests, requiring network access alone.
+An RBAC authorization control requires the system to be in an authenticated state under at least two distinct role identities, because the defect emerges only from comparing what two identities obtain on the same resource: these are \texttt{GREY\_BOX} tests.
+Guarantees that reside in the static configuration of the gateway are verifiable only by direct inspection of its control plane, since no response on the exposed endpoints carries that information: these are \texttt{WHITE\_BOX} tests.
 
-Each check declares its strategy as fixed metadata, so assessment depth adapts to the preconditions actually available in a given organisational context without requiring different versions of the tool: the variation lives in the configuration file, not in a mode switch.
+Each test declares its strategy as fixed metadata, so assessment depth adapts to the preconditions actually available in a given organisational context without requiring different versions of the tool: the variation lives in the configuration file, not in a mode switch.
 
 \subsection{Deterministic Assessment Engine}
 
 The assessment unfolds in seven sequential phases with differentiated error semantics.
-The first four -- initialisation, retrieval and validation of the OpenAPI specification, construction of the execution contexts, and discovery and scheduling of the checks -- are blocking: a failure there halts the process before any check runs.
-The last three -- execution, teardown, and reporting -- are non-blocking: an error is isolated as a structured result and the process continues.
+The first four are blocking: initialisation, which validates the configuration and resolves credentials; retrieval and validation of the OpenAPI specification, which builds the map of exposed endpoints; construction of the execution contexts, which assembles the immutable target knowledge and the mutable runtime state; and discovery and scheduling of the tests, which resolves declared dependencies into an execution order.
+A failure in any of these four halts the process before any test runs.
+The last three are non-blocking: execution, which runs each test in the scheduled order; teardown, which reverses the resources any test created in last-in-first-out order; and reporting, which aggregates outcomes into machine-readable artefacts.
+An error in any of them is isolated as a structured result, and the process continues.
 
-Checks declare their dependencies explicitly, and a scheduler resolves them topologically into batches, each grouping the checks whose prerequisites were satisfied in the preceding batches.
-The problem this structure solves is not ordering but semantic correctness: a check that verifies token revocation presupposes that authentication has already produced a valid token, and without a declared dependency that precondition holds only by accident of scheduling.
-Cycles are detected statically, before any check runs, and a stall guard reports the exact set of checks that could never be scheduled rather than a generic failure.
+Tests declare their dependencies explicitly, and a scheduler resolves them topologically into batches, each grouping the tests whose prerequisites were satisfied in the preceding batches.
+This structure does more than establish an order: its purpose is semantic correctness.
+A test that verifies token revocation presupposes that authentication has already been confirmed and a valid token acquired, and without a declared dependency the test's outcome would depend on execution order rather than on the target's actual behaviour.
+Cycles in the declared dependencies are detected statically, before any test runs, and block the assessment before it starts.
+A separate stall guard protects against a rarer failure mode: even in an acyclic graph, the scheduler can reach a state where tests remain but none of them is ready; when this happens, the guard reports the exact set of tests that could never be scheduled, rather than failing with a generic error.
 
-Determinism is obtained by the conjunction of four mechanisms: a configuration that fixes every decisional parameter, so that the process has no endogenous sources of variation; a topological resolution that always produces the same batch sequence; a lexicographic ordering of the checks within each batch, which is the only source of a total order among checks that are ready at the same level; and the fixed oracles of Section~\ref{sec:oracles}.
-Timestamps and record identifiers vary by nature; what must be invariant are the aggregate counters, the per-check verdicts, and the distribution of findings across domains.
+Determinism is obtained by the conjunction of four mechanisms: a configuration that fixes every decisional parameter, so that the process has no endogenous sources of variation; a topological resolution that always produces the same batch sequence; a lexicographic ordering of the tests within each batch, which is the only source of a total order among tests that are ready at the same level; and the fixed oracles of Section~\ref{sec:oracles}.
+Timestamps and record identifiers vary by nature; what must be invariant are the aggregate counters, the per-test verdicts, and the distribution of findings across domains.
 
-Finally, the process terminates with one of four semantically distinct exit codes: \texttt{0} when every active check passed or was skipped; \texttt{1} when at least one violation was detected; \texttt{2} when no violation was detected but at least one check malfunctioned; and \texttt{10} on an infrastructural error that prevented execution.
-Separating \texttt{1} from \texttt{10} has a precise operational value, because detecting a violation and failing to start the assessment demand radically different corrective actions; with distinct codes, that routing is automatable without reading logs.
-
+Finally, the process terminates with one of four semantically distinct exit codes: \texttt{0} when every active test passed or was skipped; \texttt{1} when at least one violation was detected; \texttt{2} when no violation was detected but at least one test produced an internal error; and \texttt{10} on an infrastructural error that prevented execution.
+Because the codes are semantically distinct, a CI/CD pipeline can route on the exit code alone, without parsing logs: a violation (\texttt{1}) calls for analysing and correcting the target, while an infrastructural error (\texttt{10}) calls for diagnosing the assessment's own deployment.
 
 %% ============================================================================
 \section{Experimental Evaluation}
@@ -379,13 +372,13 @@ Separating \texttt{1} from \texttt{10} has a precise operational value, because 
 
 \subsection{Testbed}
 
-The target environment was selected from the coverage matrix of the check suite: we needed an application with a natively generated OpenAPI specification rather than one reconstructed after the fact, endpoints protected by real authentication, at least two distinct privilege levels, parameterised endpoints with resolvable path values, and behaviour that remains stable across successive runs.
+The target environment was selected from the coverage matrix of the test suite: we needed an application with a natively generated OpenAPI specification rather than one reconstructed after the fact, endpoints protected by real authentication, at least two distinct privilege levels, parameterised endpoints with resolvable path values, and behaviour that remains stable across successive runs.
 Forgejo~14.0.3~\cite{forgejoContributors2026}, a self-hosted Git service exposing repositories, users, tokens, and webhooks through a documented REST API, satisfies all of them, and instantiates the repository service of the reference scenario of Section~3.
 
 Forgejo is exposed through Kong~3.9~\cite{kongGateway2026} in DB-less mode, with PostgreSQL~15-alpine as Forgejo's persistence backend; an ephemeral container provisions three accounts at first start -- an administrator and two ordinary users -- and terminates.
 All services run in a dedicated Docker network declared in a single Compose file, on a development host, without dedicated hardware.
 Figure~\ref{fig:testbed} shows the topology.
-Kong exposes three ports: plain HTTP for the redirect check, HTTPS with a locally generated self-signed certificate as the primary endpoint, and the Admin API supplying configuration data to the \texttt{WHITE\_BOX} checks.
+Kong exposes three ports: plain HTTP for the redirect test, HTTPS with a locally generated self-signed certificate as the primary endpoint, and the Admin API supplying configuration data to the \texttt{WHITE\_BOX} tests.
 DB-less mode matters for validation: the configuration lives entirely in a version-controlled file mounted read-only and cannot be altered at runtime, which guarantees that the gateway state is identical at every start.
 
 Because the implementation contains no reference to Forgejo, changing target means updating the configuration file -- gateway URL, specification path, path seeds, credentials -- not modifying code.
@@ -402,7 +395,7 @@ This is the concrete demonstration of the application agnosticism claimed in Sec
 \subsection{Experimental Design}
 
 Validating an assessment approach against a correctly configured environment would produce a suite of uniform successes: a tautological result that demonstrates nothing about the ability to detect real violations.
-The testbed is therefore configured so that some checks yield expected failures and others yield expected successes, and the combination constitutes a functionally complete bench on which the approach must distinguish the two.
+The testbed is therefore configured so that some tests yield expected failures and others yield expected successes, and the combination constitutes a functionally complete bench on which the approach must distinguish the two.
 
 Three conditions produce expected failures.
 Kong's rate-limiting plugin is disabled, a recurrent condition in non-production environments where throttling interferes with application testing.
@@ -412,39 +405,39 @@ Three conditions produce expected successes: a response transformer injects the 
 
 \subsection{Results}
 
-The suite comprises 18 active checks across seven domains, executed against the testbed.
-Table~\ref{tab:results} reports the per-check outcome.
+The suite comprises 18 active tests across seven domains, executed against the testbed.
+Table~\ref{tab:results} reports the per-test outcome.
 The assessment produced 9~\texttt{PASS}, 7~\texttt{FAIL}, 2~\texttt{SKIP}, 0~\texttt{ERROR}, and 98 findings, for a pass rate of 56.2\%.
 
 \begin{table}
-  \caption{Per-check results of the assessment.}
+  \caption{Per-test results of the assessment.}
   \label{tab:results}
   %% SOURCE: Tesi/assets/tables/5-risultati-per-test.tex — reuse.
   \begin{tabular}{llr}
     \toprule
-    \textbf{Check} & \textbf{Status} & \textbf{Findings} \\
+    \textbf{Test} & \textbf{Status} & \textbf{Findings} \\
     \midrule
-    TODO           & TODO            & TODO              \\
+    TODO          & TODO            & TODO              \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 The seven failures correspond one-to-one to the conditions configured in the testbed.
-Check~1.1 alone accounts for 74 of the 98 findings, a point we return to in Section~\ref{sec:discrepancy}; the remaining 24 are distributed over the discovery checks, the rate-limiting check, the SSRF check, and the two external TLS analysers, which detect one and three findings respectively on the self-signed certificate, confirming that the analysis discriminates individual weaknesses rather than collapsing them into a single verdict.
+Test~1.1 alone accounts for 74 of the 98 findings, a point we return to in Section~\ref{sec:discrepancy}; the remaining 24 are distributed over the discovery tests, the rate-limiting test, the SSRF test, and the two external TLS analysers, which detect one and three findings respectively on the self-signed certificate, confirming that the analysis discriminates individual weaknesses rather than collapsing them into a single verdict.
 
 The two skips illustrate the behaviour of the process in the absence of applicability conditions.
-Every check always produces a result: when the applicable scope is empty or a prerequisite is unmet, that result is a \texttt{SKIP} with an explicit reason, not a silent error.
-The specification of Forgejo declares no deprecated endpoint, so the deprecation check reports a documented skip; the testbed gateway manages no external session store, so the corresponding check does the same.
+Every test always produces a result: when the applicable scope is empty or a prerequisite is unmet, that result is a \texttt{SKIP} with an explicit reason, not a silent error.
+The specification of Forgejo declares no deprecated endpoint, so the deprecation test reports a documented skip; the testbed gateway manages no external session store, so the corresponding test does the same.
 In both cases a documented skip is the semantically correct answer, and is distinct from an \texttt{ERROR}, which would indicate a malfunction of the process itself.
 
-The nine successes cover the correctly applied configurations: absence of gateway fingerprinting, HTTP-to-HTTPS redirect, correct token revocation, authentication enforcement on the authenticated checks, upstream configuration, the data integrity and availability controls, and the external scanner, which detected no shadow API -- confirming that the surface documented by the specification matches the one actually exposed.
+The nine successes cover the correctly applied configurations: absence of gateway fingerprinting, HTTP-to-HTTPS redirect, correct token revocation, authentication enforcement on the authenticated tests, upstream configuration, the data integrity and availability controls, and the external scanner, which detected no shadow API -- confirming that the surface documented by the specification matches the one actually exposed.
 
 \subsection{A Discrepancy Between Contract and Behaviour}
 \label{sec:discrepancy}
 
-The most informative outcome of the assessment is check~1.1.
+The most informative outcome of the assessment is test~1.1.
 Forgejo declares an authentication requirement at the document level of its specification; the analyser propagates that marker to every endpoint and classifies them as requiring authentication.
-When the check interrogates them without credentials and receives \texttt{2xx}, the three-valued oracle classifies the outcome as \textsc{bypassed} and emits a finding, for a total of 74.
+When the test interrogates them without credentials and receives \texttt{2xx}, the three-valued oracle classifies the outcome as \textsc{bypassed} and emits a finding, for a total of 74.
 
 The verdict is contractually correct, and the behaviour it exposes is a genuine misalignment: the endpoints in question are public by design, but the published contract does not say so.
 This is precisely the class of anomaly that contract-driven assessment exists to detect, and its relevance in the reference scenario is direct.
@@ -455,7 +448,7 @@ The case also illustrates concretely the epistemic limit of Section~\ref{sec:ora
 
 The assessment was executed twice in sequence against the same testbed, with no manual intervention between the runs.
 Table~\ref{tab:kpi} reports the aggregate indicators.
-Finding counters, per-check statuses, exit code, and pass rate are byte-identical across the two runs: the deterministic part of the result exhibits no variation.
+Finding counters, per-test statuses, exit code, and pass rate are byte-identical across the two runs: the deterministic part of the result exhibits no variation.
 The wall-clock delta is 0.32\%, which falls within the expected fluctuation of HTTP latency towards the target and is not attributable to non-deterministic behaviour of the process.
 
 Teardown is the precondition of idempotence: without a complete cleanup of the resources created during the first execution, the second would encounter an altered state and produce different results.
@@ -464,7 +457,7 @@ Verification after each run confirmed that the teardown phase drained the LIFO r
 The execution profile qualifies operational integrability.
 Of approximately 290~seconds of wall-clock time, the process consumed about 35~seconds of CPU in user space and 41~seconds in kernel space: 26\% of the total.
 The remaining 214~seconds were spent waiting for HTTP responses, for the completion of external analysers, and for disk I/O.
-The regime is dominated by network latency, so optimising the implementation would have marginal impact; the significant reduction would come from parallelising the checks without mutual dependencies, which the batch structure already permits by construction.
+The regime is dominated by network latency, so optimising the implementation would have marginal impact; the significant reduction would come from parallelising the tests without mutual dependencies, which the batch structure already permits by construction.
 Peak memory of 287--295~MB and 4.5~MB of output are compatible with the constraints of typical CI/CD runners.
 
 \begin{table}
@@ -493,7 +486,7 @@ Four limits bound the scope of these results.
 First, the correctness of every verdict is conditional on the quality of the specification taken as the oracle: an incomplete contract reduces the observable surface without the process being able to detect the reduction, and a wrong contract grounds correct verdicts on wrong premises.
 Second, validation was conducted on a single target, selected for its structural properties rather than for affinity with the approach; while the absence of any target-specific code makes portability a property of the design, transferability to a production Big Data platform remains to be demonstrated empirically.
 Third, \texttt{WHITE\_BOX} coverage depends on access to the configuration plane of the gateway, which is typically unavailable in managed cloud deployments; in those contexts the assessment degrades to its \texttt{BLACK\_BOX} and \texttt{GREY\_BOX} subsets, with documented rather than silent loss of coverage.
-Fourth, one of the eight domains carries no active checks in the evaluated implementation.
+Fourth, one of the eight domains carries no active tests in the evaluated implementation.
 
 
 %% ============================================================================
@@ -501,8 +494,8 @@ Fourth, one of the eight domains carries no active checks in the evaluated imple
 %% ============================================================================
 
 We addressed the security assurance of Big Data services at the level where every access to their data and pipelines is actually enforced: the API.
-We proposed a contract-driven approach in which the OpenAPI specification of the target governs the construction of syntactically valid probes, while the evaluation criterion of each check is derived from the domain knowledge of the security control being exercised and encoded a~priori as a specified oracle.
-Checks are organised in an eight-domain taxonomy whose coverage scales with the privileges available to the assessor, and are executed by a deterministic engine that resolves dependencies topologically and communicates its outcome through semantically distinct exit codes.
+We proposed a contract-driven approach in which the OpenAPI specification of the target governs the construction of syntactically valid probes, while the evaluation criterion of each test is derived from the domain knowledge of the security control being exercised and encoded a~priori as a specified oracle.
+Tests are organised in an eight-domain taxonomy whose coverage scales with the privileges available to the assessor, and are executed by a deterministic engine that resolves dependencies topologically and communicates its outcome through semantically distinct exit codes.
 
 The evaluation, conducted on a service instantiating the repository role of a Big Data pipeline delivery workflow and exposed through an API gateway, showed that the approach distinguishes correctly between conformance and violation on a testbed configured to yield both; that it surfaces a real misalignment between a published contract and the observed behaviour of the system; and that independent executions produce byte-identical results, which makes the assessment comparable over time and embeddable in a continuous release cycle.
 
