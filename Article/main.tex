@@ -19,9 +19,10 @@
 %% auto break lines
 \lstset{breaklines=true}
 
-%% TODO: remove before final submission — serve solo per il placeholder
-%% \lipsum nell'Introduction (sezione ancora da scrivere).
-\usepackage{lipsum}
+%% Necessario per la Figura 2 (topologia del testbed)
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usetikzlibrary{fit,backgrounds,positioning}
 
 %%
 %% end of the preamble, start of the body of the document source.
@@ -126,53 +127,36 @@
 
 %% ============================================================================
 \section{Introduction}
+\label{sec:intro}
 %% ============================================================================
-%% TO BE WRITTEN LAST. Argument chain agreed with the supervisor, five steps:
-%%
-%% (1) Big Data value is delivered through pipelines composed of services
-%%     (ingestion, storage, processing, serving) orchestrated across the
-%%     edge-cloud continuum. Cite MUSA, Assurance in Advanced 5G Edge Continuum.
-%%
-%% (2) Trustworthiness must hold at every level — infrastructure, pipeline,
-%%     interface — and continuously, not as a one-off certificate.
-%%
-%% (3) Existing Big Data assurance work covers the lower and intermediate
-%%     levels: assurance processes for pipeline+ecosystem trustworthiness
-%%     [FGCS'23], SLA-based assurance [Big Data'23], DevSecOps assurance
-%%     [ICWS'22], ingestion-time access control [MEDES'21], and its recent
-%%     evolution into an ABAC-based data engine [Big Data'25]. The interface
-%%     level is the least covered.
-%%
-%% (4) Yet the interface is where enforcement happens. Every data access
-%%     crosses it; authentication, object-level authorization and data
-%%     exposure are enforced there, usually by a gateway. A guarantee proven
-%%     at pipeline level does not propagate end-to-end if the API exposing
-%%     that pipeline is permeable.
-%%
-%% (5) And there, automated testing does not reach: 72/92 contributions target
-%%     functional conformance, 8/92 address security testing explicitly
-%%     [Golmohammadi], and building evaluation criteria for security
-%%     guarantees is the least solved problem [Barr].
-%%
-%% Then: what this paper does (one paragraph), contributions (3 items),
-%% and the outline paragraph, in the ITADATA house style:
-%%   "The remainder of the paper is organised as follows. Section 2 ...
-%%    Section 6 draws our conclusions and outlines future work."
-%%
-%% Contributions to state explicitly:
-%%   (i)   an implementation-agnostic eight-domain taxonomy for the security
-%%         assurance of service APIs, with privilege-aware coverage;
-%%   (ii)  a systematic use of specified oracles in API security testing, with
-%%         evaluation criteria derived from the semantics of each control;
-%%   (iii) a deterministic, DAG-based assessment engine whose output is
-%%         reproducible and machine-actionable, and its empirical validation.
 
-\lipsum[1-2] % TODO: remove — placeholder, sostituire con l'introduzione vera prima della consegna.
+Modern Big Data systems deliver their value through pipelines composed of distributed services -- ingestion, storage, processing, serving -- rather than through a single monolithic engine.
+Trustworthiness in this setting cannot be a property of one layer alone: it must hold at the pipeline level, at the level of the ecosystem of services executing it, at the level of the data it governs, and at the interface level, and it must hold continuously, as pipelines evolve, rather than as a one-off certificate issued at deployment time.
+
+Existing work on Big Data assurance addresses the first two levels. Anisetti et al. propose an assurance process for Big Data pipelines and their underlying ecosystem~\cite{anisettiAssuranceProcessBig2023}; Ardagna et al. address the same problem through service-level agreements~\cite{ardagnaBigDataAssurance2023}; continuous verification across the pipeline life cycle has been framed as a DevSecOps activity~\cite{anisettiDevSecOpsbasedAssuranceProcess2022}; and access control has been enforced at data-ingestion time, an approach recently extended into an attribute-based data engine~\cite{anisettiDynamicScalableEnforcement2021,polimenoBalancingProtectionQuality2025}.
+Across this body of work, the interface level is the least covered.
+
+Yet the interface is where enforcement actually happens. Every access to a Big Data pipeline and to the data it processes crosses an API, typically exposed through a gateway that concentrates authentication, authorization, and rate limiting; a guarantee proven at the pipeline level does not propagate end-to-end if the API exposing that pipeline is permeable.
+
+Automated API testing does not close this gap. A systematic review of 92 contributions shows that 72 target functional conformance and only 8 address security testing explicitly~\cite{golmohammadiTestingRESTfulAPIs2023}; and even where security is the explicit target, building the evaluation criteria that decide whether an observed behaviour violates a security guarantee remains the least solved problem in test automation~\cite{barrOracleProblemSoftware2015}.
+
+This work addresses that gap. We propose a contract-driven approach to the security assurance of Big Data service APIs, in which the target's OpenAPI specification governs the construction of syntactically valid probes and the evaluation criterion of each test is derived from the domain knowledge of the security control being exercised, rather than from the syntax of the request or response alone. The approach is organised around three research questions:
+
+\begin{itemize}
+  \item \textbf{RQ1}: Can security guarantees of an API-exposed Big Data service be verified beyond syntactic conformance, using criteria derived from the semantics of the security controls themselves?
+  \item \textbf{RQ2}: Can such verification be made deterministic and reproducible across independent executions, so that it can be embedded in a continuous release cycle?
+  \item \textbf{RQ3}: Does the resulting approach correctly distinguish enforced from bypassed guarantees on a real target, including anomalies not anticipated in advance?
+\end{itemize}
+
+The contributions of this paper are threefold: (i) an implementation-agnostic eight-domain taxonomy for the security assurance of service APIs, with privilege-aware coverage; (ii) a systematic use of specified oracles in API security testing, with evaluation criteria derived from the semantics of each control; and (iii) a deterministic, DAG-based assessment engine whose output is reproducible and machine-actionable, together with its empirical validation.
+
+The remainder of the paper is organised as follows. Section~\ref{sec:related} discusses related work. Section~\ref{sec:scenario} details the reference scenario. Section~\ref{sec:method} presents the contract-driven approach. Section~\ref{sec:eval} reports the experimental evaluation. Section~\ref{sec:conclusions} draws our conclusions and outlines future work.
 
 
 
 %% ============================================================================
 \section{Related Work}
+\label{sec:related}
 %% ============================================================================
 
 Two lines of work meet in this paper: assurance of Big Data systems, and automated testing of REST APIs.
@@ -230,6 +214,7 @@ And the absence of deterministic execution prevents results from being compared 
 
 %% ============================================================================
 \section{Reference Scenario}
+\label{sec:scenario}
 %% ============================================================================
 
 We consider the development and delivery of Big Data pipelines.
@@ -373,7 +358,7 @@ Because the codes are semantically distinct, a CI/CD pipeline can route on the e
 \subsection{Testbed}
 
 The target environment was selected from the coverage matrix of the test suite: we needed an application with a natively generated OpenAPI specification rather than one reconstructed after the fact, endpoints protected by real authentication, at least two distinct privilege levels, parameterised endpoints with resolvable path values, and behaviour that remains stable across successive runs.
-Forgejo~14.0.3~\cite{forgejoContributors2026}, a self-hosted Git service exposing repositories, users, tokens, and webhooks through a documented REST API, satisfies all of them, and instantiates the repository service of the reference scenario of Section~3.
+Forgejo~14.0.3~\cite{forgejoContributors2026}, a self-hosted Git service exposing repositories, users, tokens, and webhooks through a documented REST API, satisfies all of them, and instantiates the repository service of the reference scenario of Section~\ref{sec:scenario}.
 
 Forgejo is exposed through Kong~3.9~\cite{kongGateway2026} in DB-less mode, with PostgreSQL~15-alpine as Forgejo's persistence backend; an ephemeral container provisions three accounts at first start -- an administrator and two ordinary users -- and terminates.
 All services run in a dedicated Docker network declared in a single Compose file, on a development host, without dedicated hardware.
@@ -386,9 +371,47 @@ This is the concrete demonstration of the application agnosticism claimed in Sec
 
 \begin{figure}[t]
   \centering
-  %% SOURCE: Tesi/assets/figures/5-testbed-topology.tex — reuse as is.
-  \fbox{\parbox{0.9\textwidth}{\centering\vspace{3em}FIGURE PLACEHOLDER\vspace{3em}}}
-  \caption{Topology of the experimental testbed.}
+  \begin{adjustbox}{max width=\columnwidth}
+    \begin{tikzpicture}[
+        node distance=4ex and 2.5em,
+        cls/.style={draw, rounded corners=1pt, inner sep=5pt, align=center, font=\small, minimum height=3.5ex},
+        host/.style={cls, fill=orange!10, draw=orange!50, minimum width=13.5em},
+        infra/.style={cls, fill=blue!7, draw=blue!40, minimum width=13.5em},
+        app/.style={cls, fill=green!7, draw=green!45, minimum width=9em},
+        backend/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
+        users/.style={cls, fill=gray!8, draw=gray!50, minimum width=9em},
+        group/.style={draw=gray!60, fill=gray!3, dashed, inner sep=12pt, rounded corners=3pt},
+        arr/.style={-latex, semithick, gray!80!black},
+        darr/.style={-latex, semithick, dashed, gray!80!black},
+        barr/.style={latex-latex, semithick, gray!80!black},
+      ]
+
+      \node[host] (host) {\textbf{Host: apiguard-assurance}\\{\footnotesize Python process, \texttt{apiguard run}}};
+
+      \node[infra, below=7ex of host] (kong) {\textbf{Kong~3.9 DB-less}\\{\footnotesize :8000 (HTTP proxy)}\\{\footnotesize :8443 (HTTPS proxy)}\\{\footnotesize :8001 (Admin API)}};
+
+      \node[app, right=2.5em of kong] (forgejo) {\textbf{Forgejo~14.0.3}\\{\footnotesize target application}};
+
+      \node[users, left=2.5em of kong] (rbac) {\textbf{RBAC users}\\{\footnotesize thesis-admin}\\{\footnotesize user-a}\\{\footnotesize user-b}};
+
+      \node[backend, below=4ex of forgejo] (pg) {\textbf{PostgreSQL}\\{\footnotesize Forgejo backend}};
+
+      \begin{scope}[on background layer]
+        \node[group, fit=(kong)(forgejo)(pg)] (compose) {};
+      \end{scope}
+      \node[font=\footnotesize\bfseries, text=gray!70!black, anchor=south west, xshift=1ex, yshift=0.5ex] at (compose.south west) {Docker Compose network};
+
+      \draw[arr] (host.south) -- node[pos=0.35, right, align=left, font=\footnotesize\itshape, text=gray!70!black] {:8000/:8443 probe \\ :8001 Admin API} (kong.north);
+
+      \draw[arr] (kong.east) -- node[midway, above, align=center, font=\footnotesize\itshape, text=gray!70!black] {proxy/ \\route} (forgejo.west);
+
+      \draw[barr] (forgejo.south) -- node[midway, right, font=\footnotesize\itshape, text=gray!70!black] {SQL} (pg.north);
+
+      \draw[darr] (rbac.east) -- node[midway, above, font=\footnotesize\itshape, text=gray!70!black] {token} (kong.west);
+
+    \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Topology of the experimental testbed: Kong~3.9 routes traffic between the tool and Forgejo~14.0.3, backed by PostgreSQL.}
   \label{fig:testbed}
 \end{figure}
 
@@ -397,11 +420,10 @@ This is the concrete demonstration of the application agnosticism claimed in Sec
 Validating an assessment approach against a correctly configured environment would produce a suite of uniform successes: a tautological result that demonstrates nothing about the ability to detect real violations.
 The testbed is therefore configured so that some tests yield expected failures and others yield expected successes, and the combination constitutes a functionally complete bench on which the approach must distinguish the two.
 
-Three conditions produce expected failures.
-Kong's rate-limiting plugin is disabled, a recurrent condition in non-production environments where throttling interferes with application testing.
-The TLS certificate is self-signed, which by construction exhibits configurations below production baselines and represents a realistic development and staging scenario.
-Finally, the OpenAPI specification of Forgejo declares an authentication requirement globally, through the document-level \texttt{security} field, which the specification analyser propagates to every endpoint; some of those endpoints are genuinely public.
-Three conditions produce expected successes: a response transformer injects the HTTP security headers on every response; gateway fingerprinting headers are suppressed; and a dedicated service returns a correct \texttt{301} redirect for any plain-HTTP request.
+The testbed combines deliberately engineered conditions with Forgejo's and Kong's behaviour as deployed, which the testbed does not control and cannot predict in advance.
+Some conditions were deliberately broken to produce expected failures: for instance, Kong's rate-limiting plugin is disabled, a recurrent condition in non-production environments where throttling interferes with application testing, and the TLS certificate is self-signed, which by construction exhibits configurations below production baselines.
+Others were deliberately configured to produce expected successes: for instance, a response transformer injects the HTTP security headers on every response, and a dedicated service enforces the HTTP-to-HTTPS redirect.
+The rest of the results follow from Forgejo's and Kong's native behaviour; Section~\ref{sec:discrepancy} discusses the most informative of them.
 
 \subsection{Results}
 
@@ -412,25 +434,34 @@ The assessment produced 9~\texttt{PASS}, 7~\texttt{FAIL}, 2~\texttt{SKIP}, 0~\te
 \begin{table}
   \caption{Per-test results of the assessment.}
   \label{tab:results}
-  %% SOURCE: Tesi/assets/tables/5-risultati-per-test.tex — reuse.
-  \begin{tabular}{llr}
+  \begin{tabular}{llr @{\hspace{1em}} | @{\hspace{1em}} llr}
     \toprule
-    \textbf{Test} & \textbf{Status} & \textbf{Findings} \\
+    \textbf{Test}                      & \textbf{Status} & \textbf{Findings} & \textbf{Test}   & \textbf{Status} & \textbf{Findings} \\
     \midrule
-    TODO          & TODO            & TODO              \\
+    0.1                                & \texttt{FAIL}   & 16                & 4.1             & \texttt{FAIL}   & 2                 \\
+    0.2                                & \texttt{FAIL}   & 1                 & 4.2             & \texttt{PASS}   & 0                 \\
+    0.3                                & \texttt{SKIP}   & 0                 & 4.3             & \texttt{PASS}   & 0                 \\
+    1.1                                & \texttt{FAIL}   & 74                & 6.2             & \texttt{PASS}   & 0                 \\
+    1.4                                & \texttt{PASS}   & 0                 & 6.4             & \texttt{PASS}   & 0                 \\
+    1.5                                & \texttt{PASS}   & 0                 & 7.2             & \texttt{FAIL}   & 1                 \\
+    1.6                                & \texttt{SKIP}   & 0                 & ext.0.1.nuclei  & \texttt{PASS}   & 0                 \\
+    2.1                                & \texttt{PASS}   & 0                 & ext.1.5.sslyze  & \texttt{FAIL}   & 1                 \\
+    3.3                                & \texttt{PASS}   & 0                 & ext.1.5.testssl & \texttt{FAIL}   & 3                 \\
+    \midrule
+    \multicolumn{5}{r}{\textbf{Total}} & \textbf{98}                                                                                 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The seven failures correspond one-to-one to the conditions configured in the testbed.
-Test~1.1 alone accounts for 74 of the 98 findings, a point we return to in Section~\ref{sec:discrepancy}; the remaining 24 are distributed over the discovery tests, the rate-limiting test, the SSRF test, and the two external TLS analysers, which detect one and three findings respectively on the self-signed certificate, confirming that the analysis discriminates individual weaknesses rather than collapsing them into a single verdict.
+Some failures follow directly from the engineered conditions -- the rate-limiting test and the two external TLS analysers, which detect one and three findings respectively on the self-signed certificate -- while others surface native behaviour of Forgejo and Kong, such as the discovery tests, the SSRF test, and test~1.1, which alone accounts for 74 of the 98 findings, a point we return to in Section~\ref{sec:discrepancy}.
+The distribution of findings across these tests confirms that the analysis discriminates individual weaknesses rather than collapsing them into a single verdict.
 
 The two skips illustrate the behaviour of the process in the absence of applicability conditions.
 Every test always produces a result: when the applicable scope is empty or a prerequisite is unmet, that result is a \texttt{SKIP} with an explicit reason, not a silent error.
 The specification of Forgejo declares no deprecated endpoint, so the deprecation test reports a documented skip; the testbed gateway manages no external session store, so the corresponding test does the same.
 In both cases a documented skip is the semantically correct answer, and is distinct from an \texttt{ERROR}, which would indicate a malfunction of the process itself.
 
-The nine successes cover the correctly applied configurations: absence of gateway fingerprinting, HTTP-to-HTTPS redirect, correct token revocation, authentication enforcement on the authenticated tests, upstream configuration, the data integrity and availability controls, and the external scanner, which detected no shadow API -- confirming that the surface documented by the specification matches the one actually exposed.
+The nine successes likewise mix engineered and native outcomes: the security headers test and the HTTP-to-HTTPS redirect test reflect the deliberately configured conditions, while correct token revocation, authorization enforcement, upstream configuration, and the data integrity and availability controls reflect Forgejo's and Kong's own behaviour operating as intended. The external scanner detected no shadow API, confirming that the exposed surface matches the one documented by the specification.
 
 \subsection{A Discrepancy Between Contract and Behaviour}
 \label{sec:discrepancy}
@@ -439,9 +470,9 @@ The most informative outcome of the assessment is test~1.1.
 Forgejo declares an authentication requirement at the document level of its specification; the analyser propagates that marker to every endpoint and classifies them as requiring authentication.
 When the test interrogates them without credentials and receives \texttt{2xx}, the three-valued oracle classifies the outcome as \textsc{bypassed} and emits a finding, for a total of 74.
 
-The verdict is contractually correct, and the behaviour it exposes is a genuine misalignment: the endpoints in question are public by design, but the published contract does not say so.
-This is precisely the class of anomaly that contract-driven assessment exists to detect, and its relevance in the reference scenario is direct.
-The specification a Big Data service publishes is what its consumers rely on when reasoning about which of its operations require authorisation; a contract that overstates its own protections is as much an assurance defect as an unenforced control, because it makes the guarantee unverifiable by the parties that depend on it.
+The verdict is contractually correct, and the behaviour it exposes is a genuine misalignment: the endpoints in question are genuinely public, but the published contract does not say so.
+This is precisely the class of anomaly that contract-driven assessment exists to detect, and it is exactly the risk anticipated in Section~\ref{sec:scenario}: an endpoint that responds without credentials while the specification declares it protected invalidates the assumptions that data engineers legitimately make about the pipeline repository.
+A contract that overstates its own protections is as much an assurance defect as an unenforced control, because it leaves every consumer of that contract unable to verify which guarantees actually hold.
 The case also illustrates concretely the epistemic limit of Section~\ref{sec:oracles}: findings of this kind are correct with respect to the contract, and require an analyst to decide whether the discrepancy is an intentional configuration or an actual vulnerability.
 
 \subsection{Determinism, Idempotence, and Footprint}
@@ -449,7 +480,7 @@ The case also illustrates concretely the epistemic limit of Section~\ref{sec:ora
 The assessment was executed twice in sequence against the same testbed, with no manual intervention between the runs.
 Table~\ref{tab:kpi} reports the aggregate indicators.
 Finding counters, per-test statuses, exit code, and pass rate are byte-identical across the two runs: the deterministic part of the result exhibits no variation.
-The wall-clock delta is 0.32\%, which falls within the expected fluctuation of HTTP latency towards the target and is not attributable to non-deterministic behaviour of the process.
+The wall-clock delta is 0.23\%, which falls within the expected fluctuation of HTTP latency towards the target and is not attributable to non-deterministic behaviour of the process.
 
 Teardown is the precondition of idempotence: without a complete cleanup of the resources created during the first execution, the second would encounter an altered state and produce different results.
 Verification after each run confirmed that the teardown phase drained the LIFO registry with no residual resources, leaving no tokens and no repositories created by the assessment on the target accounts.
@@ -457,8 +488,7 @@ Verification after each run confirmed that the teardown phase drained the LIFO r
 The execution profile qualifies operational integrability.
 Of approximately 290~seconds of wall-clock time, the process consumed about 35~seconds of CPU in user space and 41~seconds in kernel space: 26\% of the total.
 The remaining 214~seconds were spent waiting for HTTP responses, for the completion of external analysers, and for disk I/O.
-The regime is dominated by network latency, so optimising the implementation would have marginal impact; the significant reduction would come from parallelising the tests without mutual dependencies, which the batch structure already permits by construction.
-Peak memory of 287--295~MB and 4.5~MB of output are compatible with the constraints of typical CI/CD runners.
+The regime is dominated by network latency, so optimising the implementation would have marginal impact; the significant reduction would come from parallelising tests within the same batch that have no mutual dependencies, an extension left to future work.
 
 \begin{table}
   \caption{Aggregate indicators over two independent runs, and execution profile.}
@@ -473,7 +503,7 @@ Peak memory of 287--295~MB and 4.5~MB of output are compatible with the constrai
     Total findings             & 98             & 98             & identical        \\
     Pass rate (\%)             & 56.2           & 56.2           & identical        \\
     Exit code                  & 1              & 1              & identical        \\
-    Duration (s)               & 286.04         & 286.96         & $+0.32\%$        \\
+    Duration (s)               & 290.14         & 290.81         & $+0.23\%$        \\
     Residual resources         & 0              & 0              & identical        \\
     \bottomrule
   \end{tabular}
@@ -484,20 +514,21 @@ Peak memory of 287--295~MB and 4.5~MB of output are compatible with the constrai
 
 Four limits bound the scope of these results.
 First, the correctness of every verdict is conditional on the quality of the specification taken as the oracle: an incomplete contract reduces the observable surface without the process being able to detect the reduction, and a wrong contract grounds correct verdicts on wrong premises.
-Second, validation was conducted on a single target, selected for its structural properties rather than for affinity with the approach; while the absence of any target-specific code makes portability a property of the design, transferability to a production Big Data platform remains to be demonstrated empirically.
+Second, validation was conducted on a single target, selected for its structural properties rather than for affinity with the approach; while the absence of any target-specific code makes portability a property of the design, further validation across other services in a Big Data pipeline -- ingestion, processing, and serving components, beyond the repository service evaluated here -- would strengthen the generality of the approach.
 Third, \texttt{WHITE\_BOX} coverage depends on access to the configuration plane of the gateway, which is typically unavailable in managed cloud deployments; in those contexts the assessment degrades to its \texttt{BLACK\_BOX} and \texttt{GREY\_BOX} subsets, with documented rather than silent loss of coverage.
 Fourth, one of the eight domains carries no active tests in the evaluated implementation.
 
 
 %% ============================================================================
 \section{Conclusions}
+\label{sec:conclusions}
 %% ============================================================================
 
 We addressed the security assurance of Big Data services at the level where every access to their data and pipelines is actually enforced: the API.
 We proposed a contract-driven approach in which the OpenAPI specification of the target governs the construction of syntactically valid probes, while the evaluation criterion of each test is derived from the domain knowledge of the security control being exercised and encoded a~priori as a specified oracle.
 Tests are organised in an eight-domain taxonomy whose coverage scales with the privileges available to the assessor, and are executed by a deterministic engine that resolves dependencies topologically and communicates its outcome through semantically distinct exit codes.
 
-The evaluation, conducted on a service instantiating the repository role of a Big Data pipeline delivery workflow and exposed through an API gateway, showed that the approach distinguishes correctly between conformance and violation on a testbed configured to yield both; that it surfaces a real misalignment between a published contract and the observed behaviour of the system; and that independent executions produce byte-identical results, which makes the assessment comparable over time and embeddable in a continuous release cycle.
+The evaluation, conducted on a service instantiating the repository role of a Big Data pipeline delivery workflow and exposed through an API gateway, answers the three research questions of Section~\ref{sec:intro}: the approach distinguishes correctly between conformance and violation on a testbed configured to yield both, including anomalies not anticipated in advance (RQ3); it surfaces a real misalignment between a published contract and the observed behaviour of the system, using criteria derived from the semantics of the security controls themselves (RQ1); and independent executions produce byte-identical results (RQ2), which makes the assessment comparable over time and embeddable in a continuous release cycle.
 
 Future work proceeds along two directions.
 On the operational side, completing the partially covered domains and providing adapters for the managed gateways of the major cloud providers would extend coverage in the deployments where it is currently narrowest.
