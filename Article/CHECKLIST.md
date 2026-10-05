@@ -32,4 +32,4 @@
 
 ## Prima di compilare/sottomettere
 - [ ] Rimosse tutte le sezioni "manuale" ereditate dal template (Introduction/Modifications/Template parameters/Front matter/Sectioning Commands/Tables/Math Equations demo, Citations demo, "Online Resources" finale).
-- [ ] `\bibliography{biblio}` punta davvero alle chiavi citate nel testo (già collegato a `Tesi/biblio.bib` via `.latexmkrc`, verificato funzionante).
+- [ ] `\bibliography{biblio}` punta davvero alle chiavi citate nel testo (`biblio.bib` ora vive in questa cartella, verificato funzionante).

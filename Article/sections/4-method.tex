@@ -1,0 +1,145 @@
+% !TEX root = ../main.tex
+%% ============================================================================
+\section{Contract-Driven API Assurance}
+\label{sec:method}
+%% ===========================================================================
+
+In this section, we first present the design principles that guided the development of our contract-driven API assurance approach. We then describe the eight-domain taxonomy used to organize the assurance activities. Finally, we present our assessment engine.
+
+\subsection{Design Principles}
+\label{sec:principles}
+
+Four principles govern the approach.
+
+\emph{Application agnosticism.} All knowledge of the target is derived at runtime from two sources only: the OpenAPI specification and a configuration file that supplies deployment-specific values, such as concrete values for parameterised paths and credentials for each configured role.
+No reference to any specific system is hardcoded, so the approach applies to any documented REST API without modifying code and without access to the source of the target.
+
+\emph{Contract-driven probing.} The specification is the contractual foundation of the whole process.
+It governs the construction of requests that respect the declared types, formats, and constraints, so that probes are not rejected by the input validation layer before reaching the application logic; it delimits the assessment surface to the documented endpoints, which makes any endpoint responding outside that set a shadow API by definition; and it supplies the primary structural criterion against which responses are evaluated.
+Using a formal specification to build valid requests and using it to judge responses are distinct capabilities, and existing approaches largely stop at the first~\cite{atlidakisRESTlerStatefulREST2019a}.
+
+\emph{Configuration as the single source of variation.} Every operational parameter -- timeouts, thresholds, priority filters, output paths -- resides in the configuration file; credentials reside in a separate, non-versioned file and are interpolated before parsing.
+If behaviour changes between two executions, it is because the configuration changed.
+
+\emph{Deterministic reproducibility.} The same target, in the same configuration, must produce identical results at every execution.
+This is the property that turns an assessment from a single observation into a comparable measurement, and it is a precondition for the empirical claims of Section~\ref{sec:eval}.
+
+\subsection{An Eight-Domain Assurance Taxonomy}
+\label{sec:taxonomy}
+
+Security guarantees are organised in eight domains, reported in Table~\ref{tab:domains}, aligned with the risk categories and runtime controls that NIST SP~800-228 identifies for cloud-native APIs~\cite{chandramouliGuidelinesAPIProtection2026}.
+The taxonomy is independent of any implementation: it partitions the security surface of an API exposed through a gateway into semantically distinct categories, each with its own evaluation criteria and priorities, and it is applicable to any structured assessment regardless of the tooling employed.
+
+\begin{table}
+  \caption{The eight assurance domains.}
+  \label{tab:domains}
+  %% SOURCE: Tesi/assets/tables/3-domini.tex — translate, shorten the scope column.
+  \begin{tabular}{p{0.08\textwidth} p{0.22\textwidth} p{0.58\textwidth}}
+    \toprule
+    \textbf{Domain} & \textbf{Title}                    & \textbf{Scope of verification}                                                                    \\
+    \midrule
+    D0              & API Discovery                     & Inventory of exposed endpoints; detection of shadow APIs not documented in the specification.     \\
+    D1              & Identity \& Authentication        & Caller recognition mechanisms; robustness of credential transport; JWT life cycle and revocation. \\
+    D2              & Authorization                     & Access control logic; horizontal and vertical segregation defects (RBAC, BOLA).                   \\
+    D3              & Data Integrity                    & Structural coherence of payloads; implementation of cryptographic signatures (HMAC).              \\
+    D4              & Availability \& Resilience        & Defences against resource exhaustion; audit of circuit breakers and rate-limiting thresholds.     \\
+    D5              & Observability                     & Quality and timeliness of the telemetry the system produces.                                      \\
+    D6              & Configuration \& Hardening        & Hardening of the gateway configuration; routing policies; HTTP security headers.                  \\
+    D7              & Business Logic \& Sensitive Flows & Complex semantic flaws: process constraint evasion, SSRF, race conditions on critical operations. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The first three domains form a chain of preconditions.
+Verifying authorization (D2) without having established that authentication works (D1) collects evidence about a system whose behaviour under compromised authentication is unknown, and verifying authentication without knowing the attack surface (D0) leaves that evidence incomplete.
+Domains D3--D7 belong to distinct semantic families with no mutual ordering constraint.
+Domain D5 (Observability) is architecturally provisioned but carries no active tests in the implementation evaluated here; its numbering is reserved to preserve the coherence of the sequence.
+
+\subsection{The Assessment Engine}
+\label{sec:engine}
+
+The assessment runs as seven phases, split into two groups with different failure semantics.
+
+The first four phases are blocking: reading the configuration, retrieving and validating the OpenAPI specification, building the execution context, and scheduling the tests.
+A failure in any of them stops the process before a single test runs, because nothing downstream can be trusted otherwise.
+
+The last three phases are non-blocking: running the tests, cleaning up, and producing the report.
+A failure in one test is recorded as a structured result and execution continues, so a single broken test cannot silently invalidate the rest of the run.
+
+Tests can declare a dependency on other tests, and a scheduler resolves these dependencies into a topological execution order before anything runs.
+This is a semantic correctness requirement: a test that checks token revocation only makes sense once a test confirming that authentication works has already produced a valid token, and running it earlier would make its outcome depend on scheduling order rather than on the target's actual behaviour.
+Dependency cycles are caught statically, before execution starts.
+A separate check also guards against the rarer case in which the scheduler reaches a deadlock despite an acyclic graph, reporting the exact set of tests that could not be run rather than failing with a generic error.
+
+Determinism (\textbf{G4}) follows from four mechanisms acting together.
+A configuration file fixes every parameter the tool could otherwise decide on its own, leaving no source of variation internal to the tool.
+The scheduling order depends only on declared dependencies, never on chance.
+A lexicographic ordering breaks ties between tests that become ready at the same time.
+The oracles introduced later in Section~\ref{sec:oracles} are fixed in advance.
+What is allowed to vary between runs, such as timestamps and internal record identifiers, has no bearing on what matters: the aggregate counts, the per-test verdicts, and the findings.
+
+The process ends with one of four semantically distinct exit codes, which separate success from failure and distinguish different kinds of failure from one another.
+This lets a CI/CD pipeline react automatically, routing a security violation to whoever owns the target and an infrastructural problem to whoever maintains the assessment's own deployment, without anyone having to read the logs first.
+
+
+\subsubsection{Oracles for Security Guarantees}
+\label{sec:oracles}
+
+Generating well-formed input is a largely solved problem in test automation. Deciding whether the resulting behaviour is correct is not, and this is exactly the gap identified as \textbf{G2}.
+Barr et al. distinguish four ways this decision can be automated~\cite{barrOracleProblemSoftware2015}. A \emph{specified} oracle derives its criterion from a formal specification. A \emph{derived} oracle infers its criterion from other artefacts, such as past executions. An \emph{implicit} oracle only catches universal anomalies, such as crashes. A \emph{no-oracle} strategy gives up automatic judgement altogether.
+None of these categories, on its own, tells us whether a response violates a \emph{security} guarantee: that judgement needs the domain knowledge of the specific control being checked, not just a generic classification of where the criterion comes from.
+
+We close this gap by giving every test its own \emph{specified oracle}, built with the same three-step procedure: identify the class of guarantee under verification, determine what a violation of it looks like, and encode the resulting rule directly in the test.
+What changes from test to test is only where that rule comes from; the procedure itself never changes.
+
+Table~\ref{tab:oracles} shows this procedure applied to a set of representative examples across the domains of Table~\ref{tab:domains}.
+Each row reads as follows: \emph{Domain} names the domain from Table~\ref{tab:domains} the guarantee belongs to; \emph{Class of guarantee} names the property being checked; \emph{Source of the criterion} says where the pass/fail rule comes from (i.e., the specification itself, a published external standard, or a comparison of responses across roles); \emph{Verdict rule} gives the concrete condition that makes that specific test fail.
+The same three-step procedure applies to every other test in the suite, not only to the examples shown here.
+Each source encodes something about what the control is supposed to guarantee, rather than a status code or a generic structural check, closing the syntactic blindness identified as \textbf{G1}.
+
+\begin{table}
+  \caption{Sources of the evaluation criterion, by class of guarantee, mapped to the domain of Table~\ref{tab:domains} it belongs to.}
+  \label{tab:oracles}
+  \begin{tabular}{p{0.05\textwidth} p{0.17\textwidth} p{0.30\textwidth} p{0.36\textwidth}}
+    \toprule
+    \textbf{D.} & \textbf{Class of guarantee}     & \textbf{Source of the criterion}                                             & \textbf{Verdict rule (example)}                                                                              \\
+    \midrule
+    D0          & Attack-surface conformance      & Set difference between responding and documented endpoints                   & an endpoint that responds without being declared is a shadow API                                             \\
+    D0          & Protocol-level requirements     & Published technical standards                                                & a deprecated endpoint returning neither \texttt{410 Gone} nor a \texttt{Sunset} header is a violation        \\
+    D1          & Authentication enforcement      & \texttt{security} markers of the specification, plus credential-less probing & a \texttt{2xx} response to an unauthenticated request on an endpoint declared as protected is a bypass       \\
+    D2          & Response structural conformance & Contractual schema declared in the specification                             & a field present in the response but absent from the declared schema is a violation                           \\
+    D2          & Authorization                   & Comparison of responses obtained with credentials of distinct roles          & a resource of one role readable with the credentials of another is a violation                               \\
+    D6          & Infrastructural guarantees      & Direct inspection of the gateway configuration plane                         & the absence of a required security header (e.g. HSTS) in the gateway's declared configuration is a violation \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+A fixed criterion has one benefit and one limit.
+
+The benefit is operational. Because the criterion never changes, the same system probed under the same configuration always produces the same verdict, and this is what lets Section~\ref{sec:eval} treat two independent runs as comparable measurements rather than two unrelated observations.
+
+%OLD 
+% \revTfour{The limit is epistemic. A verdict is only as correct as the \revFix{We consider a Big Da it is checked against.
+% An incomplete specification hides an endpoint from the assessment with no way to detect the omission; a specification that misstates a requirement makes the tool praise or blame the target for the wrong reason.}
+The limit is epistemic. A verdict is only as correct as the contract it is checked against.
+An incomplete specification hides an endpoint from the assessment with no way to detect the omission; a specification that misstates a requirement makes the tool praise or blame the target for the wrong reason.
+A divergence from the contract is therefore always reported, whether or not it is exploitable, because the contract is what consumers rely on. Grading how severe that divergence is falls outside the scope of the approach, which reports it together with the evidence behind it and leaves the judgement to an analyst.
+Section~\ref{sec:threats} returns to this limit, and Section~\ref{sec:discrepancy} reports a concrete instance of it.
+
+Application agnosticism (Section~\ref{sec:principles}) and these specified oracles together let the tool carry its portability across targets without leaving its security-aware evaluation logic behind, closing \textbf{G3} by no longer trading depth for reach.
+
+%\subsubsection{Privilege-Aware Coverage}
+Running the oracle that judges a guarantee is not always possible from the same vantage point. Each test requires a specific level of access to the target.%, and that requirement determines its strategy.
+
+\texttt{BLACK\_BOX} tests need network access alone.
+They check perimeter controls that the gateway applies to any caller, so probing them without credentials is the only way to see the system as an external attacker would, uncontaminated by any implicit privileges.
+
+\texttt{GREY\_BOX} tests need valid credentials for at least two distinct roles.
+An RBAC check, for example, can only surface a defect by comparing what two identities are allowed to do on the same resource; a single authenticated identity cannot reveal a segregation failure.
+
+\texttt{WHITE\_BOX} tests need direct access to the gateway's administrative configuration plane.
+Some guarantees, such as whether a security header is enforced by policy, leave no trace in the responses an external caller sees, and can only be verified by reading the configuration directly.
+
+Each test declares its required strategy as fixed metadata; the tool itself does not choose a mode.
+What changes across deployments is the configuration file. When credentials for two roles or admin access to the gateway are unavailable, the corresponding tests are skipped with an explicit reason, and coverage narrows accordingly without any change to the tool.
+
